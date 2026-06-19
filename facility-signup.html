@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Partner with CoverCare – CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="signup.css" />
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">CoverCare Africa</a>
+    <a href="worker-signup.html" class="nav-link">I'm a professional</a>
+  </nav>
+
+  <!-- HEADER -->
+  <section class="signup-header">
+    <p class="section-label">For facilities</p>
+    <h1>Partner with CoverCare Africa</h1>
+    <p>Tell us about your facility and we'll get you set up to post shifts and find staff instantly.</p>
+  </section>
+
+  <!-- FORM -->
+  <section class="signup-form-section">
+    <form class="signup-form" id="facilityForm">
+
+      <div class="form-group">
+        <label for="facilityName">Facility name</label>
+        <input type="text" id="facilityName" placeholder="e.g. Nyaho Medical Centre" required />
+      </div>
+
+      <div class="form-group">
+        <label for="facilityType">Facility type</label>
+        <select id="facilityType" required>
+          <option value="" disabled selected>Select facility type</option>
+          <option value="hospital">Hospital</option>
+          <option value="clinic">Clinic</option>
+          <option value="community-pharmacy">Community Pharmacy</option>
+          <option value="diagnostic-lab">Diagnostic Lab</option>
+          <option value="dental-practice">Dental Practice</option>
+          <option value="home-health">Home Health Agency</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="city">City</label>
+        <select id="city" required>
+          <option value="" disabled selected>Select your city</option>
+          <option value="accra">Accra</option>
+          <option value="kumasi">Kumasi</option>
+          <option value="tamale">Tamale</option>
+          <option value="cape-coast">Cape Coast</option>
+          <option value="takoradi">Takoradi</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="contactName">Contact person name</label>
+        <input type="text" id="contactName" placeholder="e.g. Dr. Ama Owusu" required />
+      </div>
+
+      <div class="form-group">
+        <label for="contactRole">Contact person role</label>
+        <select id="contactRole" required>
+          <option value="" disabled selected>Select role</option>
+          <option value="owner">Owner / Proprietor</option>
+          <option value="medical-director">Medical Director</option>
+          <option value="hr-manager">HR Manager</option>
+          <option value="pharmacy-manager">Pharmacy Manager</option>
+          <option value="administrator">Administrator</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Work email address</label>
+        <input type="email" id="email" placeholder="e.g. ama@nyaho.com" required />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" placeholder="e.g. 0244000000" required />
+      </div>
+
+      <div class="form-group">
+        <label for="staffNeeds">What roles do you typically need to fill?</label>
+        <select id="staffNeeds" required>
+          <option value="" disabled selected>Select primary need</option>
+          <option value="pharmacists">Pharmacists</option>
+          <option value="pharmacy-techs">Pharmacy Technicians</option>
+          <option value="medical-doctors">Medical Doctors</option>
+          <option value="nurses">Nurses</option>
+          <option value="lab-technicians">Lab Technicians</option>
+          <option value="mixed">Mixed — multiple roles</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="frequency">How often do you need cover staff?</label>
+        <select id="frequency" required>
+          <option value="" disabled selected>Select frequency</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">A few times a week</option>
+          <option value="monthly">A few times a month</option>
+          <option value="emergency">Emergency / ad hoc only</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-submit">Request early access</button>
+
+    </form>
+
+    <!-- SUCCESS STATE -->
+    <div class="success-card" id="successCard">
+      <div class="success-icon">✓</div>
+      <h2>Request received!</h2>
+      <p>Thank you for partnering with CoverCare Africa. Our team will contact you within 24 hours to get your facility set up and ready to post shifts.</p>
+      <a href="index.html" class="btn-home">Back to home</a>
+    </div>
+
+  </section>
+
+  <footer>
+    <p>© 2025 CoverCare Africa · Accra, Ghana</p>
+  </footer>
+
+  <script src="facility-signup.js"></script>
+
+</body>
+</html>
