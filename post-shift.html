@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post a Shift – CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="signup.css" />
+  <link rel="stylesheet" href="shift.css" />
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">CoverCare Africa</a>
+    <a href="worker-signup.html" class="nav-link">I'm a professional</a>
+  </nav>
+
+  <!-- HEADER -->
+  <section class="signup-header">
+    <p class="section-label">For facilities</p>
+    <h1>Post an open shift</h1>
+    <p>Tell us what you need and we'll match you with a verified professional within hours.</p>
+  </section>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-wrap">
+    <div class="progress-bar">
+      <div class="progress-step active" id="step1-dot">1</div>
+      <div class="progress-line"></div>
+      <div class="progress-step" id="step2-dot">2</div>
+      <div class="progress-line"></div>
+      <div class="progress-step" id="step3-dot">3</div>
+    </div>
+    <div class="progress-labels">
+      <span>Facility</span>
+      <span>Shift details</span>
+      <span>Requirements</span>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <section class="signup-form-section">
+    <form class="signup-form" id="shiftForm">
+
+      <!-- STEP 1: FACILITY INFO -->
+      <div class="form-step" id="step1">
+        <h3 class="step-title">Your facility</h3>
+
+        <div class="form-group">
+          <label for="facilityName">Facility name</label>
+          <input type="text" id="facilityName" placeholder="e.g. Nyaho Medical Centre" required />
+        </div>
+
+        <div class="form-group">
+          <label for="facilityType">Facility type</label>
+          <select id="facilityType" required>
+            <option value="" disabled selected>Select facility type</option>
+            <option value="hospital">Hospital</option>
+            <option value="clinic">Clinic</option>
+            <option value="community-pharmacy">Community Pharmacy</option>
+            <option value="diagnostic-lab">Diagnostic Lab</option>
+            <option value="dental-practice">Dental Practice</option>
+            <option value="home-health">Home Health Agency</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="city">City</label>
+          <select id="city" required>
+            <option value="" disabled selected>Select city</option>
+            <option value="accra">Accra</option>
+            <option value="kumasi">Kumasi</option>
+            <option value="tamale">Tamale</option>
+            <option value="cape-coast">Cape Coast</option>
+            <option value="takoradi">Takoradi</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="contactName">Your name</label>
+          <input type="text" id="contactName" placeholder="e.g. Dr. Ama Owusu" required />
+        </div>
+
+        <div class="form-group">
+          <label for="contactEmail">Your email</label>
+          <input type="email" id="contactEmail" placeholder="e.g. ama@nyaho.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="contactPhone">Your phone number</label>
+          <input type="tel" id="contactPhone" placeholder="e.g. 0244000000" required />
+        </div>
+
+        <button type="button" class="btn-submit" onclick="goToStep(2)">Next — Shift details</button>
+      </div>
+
+      <!-- STEP 2: SHIFT DETAILS -->
+      <div class="form-step hidden" id="step2">
+        <h3 class="step-title">Shift details</h3>
+
+        <div class="form-group">
+          <label for="role">Role needed</label>
+          <select id="role" required>
+            <option value="" disabled selected>Select role</option>
+            <option value="pharmacist">Pharmacist</option>
+            <option value="pharmacy-tech">Pharmacy Technician</option>
+            <option value="medical-doctor">Medical Doctor</option>
+            <option value="nurse">Nurse</option>
+            <option value="lab-technician">Lab Technician</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="shiftDate">Shift date</label>
+          <input type="date" id="shiftDate" required />
+        </div>
+
+        <div class="form-group">
+          <label for="startTime">Start time</label>
+          <input type="time" id="startTime" required />
+        </div>
+
+        <div class="form-group">
+          <label for="duration">Shift duration</label>
+          <select id="duration" required>
+            <option value="" disabled selected>Select duration</option>
+            <option value="4">4 hours</option>
+            <option value="6">6 hours</option>
+            <option value="8">8 hours</option>
+            <option value="12">12 hours</option>
+            <option value="24">24 hours (overnight)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="payRate">Pay rate (GHS per hour)</label>
+          <input type="number" id="payRate" placeholder="e.g. 80" min="20" required />
+        </div>
+
+        <div class="pay-estimate" id="payEstimate">
+          Estimated total pay: <strong id="totalPay">GHS 0</strong>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn-back" onclick="goToStep(1)">← Back</button>
+          <button type="button" class="btn-submit" onclick="goToStep(3)">Next — Requirements</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: REQUIREMENTS -->
+      <div class="form-step hidden" id="step3">
+        <h3 class="step-title">Special requirements</h3>
+
+        <div class="form-group">
+          <label for="experience">Minimum experience required</label>
+          <select id="experience" required>
+            <option value="" disabled selected>Select minimum experience</option>
+            <option value="any">Any experience level</option>
+            <option value="1-3">At least 1 year</option>
+            <option value="3-5">At least 3 years</option>
+            <option value="5+">At least 5 years</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="urgency">How urgent is this shift?</label>
+          <select id="urgency" required>
+            <option value="" disabled selected>Select urgency</option>
+            <option value="today">Today — need someone now</option>
+            <option value="tomorrow">Tomorrow</option>
+            <option value="this-week">This week</option>
+            <option value="planning-ahead">Planning ahead</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Additional notes (optional)</label>
+          <textarea id="notes" rows="3" placeholder="Any specific skills, equipment familiarity, or other requirements..."></textarea>
+        </div>
+
+        <div class="shift-summary" id="shiftSummary"></div>
+
+        <div class="btn-row">
+          <button type="button" class="btn-back" onclick="goToStep(2)">← Back</button>
+          <button type="submit" class="btn-submit">Post this shift</button>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- SUCCESS STATE -->
+    <div class="success-card" id="successCard">
+      <div class="success-icon">✓</div>
+      <h2>Shift posted!</h2>
+      <p>We've received your shift request and will match you with a verified professional within 4 hours. You'll get a confirmation to your email shortly.</p>
+      <div class="next-steps">
+        <p class="next-label">What happens next</p>
+        <div class="next-item">
+          <div class="next-num">1</div>
+          <p>We match your shift with qualified professionals in your city</p>
+        </div>
+        <div class="next-item">
+          <div class="next-num">2</div>
+          <p>You receive a profile of your matched professional via email</p>
+        </div>
+        <div class="next-item">
+          <div class="next-num">3</div>
+          <p>Professional arrives at your facility ready to work</p>
+        </div>
+      </div>
+      <a href="index.html" class="btn-home">Back to home</a>
+    </div>
+
+  </section>
+
+  <footer>
+    <p>© 2025 CoverCare Africa · Accra, Ghana</p>
+  </footer>
+
+  <script src="post-shift.js"></script>
+
+</body>
+</html>
