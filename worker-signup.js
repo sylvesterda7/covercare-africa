@@ -1,7 +1,6 @@
-document.getElementById("workerForm").addEventListener("submit", function(e) {
+document.getElementById("workerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  // Collect all form values
   const worker = {
     name: document.getElementById("fullname").value.trim(),
     email: document.getElementById("email").value.trim(),
@@ -12,19 +11,25 @@ document.getElementById("workerForm").addEventListener("submit", function(e) {
     experience: document.getElementById("experience").value,
   };
 
-  // Basic validation
   if (!worker.name || !worker.email || !worker.phone || !worker.role || !worker.license || !worker.city || !worker.experience) {
     alert("Please fill in all fields.");
     return;
   }
 
-  // Log to console (we will send to a database later)
-  console.log("New worker signup:", worker);
+  // Send to Formspree
+  const response = await fetch("https://formspree.io/f/mykarpka", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(worker)
+  });
 
-  // Hide the form, show success card
-  document.getElementById("workerForm").style.display = "none";
-  document.getElementById("successCard").style.display = "block";
-
-  // Scroll to top of form section
-  document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+  if (response.ok) {
+    document.getElementById("workerForm").style.display = "none";
+    document.getElementById("successCard").style.display = "block";
+    document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+  } else {
+    alert("Something went wrong. Please try again.");
+  }
 });

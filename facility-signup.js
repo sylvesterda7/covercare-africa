@@ -1,7 +1,6 @@
-document.getElementById("facilityForm").addEventListener("submit", function(e) {
+document.getElementById("facilityForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  // Collect all form values
   const facility = {
     facilityName: document.getElementById("facilityName").value.trim(),
     facilityType: document.getElementById("facilityType").value,
@@ -14,7 +13,6 @@ document.getElementById("facilityForm").addEventListener("submit", function(e) {
     frequency: document.getElementById("frequency").value,
   };
 
-  // Basic validation
   if (
     !facility.facilityName ||
     !facility.facilityType ||
@@ -30,13 +28,20 @@ document.getElementById("facilityForm").addEventListener("submit", function(e) {
     return;
   }
 
-  // Log to console (we will send to a database later)
-  console.log("New facility signup:", facility);
+  // Send to Formspree
+  const response = await fetch("https://formspree.io/f/mbdenkok", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(facility)
+  });
 
-  // Hide form, show success card
-  document.getElementById("facilityForm").style.display = "none";
-  document.getElementById("successCard").style.display = "block";
-
-  // Scroll to success card
-  document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+  if (response.ok) {
+    document.getElementById("facilityForm").style.display = "none";
+    document.getElementById("successCard").style.display = "block";
+    document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+  } else {
+    alert("Something went wrong. Please try again.");
+  }
 });
