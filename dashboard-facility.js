@@ -1,13 +1,9 @@
-File 9 — dashboard-facility.js
-Click on dashboard-facility.js and paste this in:
-javascript// ── Initialize Supabase ──
 const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── Check session ──
 async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await _supabase.auth.getSession();
 
   if (!session) {
     window.location.href = "login.html";
@@ -17,26 +13,21 @@ async function init() {
   const user = session.user;
   const meta = user.user_metadata;
 
-  // ── Check user type ──
   if (meta.user_type === "worker") {
     window.location.href = "dashboard-worker.html";
     return;
   }
 
-  // ── Populate nav ──
   document.getElementById("navUser").textContent = meta.full_name || user.email;
 
-  // ── Welcome message ──
   const firstName = meta.full_name ? meta.full_name.split(" ")[0] : "there";
   document.getElementById("welcomeMsg").textContent = `Welcome back, ${firstName}`;
 
-  // ── Load shifts ──
   await loadShifts(user.email);
 }
 
-// ── Load facility shifts ──
 async function loadShifts(email) {
-  const { data, error } = await supabase
+  const { data, error } = await _supabase
     .from("shifts")
     .select("*")
     .eq("contact_email", email)
@@ -47,22 +38,19 @@ async function loadShifts(email) {
   const openShifts = data.filter(s => s.status === "open");
   const filledShifts = data.filter(s => s.status === "accepted");
 
-  // ── Update stats ──
   document.getElementById("totalShifts").textContent = data.length;
   document.getElementById("openShifts").textContent = openShifts.length;
   document.getElementById("filledShifts").textContent = filledShifts.length;
 
-  // ── Calculate total spend ──
   const totalSpend = filledShifts.reduce((sum, shift) => {
     const amount = parseFloat(
-      shift.total_pay.replace("GHS ", "").replace(",", "")
+      (shift.total_pay || "0").replace("GHS ", "").replace(",", "")
     ) || 0;
     return sum + amount;
   }, 0);
   document.getElementById("totalSpend").textContent =
     "GHS " + totalSpend.toLocaleString();
 
-  // ── Render open shifts ──
   const openContainer = document.getElementById("openShiftsContainer");
   if (openShifts.length > 0) {
     openContainer.innerHTML = openShifts.map(shift => `
@@ -89,7 +77,6 @@ async function loadShifts(email) {
     `).join("");
   }
 
-  // ── Render filled shifts ──
   const filledContainer = document.getElementById("filledShiftsContainer");
   if (filledShifts.length > 0) {
     filledContainer.innerHTML = filledShifts.map(shift => `
@@ -110,11 +97,10 @@ async function loadShifts(email) {
   }
 }
 
-// ── Cancel shift ──
 async function cancelShift(shiftId) {
   if (!confirm("Are you sure you want to cancel this shift?")) return;
 
-  const { error } = await supabase
+  const { error } = await _supabase
     .from("shifts")
     .update({ status: "cancelled" })
     .eq("id", shiftId);
@@ -125,15 +111,13 @@ async function cancelShift(shiftId) {
   }
 
   alert("Shift cancelled.");
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await _supabase.auth.getSession();
   loadShifts(session.user.email);
 }
 
-// ── Logout ──
 async function logout() {
-  await supabase.auth.signOut();
+  await _supabase.auth.signOut();
   window.location.href = "login.html";
 }
 
-// ── Run ──
 init();

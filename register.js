@@ -1,9 +1,7 @@
-// ── Initialize Supabase ──
 const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── Register form ──
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -16,11 +14,9 @@ document.getElementById("registerForm").addEventListener("submit", async functio
   const errorMsg = document.getElementById("errorMsg");
   const successMsg = document.getElementById("successMsg");
 
-  // ── Reset messages ──
   errorMsg.style.display = "none";
   successMsg.style.display = "none";
 
-  // ── Validation ──
   if (!userType) {
     errorMsg.textContent = "Please select your account type.";
     errorMsg.style.display = "block";
@@ -39,12 +35,10 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     return;
   }
 
-  // ── Show loading ──
   btn.textContent = "Creating account...";
   btn.disabled = true;
 
-  // ── Create account with Supabase Auth ──
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await _supabase.auth.signUp({
     email,
     password,
     options: {
@@ -63,11 +57,9 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     return;
   }
 
-  // ── Success ──
   successMsg.textContent = "Account created! Redirecting to your dashboard...";
   successMsg.style.display = "block";
 
-  // ── Redirect based on user type ──
   setTimeout(() => {
     if (userType === "worker") {
       window.location.href = "dashboard-worker.html";

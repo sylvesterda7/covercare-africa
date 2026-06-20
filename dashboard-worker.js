@@ -1,16 +1,11 @@
-File 7 — dashboard-worker.js
-Click on dashboard-worker.js and paste this in:
-javascript// ── Initialize Supabase ──
 const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── Check session ──
 async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await _supabase.auth.getSession();
 
   if (!session) {
-    // Not logged in — redirect to login
     window.location.href = "login.html";
     return;
   }
@@ -18,29 +13,22 @@ async function init() {
   const user = session.user;
   const meta = user.user_metadata;
 
-  // ── Check user type ──
   if (meta.user_type !== "worker") {
     window.location.href = "dashboard-facility.html";
     return;
   }
 
-  // ── Populate nav ──
   document.getElementById("navUser").textContent = meta.full_name || user.email;
 
-  // ── Welcome message ──
   const firstName = meta.full_name ? meta.full_name.split(" ")[0] : "there";
   document.getElementById("welcomeMsg").textContent = `Welcome back, ${firstName}`;
 
-  // ── Load worker profile from database ──
   await loadProfile(user.email);
-
-  // ── Load available shifts ──
   await loadShifts();
 }
 
-// ── Load worker profile ──
 async function loadProfile(email) {
-  const { data, error } = await supabase
+  const { data, error } = await _supabase
     .from("workers")
     .select("*")
     .eq("email", email)
@@ -50,15 +38,12 @@ async function loadProfile(email) {
     document.getElementById("profileName").textContent = "Profile not set up yet";
     document.getElementById("profileRole").textContent = "Complete your profile to start working";
     document.getElementById("profileAvatar").textContent = "?";
-
-    // Show badges
     document.getElementById("profileBadges").innerHTML = `
       <span class="badge badge-yellow" style="margin-top:8px;">Profile incomplete</span>
     `;
     return;
   }
 
-  // ── Populate profile ──
   const initials = data.full_name
     .split(" ")
     .map(n => n[0])
@@ -71,7 +56,6 @@ async function loadProfile(email) {
   document.getElementById("profileRole").textContent = data.role;
   document.getElementById("profileCity").textContent = `📍 ${data.city}`;
 
-  // ── Badges ──
   let badges = "";
   if (data.license_verified) {
     badges += `<span class="badge badge-green" style="margin-right:6px;">✓ License verified</span>`;
@@ -84,24 +68,19 @@ async function loadProfile(email) {
     badges += `<span class="badge badge-yellow">Identity pending</span>`;
   }
   document.getElementById("profileBadges").innerHTML = badges;
-
-  // ── Verified badge in stats ──
   document.getElementById("verifiedBadge").textContent =
     data.license_verified ? "✓" : "Pending";
 }
 
-// ── Load available shifts ──
 async function loadShifts() {
-  const { data, error } = await supabase
+  const { data, error } = await _supabase
     .from("shifts")
     .select("*")
     .eq("status", "open")
     .order("created_at", { ascending: false })
     .limit(5);
 
-  if (error || !data || data.length === 0) {
-    return; // Keep empty state
-  }
+  if (error || !data || data.length === 0) return;
 
   const container = document.getElementById("shiftsContainer");
   container.innerHTML = data.map(shift => `
@@ -119,9 +98,9 @@ async function loadShifts() {
         </div>
       </div>
       <div>
-        <button 
-          onclick="acceptShift('${shift.id}')" 
-          class="btn-primary-sm" 
+        <button
+          onclick="acceptShift('${shift.id}')"
+          class="btn-primary-sm"
           style="font-size:13px; padding:8px 16px;">
           Accept
         </button>
@@ -129,16 +108,14 @@ async function loadShifts() {
     </div>
   `).join("");
 
-  // ── Update stats ──
   document.getElementById("totalShifts").textContent = data.length;
 }
 
-// ── Accept shift ──
 async function acceptShift(shiftId) {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await _supabase.auth.getSession();
   if (!session) return;
 
-  const { error } = await supabase
+  const { error } = await _supabase
     .from("shifts")
     .update({ status: "accepted" })
     .eq("id", shiftId);
@@ -152,11 +129,9 @@ async function acceptShift(shiftId) {
   loadShifts();
 }
 
-// ── Logout ──
 async function logout() {
-  await supabase.auth.signOut();
+  await _supabase.auth.signOut();
   window.location.href = "login.html";
 }
 
-// ── Run ──
 init();
