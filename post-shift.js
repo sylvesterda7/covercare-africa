@@ -3,29 +3,21 @@ function goToStep(step) {
   if (step === 2 && !validateStep1()) return;
   if (step === 3 && !validateStep2()) return;
 
-  // Hide all steps
   document.querySelectorAll(".form-step").forEach(s => s.classList.add("hidden"));
-
-  // Show target step
   document.getElementById("step" + step).classList.remove("hidden");
 
-  // Update progress dots
   document.querySelectorAll(".progress-step").forEach((dot, i) => {
     dot.classList.remove("active", "done");
     if (i + 1 < step) dot.classList.add("done");
     if (i + 1 === step) dot.classList.add("active");
   });
 
-  // Update progress lines
   document.querySelectorAll(".progress-line").forEach((line, i) => {
     line.classList.remove("done");
     if (i + 1 < step) line.classList.add("done");
   });
 
-  // If moving to step 3, show shift summary
   if (step === 3) showSummary();
-
-  // Scroll to top of form
   document.querySelector(".progress-wrap").scrollIntoView({ behavior: "smooth" });
 }
 
@@ -114,19 +106,46 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     notes: document.getElementById("notes").value.trim(),
   };
 
-  const response = await fetch("https://formspree.io/f/mdavqdpl", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(shift)
-  });
+  try {
+    // ── Send to Supabase via backend ──
+    const response = await fetch("https://covercare-backend-production.up.railway.app/shift", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "cc-africa-2025-verify-key"
+      },
+      body: JSON.stringify({
+        facility_name: shift.facilityName,
+        facility_type: shift.facilityType,
+        city: shift.city,
+        contact_name: shift.contactName,
+        contact_email: shift.contactEmail,
+        contact_phone: shift.contactPhone,
+        role_needed: shift.role,
+        shift_date: shift.shiftDate,
+        start_time: shift.startTime,
+        duration: shift.duration,
+        pay_rate: shift.payRate,
+        total_pay: shift.totalPay,
+        experience_required: shift.experience,
+        urgency: shift.urgency,
+        notes: shift.notes
+      })
+    });
 
-  if (response.ok) {
-    document.getElementById("shiftForm").style.display = "none";
-    document.getElementById("successCard").style.display = "block";
-    document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
-  } else {
+    const result = await response.json();
+    console.log("Save result:", result);
+
+    if (response.ok) {
+      document.getElementById("shiftForm").style.display = "none";
+      document.getElementById("successCard").style.display = "block";
+      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+    } else {
+      alert("Something went wrong. Please try again.");
+    }
+
+  } catch (err) {
+    console.error("Submit error:", err);
     alert("Something went wrong. Please try again.");
   }
 });

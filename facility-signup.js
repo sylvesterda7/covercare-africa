@@ -28,20 +28,40 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     return;
   }
 
-  // Send to Formspree
-  const response = await fetch("https://formspree.io/f/mbdenkok", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(facility)
-  });
+  try {
+    // ── Send to Supabase via backend ──
+    const response = await fetch("https://covercare-backend-production.up.railway.app/facility", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "cc-africa-2025-verify-key"
+      },
+      body: JSON.stringify({
+        facility_name: facility.facilityName,
+        facility_type: facility.facilityType,
+        city: facility.city,
+        contact_name: facility.contactName,
+        contact_role: facility.contactRole,
+        email: facility.email,
+        phone: facility.phone,
+        staff_needs: facility.staffNeeds,
+        frequency: facility.frequency
+      })
+    });
 
-  if (response.ok) {
-    document.getElementById("facilityForm").style.display = "none";
-    document.getElementById("successCard").style.display = "block";
-    document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
-  } else {
+    const result = await response.json();
+    console.log("Save result:", result);
+
+    if (response.ok) {
+      document.getElementById("facilityForm").style.display = "none";
+      document.getElementById("successCard").style.display = "block";
+      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+    } else {
+      alert("Something went wrong. Please try again.");
+    }
+
+  } catch (err) {
+    console.error("Submit error:", err);
     alert("Something went wrong. Please try again.");
   }
 });
