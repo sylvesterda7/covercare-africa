@@ -27,7 +27,6 @@ async function verifyLicense() {
   const resultBox = document.getElementById("verifyResult");
   const btn = document.getElementById("verifyBtn");
 
-  // ── Validation ──
   if (!role) {
     alert("Please select your role first.");
     return;
@@ -45,17 +44,15 @@ async function verifyLicense() {
   resultBox.innerHTML = "";
 
   try {
-    // ── Call verification backend ──
     const name = document.getElementById("fullname").value.trim();
 
     const response = await fetch(
-  `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}&api_key=cc-africa-2025-verify-key`
-);
-    const data = await response.json();
+      `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}&api_key=cc-africa-2025-verify-key`
+    );
 
+    const data = await response.json();
     console.log("Verification response:", data);
 
-    // ── Handle response ──
     if (data.success === true) {
       licenseVerified = true;
       resultBox.className = "verify-result success";
@@ -66,7 +63,6 @@ async function verifyLicense() {
           Source: Pharmacy Council Ghana · ${new Date().toLocaleDateString()}
         </span>
       `;
-
     } else if (data.data && data.data.status === "name_mismatch") {
       licenseVerified = false;
       resultBox.className = "verify-result warning";
@@ -76,7 +72,6 @@ async function verifyLicense() {
         Pharmacy Council records. Please check that your full name 
         matches exactly as registered with the Council.
       `;
-
     } else if (data.data && data.data.status === "not_found") {
       licenseVerified = false;
       resultBox.className = "verify-result warning";
@@ -85,7 +80,6 @@ async function verifyLicense() {
         We couldn't find this registration number in Pharmacy Council records. 
         Please check and try again, or contact us for manual verification.
       `;
-
     } else {
       licenseVerified = false;
       resultBox.className = "verify-result error";
@@ -140,20 +134,39 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     return;
   }
 
-  // ── Send to Formspree ──
-  const response = await fetch("https://formspree.io/f/mykarpka", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(worker)
-  });
+  try {
+    // ── Send to Supabase via backend ──
+    const response = await fetch("https://covercare-backend-production.up.railway.app/worker", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "cc-africa-2025-verify-key"
+      },
+      body: JSON.stringify({
+        full_name: worker.name,
+        email: worker.email,
+        phone: worker.phone,
+        role: worker.role,
+        license_number: worker.license,
+        license_verified: worker.licenseVerified,
+        city: worker.city,
+        experience: worker.experience
+      })
+    });
 
-  if (response.ok) {
-    document.getElementById("workerForm").style.display = "none";
-    document.getElementById("successCard").style.display = "block";
-    document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
-  } else {
+    const result = await response.json();
+    console.log("Save result:", result);
+
+    if (response.ok) {
+      document.getElementById("workerForm").style.display = "none";
+      document.getElementById("successCard").style.display = "block";
+      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+    } else {
+      alert("Something went wrong. Please try again.");
+    }
+
+  } catch (err) {
+    console.error("Submit error:", err);
     alert("Something went wrong. Please try again.");
   }
 });
