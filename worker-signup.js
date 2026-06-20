@@ -49,9 +49,8 @@ async function verifyLicense() {
     const name = document.getElementById("fullname").value.trim();
 
     const response = await fetch(
-      `http://localhost:3000/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`
-    );
-
+  `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`
+);
     const data = await response.json();
 
     console.log("Verification response:", data);
