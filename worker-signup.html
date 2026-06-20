@@ -56,9 +56,23 @@
       </div>
 
       <div class="form-group">
-        <label for="license">License / Registration number</label>
-        <input type="text" id="license" placeholder="e.g. PC/2019/1234" required />
-      </div>
+  <label for="license">License / Registration number</label>
+  <div class="verify-row">
+    <input type="text" id="license" placeholder="e.g. HPA 3343" required />
+    <button type="button" class="btn-verify" id="verifyBtn" onclick="verifyLicense()" style="display:none;">
+      Verify
+    </button>
+  </div>
+  <div class="verify-result" id="verifyResult"></div>
+  <div class="upload-note" id="uploadNote" style="display:none;">
+    📎 Please upload a copy of your license certificate below for manual verification by our team within 24 hours.
+  </div>
+</div>
+
+<div class="form-group" id="uploadGroup" style="display:none;">
+  <label for="licenseFile">Upload license certificate</label>
+  <input type="file" id="licenseFile" accept=".pdf,.jpg,.jpeg,.png" />
+</div>
 
       <div class="form-group">
         <label for="city">City</label>
