@@ -49,7 +49,7 @@ async function verifyLicense() {
     const name = document.getElementById("fullname").value.trim();
 
     const response = await fetch(
-  `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`
+  `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}&api_key=cc-africa-2025-verify-key`
 );
     const data = await response.json();
 
