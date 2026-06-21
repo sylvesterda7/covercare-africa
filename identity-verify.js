@@ -201,16 +201,21 @@ async function markVerified() {
     const email = session.user.email;
     console.log("Updating identity for email:", email);
 
-    const { data, error } = await _supabase
-      .from("workers")
-      .update({
-        identity_verified: true,
-        identity_verified_at: new Date().toISOString()
-      })
-      .eq("email", email)
-      .select();
+    // ── Update via backend (bypasses RLS) ──
+    const response = await fetch(
+      "https://covercare-backend-production.up.railway.app/verify-identity",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "cc-africa-2025-verify-key"
+        },
+        body: JSON.stringify({ email })
+      }
+    );
 
-    console.log("Update result:", data, "Error:", error);
+    const result = await response.json();
+    console.log("Identity update result:", result);
 
     // ── Upload images to Cloudinary ──
     const selfieDataUrl = document.getElementById("selfiePreview").src;
@@ -223,10 +228,21 @@ async function markVerified() {
         "id_document"
       );
 
-      await _supabase
-        .from("workers")
-        .update({ selfie_url: selfieUrl, id_document_url: idUrl })
-        .eq("email", email);
+      await fetch(
+        "https://covercare-backend-production.up.railway.app/verify-identity",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": "cc-africa-2025-verify-key"
+          },
+          body: JSON.stringify({
+            email,
+            selfie_url: selfieUrl,
+            id_document_url: idUrl
+          })
+        }
+      );
     }
   }
 
