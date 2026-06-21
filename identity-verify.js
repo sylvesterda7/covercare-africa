@@ -15,7 +15,7 @@ let modelsLoaded = false;
 
 // ── Load face-api models ──
 async function loadModels() {
-  const MODEL_URL = "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights";
+  const MODEL_URL = "/weights";
   await Promise.all([
     faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
