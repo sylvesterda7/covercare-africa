@@ -4,8 +4,8 @@ const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Cloudinary config ──
-const CLOUDINARY_CLOUD_NAME = "dy58hyn86"; // replace with your cloud name
-const CLOUDINARY_UPLOAD_PRESET = "covercare_unsigned"; // we'll create this in a moment
+const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME";
+const CLOUDINARY_UPLOAD_PRESET = "covercare_unsigned";
 
 // ── State ──
 let idImageElement = null;
@@ -25,7 +25,6 @@ async function loadModels() {
   console.log("Face API models loaded");
 }
 
-// Load models on page start
 loadModels();
 
 // ── Step navigation ──
@@ -73,14 +72,11 @@ function goToStep3() {
 // ── ID preview ──
 function previewID(input) {
   if (!input.files || !input.files[0]) return;
-
   const reader = new FileReader();
   reader.onload = function(e) {
     const preview = document.getElementById("idPreview");
     preview.src = e.target.result;
     document.getElementById("idPreviewWrap").style.display = "block";
-
-    // Create image element for face-api
     idImageElement = new Image();
     idImageElement.src = e.target.result;
   };
@@ -112,21 +108,14 @@ function takeSelfie() {
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
   const context = canvas.getContext("2d");
-
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0);
-
   const dataURL = canvas.toDataURL("image/jpeg");
-
-  // Show preview
   document.getElementById("selfiePreview").src = dataURL;
   document.getElementById("selfiePreviewWrap").style.display = "block";
-
-  // Create image element for face-api
   selfieImageElement = new Image();
   selfieImageElement.src = dataURL;
-
   console.log("Selfie taken");
 }
 
@@ -141,32 +130,26 @@ async function runVerification() {
     alert("Please take a selfie first.");
     return;
   }
-
   if (!idImageElement) {
     alert("ID image not loaded. Please go back and re-upload your ID.");
     return;
   }
 
   goToStep3();
-
-  // Show loading
   document.getElementById("verifyLoading").style.display = "block";
   document.getElementById("verifySuccess").style.display = "none";
   document.getElementById("verifyFailed").style.display = "none";
 
   try {
-    // Wait for models if still loading
     if (!modelsLoaded) {
       await loadModels();
     }
 
-    // Wait for images to load
     await Promise.all([
       new Promise(r => { idImageElement.onload = r; if (idImageElement.complete) r(); }),
       new Promise(r => { selfieImageElement.onload = r; if (selfieImageElement.complete) r(); })
     ]);
 
-    // ── Detect faces ──
     console.log("Detecting face in ID...");
     const idDetection = await faceapi
       .detectSingleFace(idImageElement)
@@ -180,18 +163,15 @@ async function runVerification() {
       .withFaceDescriptor();
 
     if (!idDetection) {
-      console.log("No face found in ID");
       showFailed("No face detected in your ID document. Please upload a clearer photo.");
       return;
     }
 
     if (!selfieDetection) {
-      console.log("No face found in selfie");
       showFailed("No face detected in your selfie. Please retake your photo.");
       return;
     }
 
-    // ── Compare faces ──
     const distance = faceapi.euclideanDistance(
       idDetection.descriptor,
       selfieDetection.descriptor
@@ -199,7 +179,6 @@ async function runVerification() {
 
     console.log("Face distance:", distance);
 
-    // Distance < 0.5 = same person (lower = more similar)
     const isMatch = distance < 0.5;
 
     if (isMatch) {
@@ -220,31 +199,37 @@ async function markVerified() {
 
   if (session) {
     const email = session.user.email;
+    console.log("Updating identity for email:", email);
 
-    // Upload selfie to Cloudinary
-    const selfieDataUrl = document.getElementById("selfiePreview").src;
-    const selfieUrl = await uploadToCloudinary(selfieDataUrl, "selfie");
-
-    // Upload ID to Cloudinary
-    const idFile = document.getElementById("idFile").files[0];
-    const idUrl = await uploadToCloudinary(
-      await fileToDataUrl(idFile),
-      "id_document"
-    );
-
-    // Update worker record in Supabase
-    await _supabase
+    const { data, error } = await _supabase
       .from("workers")
       .update({
         identity_verified: true,
-        identity_verified_at: new Date().toISOString(),
-        selfie_url: selfieUrl,
-        id_document_url: idUrl
+        identity_verified_at: new Date().toISOString()
       })
-      .eq("email", email);
+      .eq("email", email)
+      .select();
+
+    console.log("Update result:", data, "Error:", error);
+
+    // ── Upload images to Cloudinary ──
+    const selfieDataUrl = document.getElementById("selfiePreview").src;
+    const selfieUrl = await uploadToCloudinary(selfieDataUrl, "selfie");
+
+    const idFile = document.getElementById("idFile").files[0];
+    if (idFile) {
+      const idUrl = await uploadToCloudinary(
+        await fileToDataUrl(idFile),
+        "id_document"
+      );
+
+      await _supabase
+        .from("workers")
+        .update({ selfie_url: selfieUrl, id_document_url: idUrl })
+        .eq("email", email);
+    }
   }
 
-  // Show success
   document.getElementById("verifyLoading").style.display = "none";
   document.getElementById("verifySuccess").style.display = "block";
 }
@@ -273,12 +258,10 @@ async function uploadToCloudinary(dataUrl, folder) {
     formData.append("file", dataUrl);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
     formData.append("folder", `covercare/${folder}`);
-
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
       { method: "POST", body: formData }
     );
-
     const data = await response.json();
     return data.secure_url;
   } catch (err) {
@@ -287,7 +270,7 @@ async function uploadToCloudinary(dataUrl, folder) {
   }
 }
 
-// ── Helper — file to data URL ──
+// ── Helper ──
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
