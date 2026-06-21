@@ -84,27 +84,113 @@ function showSummary() {
   `;
 }
 
-// ── Form submission ──
+// ── Form submission with payment ──
 document.getElementById("shiftForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
   const shift = {
-    facilityName: document.getElementById("facilityName").value.trim(),
-    facilityType: document.getElementById("facilityType").value,
+    facility_name: document.getElementById("facilityName").value.trim(),
+    facility_type: document.getElementById("facilityType").value,
     city: document.getElementById("city").value,
-    contactName: document.getElementById("contactName").value.trim(),
-    contactEmail: document.getElementById("contactEmail").value.trim(),
-    contactPhone: document.getElementById("contactPhone").value.trim(),
-    role: document.getElementById("role").value,
-    shiftDate: document.getElementById("shiftDate").value,
-    startTime: document.getElementById("startTime").value,
+    contact_name: document.getElementById("contactName").value.trim(),
+    contact_email: document.getElementById("contactEmail").value.trim(),
+    contact_phone: document.getElementById("contactPhone").value.trim(),
+    role_needed: document.getElementById("role").value,
+    shift_date: document.getElementById("shiftDate").value,
+    start_time: document.getElementById("startTime").value,
     duration: document.getElementById("duration").value + " hours",
-    payRate: "GHS " + document.getElementById("payRate").value + "/hr",
-    totalPay: "GHS " + (parseFloat(document.getElementById("payRate").value) * parseFloat(document.getElementById("duration").value)).toLocaleString(),
-    experience: document.getElementById("experience").value,
+    pay_rate: "GHS " + document.getElementById("payRate").value + "/hr",
+    total_pay: "GHS " + (
+      parseFloat(document.getElementById("payRate").value) *
+      parseFloat(document.getElementById("duration").value)
+    ).toLocaleString(),
+    experience_required: document.getElementById("experience").value,
     urgency: document.getElementById("urgency").value,
     notes: document.getElementById("notes").value.trim(),
   };
+
+  const payRate = parseFloat(document.getElementById("payRate").value);
+  const duration = parseFloat(document.getElementById("duration").value);
+  const totalPay = payRate * duration;
+
+  // ── CoverCare margin (25%) added on top ──
+  const facilityAmount = totalPay * 1.25;
+
+  console.log("Initializing payment for GHS", facilityAmount);
+
+  try {
+    // ── Initialize payment via backend ──
+    const initResponse = await fetch(
+      "https://covercare-backend-production.up.railway.app/payment/initialize",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "cc-africa-2025-verify-key"
+        },
+        body: JSON.stringify({
+          email: shift.contact_email,
+          amount: facilityAmount,
+          shift_data: shift
+        })
+      }
+    );
+
+    const initData = await initResponse.json();
+    console.log("Payment init:", initData);
+
+    if (!initData.success) {
+      alert("Payment initialization failed. Please try again.");
+      return;
+    }
+
+    // ── Open Paystack popup ──
+    const handler = PaystackPop.setup({
+      key: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02", // replace with your test public key
+      email: shift.contact_email,
+      amount: Math.round(facilityAmount * 100),
+      currency: "GHS",
+      ref: initData.reference,
+      label: `CoverCare - ${shift.role_needed} shift`,
+      onClose: function() {
+        console.log("Payment window closed");
+      },
+      callback: async function(response) {
+        console.log("Payment successful:", response.reference);
+
+        // ── Verify payment ──
+        const verifyResponse = await fetch(
+          "https://covercare-backend-production.up.railway.app/payment/verify",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": "cc-africa-2025-verify-key"
+            },
+            body: JSON.stringify({ reference: response.reference })
+          }
+        );
+
+        const verifyData = await verifyResponse.json();
+        console.log("Verify result:", verifyData);
+
+        if (verifyData.success) {
+          document.getElementById("shiftForm").style.display = "none";
+          document.getElementById("successCard").style.display = "block";
+          document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+        } else {
+          alert("Payment could not be verified. Please contact support.");
+        }
+      }
+    });
+
+    handler.openIframe();
+
+  } catch (err) {
+    console.error("Payment error:", err);
+    alert("Something went wrong. Please try again.");
+  }
+});
 
   try {
     // ── Send to Supabase via backend ──
