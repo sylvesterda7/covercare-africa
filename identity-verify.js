@@ -4,7 +4,7 @@ const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Cloudinary config ──
-const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME";
+const CLOUDINARY_CLOUD_NAME = "dy58hyn86";
 const CLOUDINARY_UPLOAD_PRESET = "covercare_unsigned";
 
 // ── State ──
