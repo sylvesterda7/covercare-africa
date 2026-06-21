@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Identity Verification – CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="signup.css" />
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">CoverCare Africa</a>
+    <a href="dashboard-worker.html" class="nav-link">My dashboard</a>
+  </nav>
+
+  <!-- HEADER -->
+  <section class="signup-header">
+    <p class="section-label">Identity verification</p>
+    <h1>Verify your identity</h1>
+    <p>Upload your ID document and take a live selfie. We'll match them to confirm your identity.</p>
+  </section>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-bar">
+      <div class="progress-step active" id="step1-dot">1</div>
+      <div class="progress-line"></div>
+      <div class="progress-step" id="step2-dot">2</div>
+      <div class="progress-line"></div>
+      <div class="progress-step" id="step3-dot">3</div>
+    </div>
+    <div class="progress-labels">
+      <span>Upload ID</span>
+      <span>Take selfie</span>
+      <span>Verify</span>
+    </div>
+  </div>
+
+  <section class="signup-form-section">
+
+    <!-- STEP 1 — ID UPLOAD -->
+    <div id="step1">
+      <h3 class="step-title">Upload your ID document</h3>
+      <p style="font-size:14px; color:#666; margin-bottom:1.5rem;">
+        Accepted documents: Ghana Card, Passport, Driver's License.
+        Make sure all corners are visible and text is clearly readable.
+      </p>
+
+      <div class="form-group">
+        <label>ID document (front)</label>
+        <input type="file" id="idFile" accept="image/*" onchange="previewID(this)" />
+      </div>
+
+      <div id="idPreviewWrap" style="display:none; margin-top:1rem;">
+        <img id="idPreview" style="width:100%; max-width:400px; border-radius:8px; border:1px solid #eee;" />
+      </div>
+
+      <button class="btn-submit" style="margin-top:1.5rem;" onclick="goToStep2()">
+        Next — Take selfie
+      </button>
+    </div>
+
+    <!-- STEP 2 — SELFIE -->
+    <div id="step2" style="display:none;">
+      <h3 class="step-title">Take a live selfie</h3>
+      <p style="font-size:14px; color:#666; margin-bottom:1.5rem;">
+        Look directly at the camera. Make sure your face is well lit and clearly visible.
+        Remove glasses if possible.
+      </p>
+
+      <div style="position:relative; max-width:400px; margin:0 auto;">
+        <video id="video" autoplay playsinline
+          style="width:100%; border-radius:12px; border:2px solid #0F6E56; background:#000;">
+        </video>
+        <canvas id="canvas" style="display:none;"></canvas>
+      </div>
+
+      <div id="selfiePreviewWrap" style="display:none; margin-top:1rem;">
+        <img id="selfiePreview"
+          style="width:100%; max-width:400px; border-radius:12px; border:2px solid #9FE1CB;" />
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:1.5rem; flex-wrap:wrap;">
+        <button class="btn-submit" style="flex:1;" onclick="takeSelfie()">
+          📸 Take photo
+        </button>
+        <button class="btn-submit"
+          style="flex:1; background:#f4faf8; color:#0F6E56; border:1px solid #9FE1CB;"
+          onclick="retakeSelfie()">
+          Retake
+        </button>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:1rem;">
+        <button onclick="goToStep1()"
+          style="background:transparent; border:1px solid #ddd; padding:11px 20px; border-radius:8px; font-size:14px; cursor:pointer;">
+          ← Back
+        </button>
+        <button class="btn-submit" style="flex:1;" id="verifyBtn" onclick="runVerification()">
+          Next — Verify identity
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3 — RESULT -->
+    <div id="step3" style="display:none;">
+
+      <!-- Loading -->
+      <div id="verifyLoading" style="text-align:center; padding:3rem 0;">
+        <div style="font-size:32px; margin-bottom:1rem;">🔍</div>
+        <h3 style="font-size:18px; font-weight:500; margin-bottom:0.5rem;">
+          Comparing faces...
+        </h3>
+        <p style="font-size:14px; color:#666;">
+          This takes a few seconds. Please wait.
+        </p>
+      </div>
+
+      <!-- Success -->
+      <div id="verifySuccess" style="display:none;" class="success-card">
+        <div class="success-icon">✓</div>
+        <h2>Identity verified!</h2>
+        <p>Your identity has been confirmed. Your profile now shows a verified badge.</p>
+        <a href="dashboard-worker.html" class="btn-home">Go to my dashboard</a>
+      </div>
+
+      <!-- Failed -->
+      <div id="verifyFailed" style="display:none; text-align:center; padding:2rem;">
+        <div style="font-size:32px; margin-bottom:1rem;">⚠</div>
+        <h3 style="font-size:18px; font-weight:500; margin-bottom:0.5rem; color:#b91c1c;">
+          Face match failed
+        </h3>
+        <p style="font-size:14px; color:#666; margin-bottom:1.5rem;">
+          We couldn't match your selfie to your ID document.
+          Please make sure you uploaded the correct ID and your face is clearly visible.
+        </p>
+        <button class="btn-submit" onclick="restart()">Try again</button>
+      </div>
+
+    </div>
+
+  </section>
+
+  <footer>
+    <p>© 2025 CoverCare Africa · Accra, Ghana</p>
+  </footer>
+
+  <!-- face-api.js -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="identity-verify.js"></script>
+
+</body>
+</html>
