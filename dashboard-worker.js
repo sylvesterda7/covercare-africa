@@ -42,7 +42,17 @@ async function loadProfile(email) {
       <span class="badge badge-yellow" style="margin-top:8px;">Profile incomplete</span>
     `;
     return;
-  }
+  // ── Show verify identity button only if not verified ──
+if (!data.identity_verified) {
+  const quickActions = document.getElementById("quickActions");
+  const verifyBtn = document.createElement("a");
+  verifyBtn.href = "identity-verify.html";
+  verifyBtn.className = "btn-primary-sm";
+  verifyBtn.style = "background:#f4faf8; color:#0F6E56; border:1px solid #9FE1CB;";
+  verifyBtn.textContent = "Verify my identity";
+  quickActions.appendChild(verifyBtn);
+}
+}
 
   const initials = data.full_name
     .split(" ")
