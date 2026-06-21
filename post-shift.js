@@ -54,7 +54,18 @@ document.addEventListener("DOMContentLoaded", function() {
     const rate = parseFloat(payRate.value) || 0;
     const hours = parseFloat(duration.value) || 0;
     const total = rate * hours;
+    const facilityTotal = total * 1.25;
     document.getElementById("totalPay").textContent = "GHS " + total.toLocaleString();
+
+    // Show what facility pays including CoverCare margin
+    const estimateEl = document.getElementById("payEstimate");
+    if (estimateEl && total > 0) {
+      estimateEl.innerHTML = `
+        Worker receives: <strong>GHS ${total.toLocaleString()}</strong> &nbsp;·&nbsp;
+        You pay: <strong>GHS ${facilityTotal.toLocaleString()}</strong>
+        <span style="font-size:12px; opacity:0.6;">(includes CoverCare fee)</span>
+      `;
+    }
   }
 
   payRate.addEventListener("input", updateEstimate);
@@ -71,6 +82,7 @@ function showSummary() {
   const city = document.getElementById("city").value;
   const facility = document.getElementById("facilityName").value;
   const total = parseFloat(pay) * parseFloat(duration);
+  const facilityTotal = total * 1.25;
 
   document.getElementById("shiftSummary").innerHTML = `
     <strong>Facility:</strong> ${facility}<br>
@@ -79,12 +91,13 @@ function showSummary() {
     <strong>Date:</strong> ${date}<br>
     <strong>Start time:</strong> ${time}<br>
     <strong>Duration:</strong> ${duration} hours<br>
-    <strong>Pay rate:</strong> GHS ${pay}/hr<br>
-    <strong>Total pay:</strong> GHS ${total.toLocaleString()}
+    <strong>Worker pay rate:</strong> GHS ${pay}/hr<br>
+    <strong>Worker total pay:</strong> GHS ${total.toLocaleString()}<br>
+    <strong>You pay (incl. CoverCare fee):</strong> GHS ${facilityTotal.toLocaleString()}
   `;
 }
 
-// ── Form submission with payment ──
+// ── Form submission with Paystack payment ──
 document.getElementById("shiftForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -112,9 +125,7 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
   const payRate = parseFloat(document.getElementById("payRate").value);
   const duration = parseFloat(document.getElementById("duration").value);
   const totalPay = payRate * duration;
-
-  // ── CoverCare margin (25%) added on top ──
-  const facilityAmount = totalPay * 1.25;
+  const facilityAmount = totalPay * 1.25; // CoverCare 25% margin
 
   console.log("Initializing payment for GHS", facilityAmount);
 
@@ -146,7 +157,7 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
 
     // ── Open Paystack popup ──
     const handler = PaystackPop.setup({
-      key: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02", // replace with your test public key
+      key: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02",
       email: shift.contact_email,
       amount: Math.round(facilityAmount * 100),
       currency: "GHS",
@@ -188,50 +199,6 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
 
   } catch (err) {
     console.error("Payment error:", err);
-    alert("Something went wrong. Please try again.");
-  }
-});
-
-  try {
-    // ── Send to Supabase via backend ──
-    const response = await fetch("https://covercare-backend-production.up.railway.app/shift", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "cc-africa-2025-verify-key"
-      },
-      body: JSON.stringify({
-        facility_name: shift.facilityName,
-        facility_type: shift.facilityType,
-        city: shift.city,
-        contact_name: shift.contactName,
-        contact_email: shift.contactEmail,
-        contact_phone: shift.contactPhone,
-        role_needed: shift.role,
-        shift_date: shift.shiftDate,
-        start_time: shift.startTime,
-        duration: shift.duration,
-        pay_rate: shift.payRate,
-        total_pay: shift.totalPay,
-        experience_required: shift.experience,
-        urgency: shift.urgency,
-        notes: shift.notes
-      })
-    });
-
-    const result = await response.json();
-    console.log("Save result:", result);
-
-    if (response.ok) {
-      document.getElementById("shiftForm").style.display = "none";
-      document.getElementById("successCard").style.display = "block";
-      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
-    } else {
-      alert("Something went wrong. Please try again.");
-    }
-
-  } catch (err) {
-    console.error("Submit error:", err);
     alert("Something went wrong. Please try again.");
   }
 });
