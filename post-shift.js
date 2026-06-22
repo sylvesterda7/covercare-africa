@@ -47,31 +47,29 @@ function validateStep2() {
 
 // ── Live pay estimate ──
 document.addEventListener("DOMContentLoaded", function() {
-  const payRate = document.getElementById("payRate");
-  const duration = document.getElementById("duration");
+  const payRateEl = document.getElementById("payRate");
+  const durationEl = document.getElementById("duration");
 
   function updateEstimate() {
-    const rate = parseFloat(payRate.value) || 0;
-    const hours = parseFloat(duration.value) || 0;
+    const rate = parseFloat(payRateEl.value) || 0;
+    const hours = parseFloat(durationEl.value) || 0;
     const total = rate * hours;
     const facilityTotal = total * 1.25;
-    document.getElementById("totalPay").textContent = "GHS " + total.toLocaleString();
 
-    // Show what facility pays including CoverCare margin
-   const estimateEl = document.getElementById("payEstimate");
+    const totalPayEl = document.getElementById("totalPay");
+    if (totalPayEl) totalPayEl.textContent = "GHS " + total.toLocaleString();
+
+    const estimateEl = document.getElementById("payEstimate");
     if (estimateEl && total > 0) {
-      const totalPayEl = document.getElementById("totalPay");
-      if (totalPayEl) totalPayEl.textContent = "GHS " + total.toLocaleString();
-      estimateEl.innerHTML = `
-        Worker receives: <strong>GHS ${total.toLocaleString()}</strong> &nbsp;·&nbsp;
-        You pay: <strong>GHS ${facilityTotal.toLocaleString()}</strong>
-        <span style="font-size:12px; opacity:0.6;">(includes CoverCare fee)</span>
-      `;
+      estimateEl.innerHTML =
+        "Worker receives: <strong>GHS " + total.toLocaleString() + "</strong>" +
+        " &nbsp;·&nbsp; You pay: <strong>GHS " + facilityTotal.toLocaleString() + "</strong>" +
+        " <span style='font-size:12px; opacity:0.6;'>(includes CoverCare fee)</span>";
     }
   }
 
-  payRate.addEventListener("input", updateEstimate);
-  duration.addEventListener("change", updateEstimate);
+  payRateEl.addEventListener("input", updateEstimate);
+  durationEl.addEventListener("change", updateEstimate);
 });
 
 // ── Show shift summary on step 3 ──
@@ -86,24 +84,26 @@ function showSummary() {
   const total = parseFloat(pay) * parseFloat(duration);
   const facilityTotal = total * 1.25;
 
-  document.getElementById("shiftSummary").innerHTML = `
-    <strong>Facility:</strong> ${facility}<br>
-    <strong>City:</strong> ${city}<br>
-    <strong>Role needed:</strong> ${role}<br>
-    <strong>Date:</strong> ${date}<br>
-    <strong>Start time:</strong> ${time}<br>
-    <strong>Duration:</strong> ${duration} hours<br>
-    <strong>Worker pay rate:</strong> GHS ${pay}/hr<br>
-    <strong>Worker total pay:</strong> GHS ${total.toLocaleString()}<br>
-    <strong>You pay (incl. CoverCare fee):</strong> GHS ${facilityTotal.toLocaleString()}
-  `;
+  document.getElementById("shiftSummary").innerHTML =
+    "<strong>Facility:</strong> " + facility + "<br>" +
+    "<strong>City:</strong> " + city + "<br>" +
+    "<strong>Role needed:</strong> " + role + "<br>" +
+    "<strong>Date:</strong> " + date + "<br>" +
+    "<strong>Start time:</strong> " + time + "<br>" +
+    "<strong>Duration:</strong> " + duration + " hours<br>" +
+    "<strong>Worker pay rate:</strong> GHS " + pay + "/hr<br>" +
+    "<strong>Worker total pay:</strong> GHS " + total.toLocaleString() + "<br>" +
+    "<strong>You pay (incl. CoverCare fee):</strong> GHS " + facilityTotal.toLocaleString();
 }
 
 // ── Form submission with Paystack payment ──
 document.getElementById("shiftForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  const shift = {
+  var payRateVal = document.getElementById("payRate").value;
+  var durationVal = document.getElementById("duration").value;
+
+  var shift = {
     facility_name: document.getElementById("facilityName").value.trim(),
     facility_type: document.getElementById("facilityType").value,
     city: document.getElementById("city").value,
@@ -113,27 +113,21 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     role_needed: document.getElementById("role").value,
     shift_date: document.getElementById("shiftDate").value,
     start_time: document.getElementById("startTime").value,
-    duration: document.getElementById("duration").value + " hours",
-    pay_rate: "GHS " + document.getElementById("payRate").value + "/hr",
-    total_pay: "GHS " + (
-      parseFloat(document.getElementById("payRate").value) *
-      parseFloat(document.getElementById("duration").value)
-    ).toLocaleString(),
+    duration: durationVal + " hours",
+    pay_rate: "GHS " + payRateVal + "/hr",
+    total_pay: "GHS " + (parseFloat(payRateVal) * parseFloat(durationVal)).toLocaleString(),
     experience_required: document.getElementById("experience").value,
     urgency: document.getElementById("urgency").value,
-    notes: document.getElementById("notes").value.trim(),
+    notes: document.getElementById("notes").value.trim()
   };
 
-  const payRate = parseFloat(document.getElementById("payRate").value);
-  const duration = parseFloat(document.getElementById("duration").value);
-  const totalPay = payRate * duration;
-  const facilityAmount = totalPay * 1.25; // CoverCare 25% margin
+  var totalPay = parseFloat(payRateVal) * parseFloat(durationVal);
+  var facilityAmount = totalPay * 1.25;
 
   console.log("Initializing payment for GHS", facilityAmount);
 
   try {
-    // ── Initialize payment via backend ──
-    const initResponse = await fetch(
+    var initResponse = await fetch(
       "https://covercare-backend-production.up.railway.app/payment/initialize",
       {
         method: "POST",
@@ -149,7 +143,7 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
       }
     );
 
-    const initData = await initResponse.json();
+    var initData = await initResponse.json();
     console.log("Payment init:", initData);
 
     if (!initData.success) {
@@ -157,47 +151,20 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
       return;
     }
 
-    // ── Open Paystack popup ──
-    const handler = PaystackPop.setup({
+    var handler = PaystackPop.setup({
       key: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02",
       email: shift.contact_email,
       amount: Math.round(facilityAmount * 100),
       currency: "GHS",
       ref: initData.reference,
-      label: `CoverCare - ${shift.role_needed} shift`,
+      label: "CoverCare - " + shift.role_needed + " shift",
       onClose: function() {
         console.log("Payment window closed");
       },
       callback: function(response) {
-  console.log("Payment successful:", response.reference);
+        console.log("Payment successful:", response.reference);
 
-  // ── Verify payment — use regular promise instead of async ──
-  fetch(
-    "https://covercare-backend-production.up.railway.app/payment/verify",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "cc-africa-2025-verify-key"
-      },
-      body: JSON.stringify({ reference: response.reference })
-    }
-  )
-  .then(res => res.json())
-  .then(verifyData => {
-    console.log("Verify result:", verifyData);
-    if (verifyData.success) {
-      document.getElementById("shiftForm").style.display = "none";
-      document.getElementById("successCard").style.display = "block";
-      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
-    } else {
-      alert("Payment could not be verified. Please contact support.");
-    }
-  })
-  .catch(err => {
-    console.error("Verify error:", err);
-    alert("Payment made but verification failed. Please contact support.");
-  });
+        fetch(
           "https://covercare-backend-production.up.railway.app/payment/verify",
           {
             method: "POST",
@@ -207,24 +174,28 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
             },
             body: JSON.stringify({ reference: response.reference })
           }
-        );
-
-        const verifyData = await verifyResponse.json();
-        console.log("Verify result:", verifyData);
-
-        if (verifyData.success) {
-          document.getElementById("shiftForm").style.display = "none";
-          document.getElementById("successCard").style.display = "block";
-          document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
-        } else {
-          alert("Payment could not be verified. Please contact support.");
-        }
+        )
+        .then(function(res) { return res.json(); })
+        .then(function(verifyData) {
+          console.log("Verify result:", verifyData);
+          if (verifyData.success) {
+            document.getElementById("shiftForm").style.display = "none";
+            document.getElementById("successCard").style.display = "block";
+            document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+          } else {
+            alert("Payment could not be verified. Please contact support.");
+          }
+        })
+        .catch(function(err) {
+          console.error("Verify error:", err);
+          alert("Payment made but verification failed. Please contact support.");
+        });
       }
     });
 
     handler.openIframe();
 
-  } catch (err) {
+  } catch(err) {
     console.error("Payment error:", err);
     alert("Something went wrong. Please try again.");
   }
