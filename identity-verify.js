@@ -208,7 +208,7 @@ async function markVerified() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": "cc-2025-$#Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
+          "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
         },
         body: JSON.stringify({ email })
       }
@@ -234,7 +234,7 @@ async function markVerified() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": "cc-2025-$#Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
+            "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
           },
           body: JSON.stringify({
             email,
