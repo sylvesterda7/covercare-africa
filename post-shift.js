@@ -58,8 +58,10 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("totalPay").textContent = "GHS " + total.toLocaleString();
 
     // Show what facility pays including CoverCare margin
-    const estimateEl = document.getElementById("payEstimate");
+   const estimateEl = document.getElementById("payEstimate");
     if (estimateEl && total > 0) {
+      const totalPayEl = document.getElementById("totalPay");
+      if (totalPayEl) totalPayEl.textContent = "GHS " + total.toLocaleString();
       estimateEl.innerHTML = `
         Worker receives: <strong>GHS ${total.toLocaleString()}</strong> &nbsp;·&nbsp;
         You pay: <strong>GHS ${facilityTotal.toLocaleString()}</strong>
@@ -166,11 +168,36 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
       onClose: function() {
         console.log("Payment window closed");
       },
-      callback: async function(response) {
-        console.log("Payment successful:", response.reference);
+      callback: function(response) {
+  console.log("Payment successful:", response.reference);
 
-        // ── Verify payment ──
-        const verifyResponse = await fetch(
+  // ── Verify payment — use regular promise instead of async ──
+  fetch(
+    "https://covercare-backend-production.up.railway.app/payment/verify",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "cc-africa-2025-verify-key"
+      },
+      body: JSON.stringify({ reference: response.reference })
+    }
+  )
+  .then(res => res.json())
+  .then(verifyData => {
+    console.log("Verify result:", verifyData);
+    if (verifyData.success) {
+      document.getElementById("shiftForm").style.display = "none";
+      document.getElementById("successCard").style.display = "block";
+      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+    } else {
+      alert("Payment could not be verified. Please contact support.");
+    }
+  })
+  .catch(err => {
+    console.error("Verify error:", err);
+    alert("Payment made but verification failed. Please contact support.");
+  });
           "https://covercare-backend-production.up.railway.app/payment/verify",
           {
             method: "POST",
