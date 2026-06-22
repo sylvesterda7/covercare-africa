@@ -47,7 +47,7 @@ async function verifyLicense() {
     const name = document.getElementById("fullname").value.trim();
 
     const response = await fetch(
-      `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}&api_key=cc-africa-2025-verify-key`
+      `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}&api_key=cc-2025-$#Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF`
     );
 
     const data = await response.json();
@@ -140,7 +140,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "cc-africa-2025-verify-key"
+        "x-api-key": "cc-2025-$#Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
       },
       body: JSON.stringify({
         full_name: worker.name,
