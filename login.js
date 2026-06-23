@@ -48,11 +48,15 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   successMsg.textContent = "Signed in successfully. Redirecting...";
   successMsg.style.display = "block";
 
-  setTimeout(() => {
-    if (userType === "worker") {
-      window.location.href = "dashboard-worker.html";
-    } else {
-      window.location.href = "dashboard-facility.html";
-    }
-  }, 1000);
+setTimeout(() => {
+  // ── Admin redirect ──
+  const adminEmails = ["sdenyoh-abayateye@st.ug.edu.gh"];
+  if (adminEmails.includes(data.user.email)) {
+    window.location.href = "admin.html";
+  } else if (userType === "worker") {
+    window.location.href = "dashboard-worker.html";
+  } else {
+    window.location.href = "dashboard-facility.html";
+  }
+}, 1000);
 });
