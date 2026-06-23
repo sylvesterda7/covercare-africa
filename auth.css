@@ -323,3 +323,68 @@
   color: rgba(255,255,255,0.4);
   margin-bottom: 4px;
 }
+
+/* ── Admin tabs ── */
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.4);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  border-color: rgba(93,202,165,0.2);
+  color: rgba(255,255,255,0.7);
+}
+
+.tab-btn.active {
+  background: rgba(93,202,165,0.1);
+  border-color: rgba(93,202,165,0.3);
+  color: #5DCAA5;
+}
+
+/* ── Admin table ── */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 10px 14px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.admin-table td {
+  padding: 12px 14px;
+  color: rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: middle;
+}
+
+.admin-table tr:hover td {
+  background: rgba(255,255,255,0.02);
+}
+
+.admin-table-wrap {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  overflow-x: auto;
+}

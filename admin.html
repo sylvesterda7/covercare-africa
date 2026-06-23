@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+</head>
+
+<body>
+
+  <!-- Background orbs -->
+  <div class="bg-wrap">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="content-layer">
+
+    <!-- NAV -->
+    <nav class="dashboard-nav">
+      <a href="index.html" class="nav-logo">CoverCare Africa <span style="font-size:11px; color:rgba(255,255,255,0.3); margin-left:8px;">ADMIN</span></a>
+      <div class="nav-right">
+        <span class="nav-user" id="navUser">Loading...</span>
+        <button class="btn-logout" onclick="logout()">Sign out</button>
+      </div>
+    </nav>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard-body">
+
+      <!-- HEADER -->
+      <div class="dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <p>Full platform overview — workers, facilities, shifts and revenue.</p>
+      </div>
+
+      <!-- OVERVIEW STATS -->
+      <div class="stats-row" id="overviewStats">
+        <div class="stat-box">
+          <div class="num" id="totalWorkers">—</div>
+          <div class="label">Total workers</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="verifiedWorkers">—</div>
+          <div class="label">Verified workers</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="totalFacilities">—</div>
+          <div class="label">Facilities</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="totalShifts">—</div>
+          <div class="label">Total shifts</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="paidShifts">—</div>
+          <div class="label">Paid shifts</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="totalRevenue">—</div>
+          <div class="label">Est. revenue</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <button class="tab-btn active" id="tab-workers" onclick="showTab('workers')">
+          <i class="ti ti-users"></i> Workers
+        </button>
+        <button class="tab-btn" id="tab-facilities" onclick="showTab('facilities')">
+          <i class="ti ti-building-hospital"></i> Facilities
+        </button>
+        <button class="tab-btn" id="tab-shifts" onclick="showTab('shifts')">
+          <i class="ti ti-calendar"></i> Shifts
+        </button>
+      </div>
+
+      <!-- WORKERS TABLE -->
+      <div id="panel-workers">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+          <div class="section-title" style="border:none; margin:0; padding:0;">All Workers</div>
+          <input id="workerSearch" class="glass-input" type="text" placeholder="Search by name or email..." style="max-width:250px; padding:8px 12px; font-size:13px;" oninput="filterWorkers()" />
+        </div>
+        <div id="workersTable"></div>
+      </div>
+
+      <!-- FACILITIES TABLE -->
+      <div id="panel-facilities" style="display:none;">
+        <div class="section-title">All Facilities</div>
+        <div id="facilitiesTable"></div>
+      </div>
+
+      <!-- SHIFTS TABLE -->
+      <div id="panel-shifts" style="display:none;">
+        <div class="section-title">All Shifts</div>
+        <div id="shiftsTable"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js"></script>
+
+</body>
+</html>
