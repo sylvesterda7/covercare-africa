@@ -1,9 +1,4 @@
-const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const BACKEND_URL = "https://covercare-backend-production.up.railway.app";
-const API_KEY = "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF";
-
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
 let currentWorker = null;
 
@@ -116,17 +111,17 @@ async function loadShifts() {
         ${shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH"}
       </div>
       <div class="profile-info" style="flex:1;">
-        <h3>${shift.facility_name}</h3>
-        <p>${shift.role_needed} · ${shift.city}</p>
-        <p>${shift.shift_date} · ${shift.start_time} · ${shift.duration}</p>
-        <p style="color:#5DCAA5; font-weight:500;">${shift.pay_rate}</p>
+        <h3>${escapeHtml(shift.facility_name)}</h3>
+        <p>${escapeHtml(shift.role_needed)} · ${escapeHtml(shift.city)}</p>
+        <p>${escapeHtml(shift.shift_date)} · ${escapeHtml(shift.start_time)} · ${escapeHtml(shift.duration)}</p>
+        <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.pay_rate)}</p>
         <div style="margin-top:8px;">
           <span class="badge badge-green">${shift.urgency === "today" ? "🔴 Urgent" : "Open"}</span>
         </div>
       </div>
       <div>
         <button
-          onclick="acceptShift('${shift.id}')"
+          onclick="acceptShift('${shift.id}', this)"
           class="btn-primary-sm"
           style="font-size:13px; padding:8px 16px;">
           Accept
@@ -181,7 +176,7 @@ async function loadMyShifts() {
   );
 
   container.innerHTML = shiftsWithTokens.map(shift => {
-    const qrUrl = buildQrUrl(shift.id, currentWorker.id, shift.qr_token);
+    const qrUrl = getArriveUrl(shift.id, currentWorker.id, shift.qr_token);
     const statusBadge = shift.status === "in_progress"
       ? `<span class="badge badge-green">In progress</span>`
       : `<span class="badge badge-yellow">Accepted — show QR on arrival</span>`;
@@ -194,9 +189,9 @@ async function loadMyShifts() {
       <div class="qr-card" id="shift-card-${shift.id}">
         <div class="qr-card-header">
           <div>
-            <h3>${shift.facility_name}</h3>
-            <p>${shift.role_needed} · ${shift.shift_date} · ${shift.start_time}</p>
-            <p style="color:#5DCAA5; margin-top:4px;">${shift.total_pay || shift.pay_rate}</p>
+            <h3>${escapeHtml(shift.facility_name)}</h3>
+            <p>${escapeHtml(shift.role_needed)} · ${escapeHtml(shift.shift_date)} · ${escapeHtml(shift.start_time)}</p>
+            <p style="color:#5DCAA5; margin-top:4px;">${escapeHtml(shift.total_pay || shift.pay_rate)}</p>
           </div>
           <div>${statusBadge}</div>
         </div>
@@ -217,7 +212,7 @@ async function loadMyShifts() {
     shiftsWithTokens
       .filter(shift => shift.qr_token)
       .map(shift => {
-        const qrUrl = buildQrUrl(shift.id, currentWorker.id, shift.qr_token);
+        const qrUrl = getArriveUrl(shift.id, currentWorker.id, shift.qr_token);
         return renderQrImage(`qr-${shift.id}`, qrUrl);
       })
   );
@@ -225,19 +220,14 @@ async function loadMyShifts() {
 
 async function ensureQrToken(shiftId) {
   try {
-    const response = await fetch(`${BACKEND_URL}/shift/accept`, {
+    const { data } = await ccFetch("/shift/accept", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY
-      },
       body: JSON.stringify({
         shift_id: shiftId,
         worker_id: currentWorker.id
       })
     });
-    const result = await response.json();
-    return result.success ? result.qr_token : null;
+    return data.success ? data.qr_token : null;
   } catch (err) {
     console.error("Ensure QR token error:", err);
     return null;
@@ -266,43 +256,36 @@ async function renderQrImage(imgId, url) {
 }
 
 function buildQrUrl(shiftId, workerId, token) {
-  const params = new URLSearchParams({
-    shift_id: shiftId,
-    worker_id: workerId,
-    token
-  });
-  return `https://covercare-africa.vercel.app/arrive?${params.toString()}`;
+  return getArriveUrl(shiftId, workerId, token);
 }
 
-async function acceptShift(shiftId) {
+async function acceptShift(shiftId, btn) {
   if (!currentWorker) {
     alert("Please complete your profile before accepting shifts.");
     return;
   }
 
-  const btn = event.target;
-  btn.disabled = true;
-  btn.textContent = "Accepting...";
+  if (!btn) btn = event?.target;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Accepting...";
+  }
 
   try {
-    const response = await fetch(`${BACKEND_URL}/shift/accept`, {
+    const { data: result } = await ccFetch("/shift/accept", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY
-      },
       body: JSON.stringify({
         shift_id: shiftId,
         worker_id: currentWorker.id
       })
     });
 
-    const result = await response.json();
-
     if (!result.success) {
       alert(result.message || "Could not accept shift. Please try again.");
-      btn.disabled = false;
-      btn.textContent = "Accept";
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Accept";
+      }
       return;
     }
 
@@ -310,14 +293,14 @@ async function acceptShift(shiftId) {
     await loadMyShifts();
 
     const card = document.getElementById(`shift-card-${shiftId}`);
-    if (card) {
-      card.scrollIntoView({ behavior: "smooth" });
-    }
+    if (card) card.scrollIntoView({ behavior: "smooth" });
   } catch (err) {
     console.error("Accept error:", err);
     alert("Something went wrong. Please try again.");
-    btn.disabled = false;
-    btn.textContent = "Accept";
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Accept";
+    }
   }
 }
 

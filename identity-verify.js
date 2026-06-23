@@ -1,7 +1,5 @@
 // ── Initialize Supabase ──
-const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
 // ── Cloudinary config ──
 const CLOUDINARY_CLOUD_NAME = "dy58hyn86";
@@ -197,53 +195,34 @@ async function runVerification() {
 async function markVerified() {
   const { data: { session } } = await _supabase.auth.getSession();
 
-  if (session) {
-    const email = session.user.email;
-    console.log("Updating identity for email:", email);
+  if (!session) {
+    showFailed("You must be signed in to verify your identity.");
+    return;
+  }
 
-    // ── Update via backend (bypasses RLS) ──
-    const response = await fetch(
-      "https://covercare-backend-production.up.railway.app/verify-identity",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
-        },
-        body: JSON.stringify({ email })
-      }
-    );
+  const email = session.user.email;
 
-    const result = await response.json();
-    console.log("Identity update result:", result);
+  const selfieDataUrl = document.getElementById("selfiePreview").src;
+  const selfieUrl = await uploadToCloudinary(selfieDataUrl, "selfie");
 
-    // ── Upload images to Cloudinary ──
-    const selfieDataUrl = document.getElementById("selfiePreview").src;
-    const selfieUrl = await uploadToCloudinary(selfieDataUrl, "selfie");
+  let idUrl = null;
+  const idFile = document.getElementById("idFile").files[0];
+  if (idFile) {
+    idUrl = await uploadToCloudinary(await fileToDataUrl(idFile), "id_document");
+  }
 
-    const idFile = document.getElementById("idFile").files[0];
-    if (idFile) {
-      const idUrl = await uploadToCloudinary(
-        await fileToDataUrl(idFile),
-        "id_document"
-      );
+  const { data: result } = await ccFetch("/verify-identity", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      selfie_url: selfieUrl,
+      id_document_url: idUrl
+    })
+  });
 
-      await fetch(
-        "https://covercare-backend-production.up.railway.app/verify-identity",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
-          },
-          body: JSON.stringify({
-            email,
-            selfie_url: selfieUrl,
-            id_document_url: idUrl
-          })
-        }
-      );
-    }
+  if (!result.success) {
+    showFailed(result.message || "Could not save verification. Please try again.");
+    return;
   }
 
   document.getElementById("verifyLoading").style.display = "none";

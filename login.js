@@ -1,16 +1,12 @@
-const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
 async function checkSession() {
   const { data: { session } } = await _supabase.auth.getSession();
   if (session) {
-    const userType = session.user.user_metadata.user_type;
-    if (userType === "worker") {
-      window.location.href = "dashboard-worker.html";
-    } else {
-      window.location.href = "dashboard-facility.html";
-    }
+    window.location.href = getDashboardUrl(
+      session.user.user_metadata.user_type,
+      session.user.email
+    );
   }
 }
 
@@ -31,10 +27,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   btn.textContent = "Signing in...";
   btn.disabled = true;
 
-  const { data, error } = await _supabase.auth.signInWithPassword({
-    email,
-    password
-  });
+  const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     errorMsg.textContent = error.message;
@@ -44,19 +37,13 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     return;
   }
 
-  const userType = data.user.user_metadata.user_type;
   successMsg.textContent = "Signed in successfully. Redirecting...";
   successMsg.style.display = "block";
 
-setTimeout(() => {
-  // ── Admin redirect ──
-  const adminEmails = ["sdenyoh-abayateye@st.ug.edu.gh"];
-  if (adminEmails.includes(data.user.email)) {
-    window.location.href = "admin.html";
-  } else if (userType === "worker") {
-    window.location.href = "dashboard-worker.html";
-  } else {
-    window.location.href = "dashboard-facility.html";
-  }
-}, 1000);
+  setTimeout(() => {
+    window.location.href = getDashboardUrl(
+      data.user.user_metadata.user_type,
+      data.user.email
+    );
+  }, 800);
 });

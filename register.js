@@ -1,6 +1,4 @@
-const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -57,18 +55,26 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     return;
   }
 
-  successMsg.textContent = "Account created! Redirecting to your dashboard...";
+  if (!data.session) {
+    successMsg.textContent =
+      "Account created! Check your email to confirm, then sign in and complete your profile.";
+    successMsg.style.display = "block";
+    btn.textContent = "Create account";
+    btn.disabled = false;
+    setTimeout(() => { window.location.href = "login.html"; }, 3000);
+    return;
+  }
+
+  successMsg.textContent = "Account created! Redirecting...";
   successMsg.style.display = "block";
 
   setTimeout(() => {
     if (userType === "worker") {
-      window.location.href = "dashboard-worker.html";
-    } else if (userType === "facility") {
-      window.location.href = "dashboard-facility.html";
-    } else if (userType === "homecare") {
-      window.location.href = "dashboard-facility.html";
+      window.location.href = "worker-signup.html";
+    } else if (userType === "facility" || userType === "homecare") {
+      window.location.href = "facility-signup.html";
     } else {
       window.location.href = "index.html";
     }
-  }, 1500);
+  }, 1200);
 });

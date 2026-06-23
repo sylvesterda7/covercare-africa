@@ -1,9 +1,4 @@
-const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const BACKEND_URL = "https://covercare-backend-production.up.railway.app";
-const API_KEY = "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF";
-
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
 const params = new URLSearchParams(window.location.search);
 const shiftId = params.get("shift_id");
@@ -126,16 +121,10 @@ async function confirmArrival() {
   btn.textContent = "Confirming...";
 
   try {
-    const response = await fetch(`${BACKEND_URL}/shift/arrive`, {
+    const { data: result } = await ccFetch("/shift/arrive", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY
-      },
       body: JSON.stringify({ shift_id: shiftId, worker_id: workerId, token })
     });
-
-    const result = await response.json();
 
     if (!result.success) {
       showError(result.message || "Could not confirm arrival.");
@@ -163,19 +152,13 @@ async function confirmComplete() {
   btn.textContent = "Processing...";
 
   try {
-    const response = await fetch(`${BACKEND_URL}/shift/complete`, {
+    const { data: result } = await ccFetch("/shift/complete", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY
-      },
       body: JSON.stringify({ shift_id: shiftId, worker_id: workerId, token })
     });
 
-    const result = await response.json();
-
     if (!result.success) {
-      showError(result.message || "Could not complete shift.");
+      showError(result.message || result.payout_error || "Could not complete shift.");
       return;
     }
 

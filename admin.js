@@ -1,13 +1,4 @@
-// ── Initialize Supabase ──
-const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ── Admin emails — only these can access ──
-const ADMIN_EMAILS = [
-  "sdenyoh-abayateye@st.ug.edu.gh"
-  // add more admin emails here if needed
-];
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
 // ── State ──
 let allWorkers = [];
@@ -26,7 +17,7 @@ async function init() {
   const email = session.user.email;
 
   // ── Check admin access ──
-  if (!ADMIN_EMAILS.includes(email)) {
+  if (!CC_CONFIG.ADMIN_EMAILS.includes(email)) {
     document.body.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif;">
         <div style="text-align:center; color:#E24B4A;">

@@ -46,11 +46,10 @@ async function verifyLicense() {
   try {
     const name = document.getElementById("fullname").value.trim();
 
-    const response = await fetch(
-      `https://covercare-backend-production.up.railway.app/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}&api_key=cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF`
+    const { response, data } = await ccFetch(
+      `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`,
+      { method: "GET", headers: {} }
     );
-
-    const data = await response.json();
     console.log("Verification response:", data);
 
     if (data.success === true) {
@@ -134,30 +133,29 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     return;
   }
 
+  const pharmacyRoles = ["pharmacist", "pharmacy-tech"];
+  if (pharmacyRoles.includes(worker.role) && !licenseVerified) {
+    alert("Please verify your pharmacy license before submitting.");
+    return;
+  }
+
   try {
-    // ── Send to Supabase via backend ──
-    const response = await fetch("https://covercare-backend-production.up.railway.app/worker", {
+    const { response, data: result } = await ccFetch("/worker", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
-      },
       body: JSON.stringify({
         full_name: worker.name,
         email: worker.email,
         phone: worker.phone,
         role: worker.role,
         license_number: worker.license,
-        license_verified: worker.licenseVerified,
         city: worker.city,
         experience: worker.experience
       })
     });
 
-    const result = await response.json();
     console.log("Save result:", result);
 
-    if (response.ok) {
+    if (response.ok && result.success) {
       document.getElementById("workerForm").style.display = "none";
       document.getElementById("successCard").style.display = "block";
       document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });

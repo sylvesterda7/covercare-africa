@@ -1,8 +1,4 @@
-const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
-const BACKEND_URL = "https://covercare-backend-production.up.railway.app";
-const API_KEY = "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF";
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
 let facilityEmail = null;
 let refreshTimer = null;
@@ -163,8 +159,8 @@ function renderLiveCheckins(shifts, workers) {
         <div class="checkin-card-header">
           <div class="profile-avatar">${workerInitials(worker?.full_name)}</div>
           <div class="checkin-card-info">
-            <h3>${worker?.full_name || "Assigned worker"}</h3>
-            <p>${worker?.role || shift.role_needed} · ${shift.shift_date} · ${shift.start_time}</p>
+            <h3>${escapeHtml(worker?.full_name || "Assigned worker")}</h3>
+            <p>${escapeHtml(worker?.role || shift.role_needed)} · ${escapeHtml(shift.shift_date)} · ${escapeHtml(shift.start_time)}</p>
           </div>
           <div class="checkin-status">
             <span class="live-dot"></span>
@@ -182,7 +178,7 @@ function renderLiveCheckins(shifts, workers) {
           </div>
           <div class="checkin-meta-item">
             <span>Shift pay</span>
-            <strong>${shift.total_pay || shift.pay_rate}</strong>
+            <strong>${escapeHtml(shift.total_pay || shift.pay_rate)}</strong>
           </div>
         </div>
         <div class="checkin-badges">${workerBadges(worker)}</div>
@@ -211,8 +207,8 @@ function renderAwaitingArrival(shifts, workers) {
         <div class="checkin-card-header">
           <div class="profile-avatar">${workerInitials(worker?.full_name)}</div>
           <div class="checkin-card-info">
-            <h3>${worker?.full_name || "Assigned worker"}</h3>
-            <p>${worker?.role || shift.role_needed} · ${shift.shift_date} · ${shift.start_time}</p>
+            <h3>${escapeHtml(worker?.full_name || "Assigned worker")}</h3>
+            <p>${escapeHtml(worker?.role || shift.role_needed)} · ${escapeHtml(shift.shift_date)} · ${escapeHtml(shift.start_time)}</p>
           </div>
           <span class="badge badge-yellow">Awaiting QR scan</span>
         </div>
@@ -351,7 +347,7 @@ async function logout() {
 
 function parseQrPayload(text) {
   try {
-    const url = text.startsWith("http") ? new URL(text) : new URL(text, "https://covercare-africa.vercel.app");
+    const url = text.startsWith("http") ? new URL(text) : new URL(text, CC_CONFIG.ARRIVE_BASE_URL);
     const shiftId = url.searchParams.get("shift_id");
     const workerId = url.searchParams.get("worker_id");
     const token = url.searchParams.get("token");
@@ -521,16 +517,13 @@ async function confirmScannedArrival() {
   btn.textContent = "Confirming...";
 
   try {
-    const response = await fetch(`${BACKEND_URL}/shift/arrive`, {
+    const { data: result } = await ccFetch("/shift/arrive", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY
-      },
-      body: JSON.stringify(pendingScan)
+      body: JSON.stringify({
+        ...pendingScan,
+        facility_email: facilityEmail
+      })
     });
-
-    const result = await response.json();
 
     if (!result.success) {
       showScanError(result.message || "Could not confirm arrival.");

@@ -127,23 +127,14 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
   console.log("Initializing payment for GHS", facilityAmount);
 
   try {
-    var initResponse = await fetch(
-      "https://covercare-backend-production.up.railway.app/payment/initialize",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
-        },
-        body: JSON.stringify({
-          email: shift.contact_email,
-          amount: facilityAmount,
-          shift_data: shift
-        })
-      }
-    );
-
-    var initData = await initResponse.json();
+    var { data: initData } = await ccFetch("/payment/initialize", {
+      method: "POST",
+      body: JSON.stringify({
+        email: shift.contact_email,
+        amount: facilityAmount,
+        shift_data: shift
+      })
+    });
     console.log("Payment init:", initData);
 
     if (!initData.success) {
@@ -152,7 +143,7 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     }
 
     var handler = PaystackPop.setup({
-      key: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02",
+      key: CC_CONFIG.PAYSTACK_PUBLIC_KEY,
       email: shift.contact_email,
       amount: Math.round(facilityAmount * 100),
       currency: "GHS",
@@ -164,18 +155,11 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
       callback: function(response) {
         console.log("Payment successful:", response.reference);
 
-        fetch(
-          "https://covercare-backend-production.up.railway.app/payment/verify",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
-            },
-            body: JSON.stringify({ reference: response.reference })
-          }
-        )
-        .then(function(res) { return res.json(); })
+        ccFetch("/payment/verify", {
+          method: "POST",
+          body: JSON.stringify({ reference: response.reference })
+        })
+        .then(function(res) { return res.data; })
         .then(function(verifyData) {
           console.log("Verify result:", verifyData);
           if (verifyData.success) {

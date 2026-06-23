@@ -29,13 +29,8 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
   }
 
   try {
-    // ── Send to Supabase via backend ──
-    const response = await fetch("https://covercare-backend-production.up.railway.app/facility", {
+    const { response, data: result } = await ccFetch("/facility", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF"
-      },
       body: JSON.stringify({
         facility_name: facility.facilityName,
         facility_type: facility.facilityType,
@@ -49,10 +44,9 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
       })
     });
 
-    const result = await response.json();
     console.log("Save result:", result);
 
-    if (response.ok) {
+    if (response.ok && result.success) {
       document.getElementById("facilityForm").style.display = "none";
       document.getElementById("successCard").style.display = "block";
       document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
