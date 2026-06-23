@@ -172,11 +172,23 @@ async function loadMyShifts() {
     return;
   }
 
-  container.innerHTML = data.map(shift => {
+  const shiftsWithTokens = await Promise.all(
+    data.map(async (shift) => {
+      if (shift.qr_token) return shift;
+      const token = await ensureQrToken(shift.id);
+      return token ? { ...shift, qr_token: token } : shift;
+    })
+  );
+
+  container.innerHTML = shiftsWithTokens.map(shift => {
     const qrUrl = buildQrUrl(shift.id, currentWorker.id, shift.qr_token);
     const statusBadge = shift.status === "in_progress"
       ? `<span class="badge badge-green">In progress</span>`
       : `<span class="badge badge-yellow">Accepted — show QR on arrival</span>`;
+
+    const qrContent = shift.qr_token
+      ? `<img id="qr-${shift.id}" class="qr-image" width="200" height="200" alt="Shift check-in QR code" />`
+      : `<p class="qr-display-label" style="color:#E24B4A;">QR code unavailable — refresh the page or contact support.</p>`;
 
     return `
       <div class="qr-card" id="shift-card-${shift.id}">
@@ -189,10 +201,10 @@ async function loadMyShifts() {
           <div>${statusBadge}</div>
         </div>
         <div class="qr-display">
-          <canvas id="qr-${shift.id}"></canvas>
+          ${qrContent}
           <p class="qr-display-label">Show this QR code when you arrive at the facility</p>
         </div>
-        ${shift.status === "in_progress" ? `
+        ${shift.status === "in_progress" && shift.qr_token ? `
           <div style="margin-top:12px; text-align:center;">
             <a href="${qrUrl}" class="btn-primary-sm">Check out when shift ends</a>
           </div>
@@ -201,17 +213,56 @@ async function loadMyShifts() {
     `;
   }).join("");
 
-  data.forEach(shift => {
-    const qrUrl = buildQrUrl(shift.id, currentWorker.id, shift.qr_token);
-    const canvas = document.getElementById(`qr-${shift.id}`);
-    if (canvas && window.QRCode) {
-      QRCode.toCanvas(canvas, qrUrl, {
+  await Promise.all(
+    shiftsWithTokens
+      .filter(shift => shift.qr_token)
+      .map(shift => {
+        const qrUrl = buildQrUrl(shift.id, currentWorker.id, shift.qr_token);
+        return renderQrImage(`qr-${shift.id}`, qrUrl);
+      })
+  );
+}
+
+async function ensureQrToken(shiftId) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/shift/accept`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY
+      },
+      body: JSON.stringify({
+        shift_id: shiftId,
+        worker_id: currentWorker.id
+      })
+    });
+    const result = await response.json();
+    return result.success ? result.qr_token : null;
+  } catch (err) {
+    console.error("Ensure QR token error:", err);
+    return null;
+  }
+}
+
+async function renderQrImage(imgId, url) {
+  const img = document.getElementById(imgId);
+  if (!img || !url) return;
+
+  try {
+    if (typeof QRCode !== "undefined") {
+      img.src = await QRCode.toDataURL(url, {
         width: 200,
         margin: 2,
         color: { dark: "#0a1628", light: "#ffffff" }
       });
+      return;
     }
-  });
+  } catch (err) {
+    console.error("QRCode render error:", err);
+  }
+
+  img.src =
+    `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
 }
 
 function buildQrUrl(shiftId, workerId, token) {

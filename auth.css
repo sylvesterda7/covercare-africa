@@ -558,8 +558,10 @@
 }
 
 .qr-display canvas,
-.qr-display img {
+.qr-display img,
+.qr-display .qr-image {
   border-radius: 8px;
+  display: block;
 }
 
 .qr-display-label {
