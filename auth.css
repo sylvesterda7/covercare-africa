@@ -388,3 +388,464 @@
   overflow: hidden;
   overflow-x: auto;
 }
+
+/* ── QR arrival page ── */
+.arrive-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+
+.arrive-state h1 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.arrive-state > p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+}
+
+.arrive-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5DCAA5;
+  margin-bottom: 0.5rem;
+}
+
+.arrive-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 1.5rem;
+}
+
+.arrive-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 1.25rem;
+}
+
+.arrive-icon-pending {
+  background: rgba(93,202,165,0.1);
+  border: 1px solid rgba(93,202,165,0.25);
+}
+
+.arrive-icon-success {
+  background: rgba(93,202,165,0.15);
+  border: 1px solid rgba(93,202,165,0.35);
+  color: #5DCAA5;
+  font-weight: 600;
+}
+
+.arrive-icon-error {
+  background: rgba(226,75,74,0.1);
+  border: 1px solid rgba(226,75,74,0.25);
+  color: #E24B4A;
+  font-weight: 600;
+}
+
+.arrive-details {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  text-align: left;
+}
+
+.arrive-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.arrive-detail-row:last-child {
+  border-bottom: none;
+}
+
+.arrive-detail-row span {
+  color: rgba(255,255,255,0.35);
+}
+
+.arrive-detail-row strong {
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+
+.arrive-badges {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.arrive-hint {
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  margin-top: 1rem;
+}
+
+.arrive-spinner {
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(93,202,165,0.2);
+  border-top-color: #5DCAA5;
+  border-radius: 50%;
+  margin: 0 auto 1.25rem;
+  animation: arrive-spin 0.8s linear infinite;
+}
+
+@keyframes arrive-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── QR code display on dashboard ── */
+.qr-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 12px;
+}
+
+.qr-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.qr-card-header h3 {
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.qr-card-header p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+}
+
+.qr-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem;
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+}
+
+.qr-display canvas,
+.qr-display img {
+  border-radius: 8px;
+}
+
+.qr-display-label {
+  font-size: 12px;
+  color: rgba(10,22,40,0.6);
+  text-align: center;
+}
+
+/* ── Facility live check-ins ── */
+.section-live {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-updated {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.25);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.live-dot,
+.live-dot-sm {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5DCAA5;
+  box-shadow: 0 0 8px rgba(93,202,165,0.6);
+  animation: live-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.live-dot-sm {
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.stat-box-live .num {
+  color: #5DCAA5;
+}
+
+.scan-hint {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  margin: 0;
+}
+
+.checkin-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.checkin-card-live {
+  border-color: rgba(93,202,165,0.25);
+  box-shadow: 0 0 24px rgba(93,202,165,0.06);
+}
+
+.checkin-card-done {
+  opacity: 0.85;
+}
+
+.checkin-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.checkin-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkin-card-info h3 {
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.checkin-card-info p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+}
+
+.checkin-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.checkin-status-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5DCAA5;
+}
+
+.checkin-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.checkin-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkin-meta-item span {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.checkin-meta-item strong {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+
+.checkin-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(226,75,74,0.3);
+  color: #E24B4A;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.btn-cancel:hover {
+  border-color: rgba(226,75,74,0.5);
+}
+
+/* ── QR scanner ── */
+.scanner-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.scanner-placeholder {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.scanner-icon {
+  font-size: 32px;
+  margin-bottom: 0.75rem;
+}
+
+.scanner-placeholder p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.scanner-wrap {
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+#qrReader {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#qrReader video {
+  border-radius: 12px;
+}
+
+#qrReader__scan_region {
+  background: rgba(255,255,255,0.02) !important;
+}
+
+#qrReader__dashboard_section_csr span,
+#qrReader__dashboard_section_swaplink {
+  color: rgba(255,255,255,0.5) !important;
+}
+
+#qrReader button {
+  background: rgba(93,202,165,0.15) !important;
+  border: 1px solid rgba(93,202,165,0.3) !important;
+  color: #5DCAA5 !important;
+  border-radius: 8px !important;
+  font-family: inherit !important;
+}
+
+#qrReader select {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #f0efe8 !important;
+  border-radius: 8px !important;
+}
+
+/* ── Scan confirm modal ── */
+.scan-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(10,22,40,0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.scan-modal {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  position: relative;
+}
+
+.scan-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.scan-modal-close:hover {
+  border-color: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.scan-modal-state h2 {
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.scan-modal-state > p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 1rem;
+}

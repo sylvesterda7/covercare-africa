@@ -1,6 +1,11 @@
 const SUPABASE_URL = "https://ifmpbrpcnnswqlwdytfy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
+const BACKEND_URL = "https://covercare-backend-production.up.railway.app";
+const API_KEY = "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF";
+
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentWorker = null;
 
 async function init() {
   const { data: { session } } = await _supabase.auth.getSession();
@@ -25,6 +30,7 @@ async function init() {
 
   await loadProfile(user.email);
   await loadShifts();
+  await loadMyShifts();
 }
 
 async function loadProfile(email) {
@@ -42,17 +48,19 @@ async function loadProfile(email) {
       <span class="badge badge-yellow" style="margin-top:8px;">Profile incomplete</span>
     `;
     return;
-  // ── Show verify identity button only if not verified ──
-if (!data.identity_verified) {
-  const quickActions = document.getElementById("quickActions");
-  const verifyBtn = document.createElement("a");
-  verifyBtn.href = "identity-verify.html";
-  verifyBtn.className = "btn-primary-sm";
-  verifyBtn.style = "background:#f4faf8; color:#0F6E56; border:1px solid #9FE1CB;";
-  verifyBtn.textContent = "Verify my identity";
-  quickActions.appendChild(verifyBtn);
-}
-}
+  }
+
+  currentWorker = data;
+
+  if (!data.identity_verified) {
+    const quickActions = document.getElementById("quickActions");
+    const verifyBtn = document.createElement("a");
+    verifyBtn.href = "identity-verify.html";
+    verifyBtn.className = "btn-primary-sm";
+    verifyBtn.style = "background:#f4faf8; color:#0F6E56; border:1px solid #9FE1CB;";
+    verifyBtn.textContent = "Verify my identity";
+    quickActions.appendChild(verifyBtn);
+  }
 
   const initials = data.full_name
     .split(" ")
@@ -90,19 +98,28 @@ async function loadShifts() {
     .order("created_at", { ascending: false })
     .limit(5);
 
-  if (error || !data || data.length === 0) return;
-
   const container = document.getElementById("shiftsContainer");
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>No shifts available in your area right now.</p>
+        <p style="font-size:13px;">We'll notify you when new shifts are posted near you.</p>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = data.map(shift => `
     <div class="profile-card" style="margin-bottom:12px;">
-      <div class="profile-avatar" style="background:#E1F5EE; font-size:14px;">
+      <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
         ${shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH"}
       </div>
       <div class="profile-info" style="flex:1;">
         <h3>${shift.facility_name}</h3>
         <p>${shift.role_needed} · ${shift.city}</p>
         <p>${shift.shift_date} · ${shift.start_time} · ${shift.duration}</p>
-        <p style="color:#0F6E56; font-weight:500;">${shift.pay_rate}</p>
+        <p style="color:#5DCAA5; font-weight:500;">${shift.pay_rate}</p>
         <div style="margin-top:8px;">
           <span class="badge badge-green">${shift.urgency === "today" ? "🔴 Urgent" : "Open"}</span>
         </div>
@@ -117,26 +134,140 @@ async function loadShifts() {
       </div>
     </div>
   `).join("");
-
-  document.getElementById("totalShifts").textContent = data.length;
 }
 
-async function acceptShift(shiftId) {
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) return;
+async function loadMyShifts() {
+  if (!currentWorker) return;
 
-  const { error } = await _supabase
+  const { data, error } = await _supabase
     .from("shifts")
-    .update({ status: "accepted" })
-    .eq("id", shiftId);
+    .select("*")
+    .eq("worker_id", currentWorker.id)
+    .in("status", ["accepted", "in_progress"])
+    .order("shift_date", { ascending: true });
 
-  if (error) {
-    alert("Could not accept shift. Please try again.");
+  const container = document.getElementById("myShiftsContainer");
+  const completedRes = await _supabase
+    .from("shifts")
+    .select("total_pay")
+    .eq("worker_id", currentWorker.id)
+    .eq("status", "completed");
+
+  const completed = completedRes.data || [];
+  document.getElementById("totalShifts").textContent = completed.length;
+
+  const totalEarnings = completed.reduce((sum, s) => {
+    const amount = parseFloat((s.total_pay || "").replace(/[^0-9.]/g, "")) || 0;
+    return sum + amount;
+  }, 0);
+  document.getElementById("totalEarnings").textContent =
+    `GHS ${totalEarnings.toLocaleString()}`;
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>No active shifts. Accept a shift above to get your QR check-in code.</p>
+      </div>
+    `;
     return;
   }
 
-  alert("Shift accepted! The facility will be notified.");
-  loadShifts();
+  container.innerHTML = data.map(shift => {
+    const qrUrl = buildQrUrl(shift.id, currentWorker.id, shift.qr_token);
+    const statusBadge = shift.status === "in_progress"
+      ? `<span class="badge badge-green">In progress</span>`
+      : `<span class="badge badge-yellow">Accepted — show QR on arrival</span>`;
+
+    return `
+      <div class="qr-card" id="shift-card-${shift.id}">
+        <div class="qr-card-header">
+          <div>
+            <h3>${shift.facility_name}</h3>
+            <p>${shift.role_needed} · ${shift.shift_date} · ${shift.start_time}</p>
+            <p style="color:#5DCAA5; margin-top:4px;">${shift.total_pay || shift.pay_rate}</p>
+          </div>
+          <div>${statusBadge}</div>
+        </div>
+        <div class="qr-display">
+          <canvas id="qr-${shift.id}"></canvas>
+          <p class="qr-display-label">Show this QR code when you arrive at the facility</p>
+        </div>
+        ${shift.status === "in_progress" ? `
+          <div style="margin-top:12px; text-align:center;">
+            <a href="${qrUrl}" class="btn-primary-sm">Check out when shift ends</a>
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+
+  data.forEach(shift => {
+    const qrUrl = buildQrUrl(shift.id, currentWorker.id, shift.qr_token);
+    const canvas = document.getElementById(`qr-${shift.id}`);
+    if (canvas && window.QRCode) {
+      QRCode.toCanvas(canvas, qrUrl, {
+        width: 200,
+        margin: 2,
+        color: { dark: "#0a1628", light: "#ffffff" }
+      });
+    }
+  });
+}
+
+function buildQrUrl(shiftId, workerId, token) {
+  const params = new URLSearchParams({
+    shift_id: shiftId,
+    worker_id: workerId,
+    token
+  });
+  return `https://covercare-africa.vercel.app/arrive?${params.toString()}`;
+}
+
+async function acceptShift(shiftId) {
+  if (!currentWorker) {
+    alert("Please complete your profile before accepting shifts.");
+    return;
+  }
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = "Accepting...";
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/shift/accept`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY
+      },
+      body: JSON.stringify({
+        shift_id: shiftId,
+        worker_id: currentWorker.id
+      })
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      alert(result.message || "Could not accept shift. Please try again.");
+      btn.disabled = false;
+      btn.textContent = "Accept";
+      return;
+    }
+
+    await loadShifts();
+    await loadMyShifts();
+
+    const card = document.getElementById(`shift-card-${shiftId}`);
+    if (card) {
+      card.scrollIntoView({ behavior: "smooth" });
+    }
+  } catch (err) {
+    console.error("Accept error:", err);
+    alert("Something went wrong. Please try again.");
+    btn.disabled = false;
+    btn.textContent = "Accept";
+  }
 }
 
 async function logout() {

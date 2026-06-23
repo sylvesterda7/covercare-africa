@@ -39,9 +39,9 @@
         <div class="num" id="openShifts">0</div>
         <div class="label">Open shifts</div>
       </div>
-      <div class="stat-box">
-        <div class="num" id="filledShifts">0</div>
-        <div class="label">Filled shifts</div>
+      <div class="stat-box stat-box-live">
+        <div class="num" id="onSiteNow">0</div>
+        <div class="label"><span class="live-dot-sm"></span> On site now</div>
       </div>
       <div class="stat-box">
         <div class="num" id="totalSpend">GHS 0</div>
@@ -54,6 +54,43 @@
       <a href="post-shift.html" class="btn-primary-sm">+ Post a new shift</a>
     </div>
 
+    <!-- QR SCANNER -->
+    <div class="section-title" style="margin-top: 0;">Scan worker QR</div>
+    <div class="scanner-card">
+      <div id="scannerPlaceholder" class="scanner-placeholder">
+        <div class="scanner-icon">📷</div>
+        <p>Point your camera at the worker's check-in QR code to confirm their arrival instantly.</p>
+        <button class="btn-primary-sm" onclick="openScanner()">Open camera scanner</button>
+      </div>
+      <div id="scannerWrap" class="scanner-wrap" style="display:none;">
+        <div id="qrReader"></div>
+        <button class="btn-cancel" style="margin-top:12px; width:100%;" onclick="closeScanner()">
+          Close scanner
+        </button>
+      </div>
+    </div>
+
+    <!-- LIVE CHECK-INS -->
+    <div class="section-title section-live">
+      <span class="live-dot"></span> Live on site
+      <span class="live-updated" id="lastUpdated"></span>
+    </div>
+    <div id="liveCheckinsContainer">
+      <div class="empty-state">
+        <p>No workers checked in right now.</p>
+        <p style="font-size:13px;">Workers appear here automatically when you scan their QR code on arrival.</p>
+      </div>
+    </div>
+
+    <!-- AWAITING ARRIVAL -->
+    <div class="section-title" style="margin-top: 2rem;">Awaiting arrival</div>
+    <div id="awaitingArrivalContainer">
+      <div class="empty-state">
+        <p>No workers assigned yet.</p>
+        <p style="font-size:13px;">Accepted shifts waiting for QR check-in will show here.</p>
+      </div>
+    </div>
+
     <!-- OPEN SHIFTS -->
     <div class="section-title">Your open shifts</div>
     <div id="openShiftsContainer">
@@ -63,18 +100,80 @@
       </div>
     </div>
 
-    <!-- FILLED SHIFTS -->
-    <div class="section-title" style="margin-top: 2rem;">Filled shifts</div>
-    <div id="filledShiftsContainer">
+    <!-- COMPLETED SHIFTS -->
+    <div class="section-title" style="margin-top: 2rem;">Completed shifts</div>
+    <div id="completedShiftsContainer">
       <div class="empty-state">
-        <p>No filled shifts yet.</p>
-        <p style="font-size:13px;">Shifts will appear here once a professional accepts them.</p>
+        <p>No completed shifts yet.</p>
+        <p style="font-size:13px;">Finished shifts will appear here after workers check out.</p>
       </div>
     </div>
 
   </div>
 
+  <!-- SCAN CONFIRM MODAL -->
+  <div id="scanModal" class="scan-modal-overlay" style="display:none;">
+    <div class="scan-modal">
+      <button class="scan-modal-close" onclick="closeScanModal()">✕</button>
+
+      <div id="scanModalLoading" class="scan-modal-state">
+        <div class="arrive-spinner"></div>
+        <p>Loading worker details...</p>
+      </div>
+
+      <div id="scanModalConfirm" class="scan-modal-state" style="display:none;">
+        <div class="arrive-icon arrive-icon-pending">👤</div>
+        <p class="arrive-label">Confirm worker arrival</p>
+        <h2 id="scanWorkerName">—</h2>
+        <p id="scanWorkerRole" class="arrive-sub">—</p>
+        <div class="arrive-details">
+          <div class="arrive-detail-row">
+            <span>Shift</span>
+            <strong id="scanShiftRole">—</strong>
+          </div>
+          <div class="arrive-detail-row">
+            <span>Date</span>
+            <strong id="scanShiftDate">—</strong>
+          </div>
+          <div class="arrive-detail-row">
+            <span>Start time</span>
+            <strong id="scanShiftTime">—</strong>
+          </div>
+        </div>
+        <div id="scanWorkerBadges" class="arrive-badges"></div>
+        <button class="btn-auth" id="scanConfirmBtn" onclick="confirmScannedArrival()">
+          Confirm arrival
+        </button>
+      </div>
+
+      <div id="scanModalSuccess" class="scan-modal-state" style="display:none;">
+        <div class="arrive-icon arrive-icon-success">✓</div>
+        <h2>Worker checked in</h2>
+        <p id="scanSuccessMsg">Arrival confirmed. Shift is now in progress.</p>
+        <div class="arrive-details">
+          <div class="arrive-detail-row">
+            <span>Worker</span>
+            <strong id="scanSuccessWorker">—</strong>
+          </div>
+          <div class="arrive-detail-row">
+            <span>Arrival time</span>
+            <strong id="scanSuccessTime">—</strong>
+          </div>
+        </div>
+        <button class="btn-auth" onclick="closeScanModal()">Done</button>
+      </div>
+
+      <div id="scanModalError" class="scan-modal-state" style="display:none;">
+        <div class="arrive-icon arrive-icon-error">✕</div>
+        <h2>Scan failed</h2>
+        <p id="scanErrorMsg">Invalid QR code.</p>
+        <button class="btn-auth" onclick="closeScanModal()">Try again</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="dashboard-facility.js"></script>
 
 </body>

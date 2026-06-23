@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shift Check-in – CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+
+<body>
+
+  <div class="bg-wrap">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="content-layer">
+
+    <nav class="nav">
+      <a href="index.html" class="nav-logo">CoverCare Africa</a>
+    </nav>
+
+    <div class="auth-wrap">
+      <div class="arrive-card" id="arriveCard">
+
+        <!-- Loading -->
+        <div id="arriveLoading" class="arrive-state">
+          <div class="arrive-spinner"></div>
+          <h1>Verifying shift details</h1>
+          <p>Please wait while we load this check-in.</p>
+        </div>
+
+        <!-- Invalid QR -->
+        <div id="arriveError" class="arrive-state" style="display:none;">
+          <div class="arrive-icon arrive-icon-error">✕</div>
+          <h1>Invalid QR code</h1>
+          <p id="errorMessage">This check-in link is invalid or has expired.</p>
+          <a href="index.html" class="btn-primary" style="margin-top:1.5rem;">Back to homepage</a>
+        </div>
+
+        <!-- Arrival confirmation (facility manager) -->
+        <div id="arriveConfirm" class="arrive-state" style="display:none;">
+          <div class="arrive-icon arrive-icon-pending">👤</div>
+          <p class="arrive-label">Confirm worker arrival</p>
+          <h1 id="workerName">—</h1>
+          <p id="workerRole" class="arrive-sub">—</p>
+
+          <div class="arrive-details">
+            <div class="arrive-detail-row">
+              <span>Facility</span>
+              <strong id="facilityName">—</strong>
+            </div>
+            <div class="arrive-detail-row">
+              <span>Shift date</span>
+              <strong id="shiftDate">—</strong>
+            </div>
+            <div class="arrive-detail-row">
+              <span>Start time</span>
+              <strong id="shiftTime">—</strong>
+            </div>
+            <div class="arrive-detail-row">
+              <span>Role</span>
+              <strong id="shiftRole">—</strong>
+            </div>
+          </div>
+
+          <div id="verifyBadges" class="arrive-badges"></div>
+
+          <button class="btn-auth" id="confirmArriveBtn" onclick="confirmArrival()">
+            Confirm arrival
+          </button>
+          <p class="arrive-hint">Facility manager: tap to log this worker's arrival time.</p>
+        </div>
+
+        <!-- Arrival success -->
+        <div id="arriveSuccess" class="arrive-state" style="display:none;">
+          <div class="arrive-icon arrive-icon-success">✓</div>
+          <h1>Worker checked in</h1>
+          <p id="arriveSuccessMsg">Arrival confirmed. Shift is now in progress.</p>
+          <div class="arrive-details">
+            <div class="arrive-detail-row">
+              <span>Worker</span>
+              <strong id="successWorkerName">—</strong>
+            </div>
+            <div class="arrive-detail-row">
+              <span>Arrival time</span>
+              <strong id="arrivalTime">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complete shift (worker checkout) -->
+        <div id="completeConfirm" class="arrive-state" style="display:none;">
+          <div class="arrive-icon arrive-icon-pending">⏱</div>
+          <p class="arrive-label">Shift in progress</p>
+          <h1 id="completeWorkerName">—</h1>
+          <p class="arrive-sub" id="completeFacility">—</p>
+
+          <div class="arrive-details">
+            <div class="arrive-detail-row">
+              <span>Checked in at</span>
+              <strong id="checkedInTime">—</strong>
+            </div>
+            <div class="arrive-detail-row">
+              <span>Worker pay</span>
+              <strong id="shiftPay">—</strong>
+            </div>
+          </div>
+
+          <button class="btn-auth" id="confirmCompleteBtn" onclick="confirmComplete()">
+            Complete shift &amp; check out
+          </button>
+          <p class="arrive-hint">Worker: tap when your shift ends to trigger your MoMo payout.</p>
+        </div>
+
+        <!-- Complete success -->
+        <div id="completeSuccess" class="arrive-state" style="display:none;">
+          <div class="arrive-icon arrive-icon-success">✓</div>
+          <h1>Shift completed</h1>
+          <p id="completeSuccessMsg">Your payout is on its way to your Mobile Money wallet.</p>
+          <div class="arrive-details">
+            <div class="arrive-detail-row">
+              <span>Completed at</span>
+              <strong id="completionTime">—</strong>
+            </div>
+            <div class="arrive-detail-row">
+              <span>Payout</span>
+              <strong id="payoutAmount">—</strong>
+            </div>
+          </div>
+          <a href="dashboard-worker.html" class="btn-primary" style="margin-top:1.5rem;">Go to dashboard</a>
+        </div>
+
+        <!-- Already completed -->
+        <div id="alreadyCompleted" class="arrive-state" style="display:none;">
+          <div class="arrive-icon arrive-icon-success">✓</div>
+          <h1>Shift already completed</h1>
+          <p>This shift has been checked out and paid.</p>
+          <div class="arrive-details">
+            <div class="arrive-detail-row">
+              <span>Completed at</span>
+              <strong id="alreadyCompletionTime">—</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="qr-arrive.js"></script>
+
+</body>
+</html>

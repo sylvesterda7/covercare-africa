@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/arrive", "destination": "/qr-arrive.html" }
+  ]
+}
