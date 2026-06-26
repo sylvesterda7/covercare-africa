@@ -1,5 +1,6 @@
 // ── Config & Supabase ──
-const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+const _supabase = window._supabase;
 
 let facilityEmail = null;
 
@@ -55,19 +56,19 @@ async function loadShifts(email) {
     openContainer.innerHTML = openShifts.map(shift => `
       <div class="profile-card" style="margin-bottom:12px;">
         <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
-          ${shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH"}
+          ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
         </div>
         <div class="profile-info" style="flex:1;">
-          <h3>${shift.role_needed || "—"}</h3>
-          <p>${shift.shift_date || "—"} · ${shift.start_time || "—"} · ${shift.duration || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${shift.pay_rate || "—"}</p>
+          <h3>${escapeHtml(shift.role_needed) || "—"}</h3>
+          <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
+          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
           <div style="margin-top:8px;">
             <span class="badge badge-yellow">Awaiting applicants</span>
           </div>
         </div>
         <div>
           <button
-            onclick="cancelShift('${shift.id}')"
+            onclick="cancelShift('${escapeHtml(shift.id)}')"
             style="font-size:12px; padding:7px 14px; border-radius:8px; border:1px solid rgba(226,75,74,0.3); background:transparent; color:#E24B4A; cursor:pointer; font-family:inherit;">
             Cancel
           </button>
@@ -88,12 +89,12 @@ async function loadShifts(email) {
     filledContainer.innerHTML = filledShifts.map(shift => `
       <div class="profile-card" style="margin-bottom:12px;">
         <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
-          ${shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH"}
+          ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
         </div>
         <div class="profile-info" style="flex:1;">
-          <h3>${shift.role_needed || "—"}</h3>
-          <p>${shift.shift_date || "—"} · ${shift.start_time || "—"} · ${shift.duration || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${shift.total_pay || "—"}</p>
+          <h3>${escapeHtml(shift.role_needed) || "—"}</h3>
+          <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
+          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.total_pay) || "—"}</p>
           <div style="margin-top:8px;">
             <span class="badge badge-green">
               ${shift.status === "in_progress" ? "⏱ In progress" : shift.status === "completed" ? "✓ Completed" : "✓ Filled"}
@@ -171,10 +172,10 @@ async function loadApplications(email) {
       <div class="profile-card" style="margin-bottom:12px;">
         <div class="profile-avatar">${initials}</div>
         <div class="profile-info" style="flex:1;">
-          <h3>${worker.full_name || "Unknown"}</h3>
-          <p>${worker.role || "—"} · ${worker.city || "—"} · ${worker.experience || "—"} exp</p>
+          <h3>${escapeHtml(worker.full_name) || "Unknown"}</h3>
+          <p>${escapeHtml(worker.role) || "—"} · ${escapeHtml(worker.city) || "—"} · ${escapeHtml(worker.experience) || "—"} exp</p>
           <p style="font-size:12px; color:rgba(255,255,255,0.3);">
-            Applied for: ${shift.role_needed || "—"} · ${shift.shift_date || "—"}
+            Applied for: ${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.shift_date) || "—"}
           </p>
           <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
             ${worker.license_verified
@@ -189,13 +190,13 @@ async function loadApplications(email) {
         </div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <button
-            onclick="acceptApplication('${app.id}')"
+            onclick="acceptApplication('${escapeHtml(app.id)}')"
             class="btn-primary-sm"
             style="font-size:12px; padding:7px 14px;">
             Accept
           </button>
           <button
-            onclick="rejectApplication('${app.id}')"
+            onclick="rejectApplication('${escapeHtml(app.id)}')"
             style="font-size:12px; padding:7px 14px; border-radius:8px; border:1px solid rgba(226,75,74,0.3); background:transparent; color:#E24B4A; cursor:pointer; font-family:inherit;">
             Reject
           </button>
@@ -210,22 +211,13 @@ async function acceptApplication(applicationId) {
   if (!confirm("Accept this worker? All other applicants will be rejected.")) return;
 
   try {
-    const response = await fetch(
-      `${CC_CONFIG.BACKEND_URL}/applications/accept`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": CC_CONFIG.API_KEY
-        },
-        body: JSON.stringify({
-          application_id: applicationId,
-          facility_email: facilityEmail
-        })
-      }
-    );
-
-    const result = await response.json();
+    const { data: result } = await ccFetch("/applications/accept", {
+      method: "POST",
+      body: JSON.stringify({
+        application_id: applicationId,
+        facility_email: facilityEmail
+      })
+    });
 
     if (result.success) {
       alert("Worker accepted! Shift is now filled.");
@@ -245,22 +237,13 @@ async function rejectApplication(applicationId) {
   if (!confirm("Reject this application?")) return;
 
   try {
-    const response = await fetch(
-      `${CC_CONFIG.BACKEND_URL}/applications/reject`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": CC_CONFIG.API_KEY
-        },
-        body: JSON.stringify({
-          application_id: applicationId,
-          facility_email: facilityEmail
-        })
-      }
-    );
-
-    const result = await response.json();
+    const { data: result } = await ccFetch("/applications/reject", {
+      method: "POST",
+      body: JSON.stringify({
+        application_id: applicationId,
+        facility_email: facilityEmail
+      })
+    });
 
     if (result.success) {
       await loadApplications(facilityEmail);
@@ -280,7 +263,8 @@ async function cancelShift(shiftId) {
   const { error } = await _supabase
     .from("shifts")
     .update({ status: "cancelled" })
-    .eq("id", shiftId);
+    .eq("id", shiftId)
+    .eq("contact_email", facilityEmail);
 
   if (error) {
     alert("Could not cancel shift. Please try again.");

@@ -1,5 +1,6 @@
 // ── Config & Supabase ──
-const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+const _supabase = window._supabase;
 
 let currentWorker = null;
 
@@ -100,13 +101,13 @@ async function loadShifts() {
   container.innerHTML = data.map(shift => `
     <div class="profile-card" style="margin-bottom:12px;">
       <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
-        ${shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH"}
+        ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
       </div>
       <div class="profile-info" style="flex:1;">
-        <h3>${shift.facility_name || "—"}</h3>
-        <p>${shift.role_needed || "—"} · ${shift.city || "—"}</p>
-        <p>${shift.shift_date || "—"} · ${shift.start_time || "—"} · ${shift.duration || "—"}</p>
-        <p style="color:#5DCAA5; font-weight:500;">${shift.pay_rate || "—"}</p>
+        <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
+        <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
+        <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
+        <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
         <div style="margin-top:8px;">
           <span class="badge badge-green">
             ${shift.urgency === "today" ? "🔴 Urgent" : "Open"}
@@ -115,7 +116,7 @@ async function loadShifts() {
       </div>
       <div>
         <button
-          onclick="applyToShift('${shift.id}', this)"
+          onclick="applyToShift('${escapeHtml(shift.id)}', this)"
           class="btn-primary-sm"
           style="font-size:13px; padding:8px 16px;">
           Apply
@@ -163,8 +164,10 @@ async function loadMyShifts() {
   }
 
   container.innerHTML = data.map(shift => {
+    const safeId = escapeHtml(shift.id);
+    const safeWorkerId = escapeHtml(currentWorker.id);
     const qrUrl = shift.qr_token
-      ? `${window.location.origin}/qr-arrive.html?shift_id=${shift.id}&worker_id=${currentWorker.id}&token=${shift.qr_token}`
+      ? `${window.location.origin}/qr-arrive.html?shift_id=${safeId}&worker_id=${safeWorkerId}&token=${escapeHtml(shift.qr_token)}`
       : null;
 
     const qrImg = qrUrl
@@ -176,13 +179,13 @@ async function loadMyShifts() {
       <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
         <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
           <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
-            ${shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH"}
+            ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
           </div>
           <div class="profile-info" style="flex:1;">
-            <h3>${shift.facility_name || "—"}</h3>
-            <p>${shift.role_needed || "—"} · ${shift.city || "—"}</p>
-            <p>${shift.shift_date || "—"} · ${shift.start_time || "—"}</p>
-            <p style="color:#5DCAA5; font-weight:500;">${shift.pay_rate || "—"}</p>
+            <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
+            <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
+            <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"}</p>
+            <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
             <div style="margin-top:6px;">
               <span class="badge ${shift.status === "in_progress" ? "badge-green" : "badge-yellow"}">
                 ${shift.status === "in_progress" ? "In progress" : "Accepted — show QR on arrival"}
@@ -214,22 +217,13 @@ async function applyToShift(shiftId, btn) {
   if (btn) { btn.disabled = true; btn.textContent = "Applying..."; }
 
   try {
-    const response = await fetch(
-      `${CC_CONFIG.BACKEND_URL}/applications/apply`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": CC_CONFIG.API_KEY
-        },
-        body: JSON.stringify({
-          worker_id: currentWorker.id,
-          shift_id: shiftId
-        })
-      }
-    );
-
-    const result = await response.json();
+    const { data: result } = await ccFetch("/applications/apply", {
+      method: "POST",
+      body: JSON.stringify({
+        worker_id: currentWorker.id,
+        shift_id: shiftId
+      })
+    });
 
     if (result.success) {
       if (btn) { btn.disabled = true; btn.textContent = "Applied ✓"; }
@@ -279,14 +273,14 @@ async function loadMyApplications() {
     return `
       <div class="profile-card" style="margin-bottom:10px;">
         <div class="profile-info" style="flex:1;">
-          <h3>${shift?.facility_name || "—"}</h3>
-          <p>${shift?.role_needed || "—"} · ${shift?.city || "—"}</p>
-          <p>${shift?.shift_date || "—"} · ${shift?.pay_rate || "—"}</p>
+          <h3>${escapeHtml(shift?.facility_name) || "—"}</h3>
+          <p>${escapeHtml(shift?.role_needed) || "—"} · ${escapeHtml(shift?.city) || "—"}</p>
+          <p>${escapeHtml(shift?.shift_date) || "—"} · ${escapeHtml(shift?.pay_rate) || "—"}</p>
           <div style="margin-top:6px;">${statusBadge}</div>
         </div>
         ${app.status === "pending" ? `
           <button
-            onclick="withdrawApplication('${app.id}', this)"
+            onclick="withdrawApplication('${escapeHtml(app.id)}', this)"
             style="font-size:12px; padding:7px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.4); cursor:pointer; font-family:inherit;">
             Withdraw
           </button>
@@ -304,22 +298,13 @@ async function withdrawApplication(applicationId, btn) {
   if (btn) { btn.disabled = true; btn.textContent = "Withdrawing..."; }
 
   try {
-    const response = await fetch(
-      `${CC_CONFIG.BACKEND_URL}/applications/withdraw`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": CC_CONFIG.API_KEY
-        },
-        body: JSON.stringify({
-          application_id: applicationId,
-          worker_id: currentWorker.id
-        })
-      }
-    );
-
-    const result = await response.json();
+    const { data: result } = await ccFetch("/applications/withdraw", {
+      method: "POST",
+      body: JSON.stringify({
+        application_id: applicationId,
+        worker_id: currentWorker.id
+      })
+    });
 
     if (result.success) {
       await loadMyApplications();

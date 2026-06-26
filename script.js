@@ -26,7 +26,7 @@ function setType(t) {
   }
 }
 
-function joinWaitlist() {
+async function joinWaitlist() {
   const name = document.getElementById('waitlist-name').value.trim();
   const email = document.getElementById('waitlist-email').value.trim();
 
@@ -35,7 +35,25 @@ function joinWaitlist() {
     return;
   }
 
-  document.getElementById('waitlist-success').style.display = 'block';
-  document.getElementById('waitlist-name').value = '';
-  document.getElementById('waitlist-email').value = '';
+  const btn = document.querySelector('.waitlist-form button');
+  if (btn) { btn.disabled = true; btn.textContent = 'Joining...'; }
+
+  try {
+    const supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+    const { error } = await supabase.from("waitlist").insert([{ name, email, type: document.querySelector('.type-btn[style*="background"]')?.textContent?.trim() || '' }]);
+
+    if (error) {
+      alert('Could not join waitlist. Please try again.');
+      return;
+    }
+
+    document.getElementById('waitlist-success').style.display = 'block';
+    document.getElementById('waitlist-name').value = '';
+    document.getElementById('waitlist-email').value = '';
+  } catch (err) {
+    console.error('Waitlist error:', err);
+    alert('Something went wrong. Please try again.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Join the Waitlist'; }
+  }
 }

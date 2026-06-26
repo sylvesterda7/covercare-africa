@@ -48,7 +48,7 @@ async function verifyLicense() {
 
     const { response, data } = await ccFetch(
       `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`,
-      { method: "GET", headers: {} }
+      { method: "GET" }
     );
     console.log("Verification response:", data);
 

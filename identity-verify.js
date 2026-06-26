@@ -1,9 +1,8 @@
 // ── Initialize Supabase ──
-const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+const _supabase = window._supabase;
 
-// ── Cloudinary config ──
-const CLOUDINARY_CLOUD_NAME = "dy58hyn86";
-const CLOUDINARY_UPLOAD_PRESET = "covercare_unsigned";
+// ── Cloudinary config (uploaded via backend proxy) ──
 
 // ── State ──
 let idImageElement = null;
@@ -246,21 +245,16 @@ function restart() {
   selfieImageElement = null;
 }
 
-// ── Upload to Cloudinary ──
+// ── Upload to Cloudinary via backend proxy ──
 async function uploadToCloudinary(dataUrl, folder) {
   try {
-    const formData = new FormData();
-    formData.append("file", dataUrl);
-    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    formData.append("folder", `covercare/${folder}`);
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: "POST", body: formData }
-    );
-    const data = await response.json();
-    return data.secure_url;
+    const { data: result } = await ccFetch("/api/upload", {
+      method: "POST",
+      body: JSON.stringify({ image: dataUrl, folder })
+    });
+    return result?.url || null;
   } catch (err) {
-    console.error("Cloudinary upload error:", err);
+    console.error("Upload error:", err);
     return null;
   }
 }

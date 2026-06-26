@@ -3,7 +3,6 @@ const CC_CONFIG = {
   SUPABASE_URL: "https://ifmpbrpcnnswqlwdytfy.supabase.co",
   SUPABASE_KEY: "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB",
   BACKEND_URL: "https://covercare-backend-production.up.railway.app",
-  API_KEY: "cc2025Kp9mN2vQ8xR4wL7jT1zA6bY3eH5dF",
   PAYSTACK_PUBLIC_KEY: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02",
   ADMIN_EMAILS: ["sdenyoh-abayateye@st.ug.edu.gh"],
   ARRIVE_BASE_URL: "https://covercare-africa.vercel.app/arrive"
@@ -41,9 +40,19 @@ function getDashboardUrl(userType, email) {
 async function ccFetch(path, options = {}) {
   const headers = {
     "Content-Type": "application/json",
-    "x-api-key": CC_CONFIG.API_KEY,
     ...(options.headers || {})
   };
+  try {
+    const client = window._supabase || (window.supabase && window.supabase.createClient(
+      CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY
+    ));
+    if (client) {
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+    }
+  } catch (e) {}
   const response = await fetch(`${CC_CONFIG.BACKEND_URL}${path}`, {
     ...options,
     headers

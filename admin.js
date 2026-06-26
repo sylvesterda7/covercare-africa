@@ -1,4 +1,5 @@
-const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+const _supabase = window._supabase;
 
 // ── State ──
 let allWorkers = [];
@@ -16,8 +17,10 @@ async function init() {
 
   const email = session.user.email;
 
-  // ── Check admin access ──
-  if (!CC_CONFIG.ADMIN_EMAILS.includes(email)) {
+  // ── Verify admin status via backend ──
+  const { data: adminCheck } = await ccFetch("/admin/verify", { method: "POST" });
+
+  if (!adminCheck?.admin) {
     document.body.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif;">
         <div style="text-align:center; color:#E24B4A;">
@@ -133,12 +136,15 @@ function filterWorkers() {
 
 // ── Toggle license verified ──
 async function toggleLicenseVerified(workerId, currentStatus) {
-  const { error } = await _supabase
-    .from("workers")
-    .update({ license_verified: !currentStatus })
-    .eq("id", workerId);
+  const { data: result } = await ccFetch("/admin/toggle-license", {
+    method: "POST",
+    body: JSON.stringify({
+      worker_id: workerId,
+      current_status: currentStatus
+    })
+  });
 
-  if (error) {
+  if (!result?.success) {
     alert("Failed to update worker. Please try again.");
     return;
   }

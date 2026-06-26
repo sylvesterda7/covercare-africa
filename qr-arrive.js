@@ -1,4 +1,5 @@
-const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+const _supabase = window._supabase;
 
 const params = new URLSearchParams(window.location.search);
 const shiftId = params.get("shift_id");
@@ -84,12 +85,12 @@ async function init() {
 }
 
 function showArriveConfirm() {
-  document.getElementById("workerName").textContent = workerData.full_name;
-  document.getElementById("workerRole").textContent = workerData.role;
-  document.getElementById("facilityName").textContent = shiftData.facility_name;
-  document.getElementById("shiftDate").textContent = shiftData.shift_date;
-  document.getElementById("shiftTime").textContent = shiftData.start_time;
-  document.getElementById("shiftRole").textContent = shiftData.role_needed;
+  document.getElementById("workerName").textContent = escapeHtml(workerData.full_name);
+  document.getElementById("workerRole").textContent = escapeHtml(workerData.role);
+  document.getElementById("facilityName").textContent = escapeHtml(shiftData.facility_name);
+  document.getElementById("shiftDate").textContent = escapeHtml(shiftData.shift_date);
+  document.getElementById("shiftTime").textContent = escapeHtml(shiftData.start_time);
+  document.getElementById("shiftRole").textContent = escapeHtml(shiftData.role_needed);
 
   let badges = "";
   if (workerData.license_verified) {
@@ -104,13 +105,13 @@ function showArriveConfirm() {
 }
 
 function showCompleteConfirm() {
-  document.getElementById("completeWorkerName").textContent = workerData.full_name;
+  document.getElementById("completeWorkerName").textContent = escapeHtml(workerData.full_name);
   document.getElementById("completeFacility").textContent =
-    `${shiftData.facility_name} · ${shiftData.role_needed}`;
+    `${escapeHtml(shiftData.facility_name)} · ${escapeHtml(shiftData.role_needed)}`;
   document.getElementById("checkedInTime").textContent =
     formatTime(shiftData.arrival_time);
   document.getElementById("shiftPay").textContent =
-    shiftData.total_pay || "—";
+    escapeHtml(shiftData.total_pay) || "—";
 
   showState("completeConfirm");
 }
@@ -158,7 +159,7 @@ async function confirmComplete() {
     });
 
     if (!result.success) {
-      showError(result.message || result.payout_error || "Could not complete shift.");
+      showError(result.message || "Could not complete shift.");
       return;
     }
 
