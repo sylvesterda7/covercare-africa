@@ -25,6 +25,8 @@ async function init() {
 
   await loadShifts(facilityEmail);
   await loadApplications(facilityEmail);
+  await loadCompletedShifts();
+  await loadFacilityProfile();
 }
 
 // ── Load shifts ──
@@ -38,11 +40,13 @@ async function loadShifts(email) {
   if (error || !data) return;
 
   const openShifts = data.filter(s => s.status === "open");
+  const inProgress = data.filter(s => s.status === "in_progress");
   const filledShifts = data.filter(s => s.status === "accepted" || s.status === "in_progress" || s.status === "completed");
 
   // ── Stats ──
   document.getElementById("totalShifts").textContent = data.length;
   document.getElementById("openShifts").textContent = openShifts.length;
+  document.getElementById("onSiteNow").textContent = inProgress.length;
   document.getElementById("filledShifts").textContent = filledShifts.length;
 
   const totalSpend = filledShifts.reduce((sum, shift) => {
@@ -81,6 +85,44 @@ async function loadShifts(email) {
         <p>No open shifts yet.</p>
         <a href="post-shift.html" class="btn-primary-sm">Post your first shift</a>
       </div>`;
+  }
+
+  // ── Live check-ins (in-progress) ──
+  const liveContainer = document.getElementById("liveCheckinsContainer");
+  if (liveContainer) {
+    if (inProgress.length > 0) {
+      const workerIds = [...new Set(inProgress.map(s => s.worker_id).filter(Boolean))];
+      const { data: workers } = await _supabase.from("workers").select("id, full_name, role").in("id", workerIds);
+      const workerMap = Object.fromEntries((workers || []).map(w => [w.id, w]));
+      liveContainer.innerHTML = inProgress.map(s => `
+        <div class="profile-card" style="margin-bottom:10px;">
+          <div class="profile-info" style="flex:1;">
+            <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(workerMap[s.worker_id]?.full_name || "Worker")}</p>
+            <p>${escapeHtml(s.role_needed) || "—"} · since ${escapeHtml(s.arrival_time ? new Date(s.arrival_time).toLocaleTimeString() : "—")}</p>
+          </div>
+        </div>
+      `).join("");
+    } else {
+      liveContainer.innerHTML = `<div class="empty-state"><p>No workers checked in right now.</p></div>`;
+    }
+  }
+
+  // ── Awaiting arrival (accepted, not yet arrived) ──
+  const awaitingContainer = document.getElementById("awaitingArrivalContainer");
+  if (awaitingContainer) {
+    const awaiting = data.filter(s => s.status === "accepted" && s.worker_id);
+    if (awaiting.length > 0) {
+      awaitingContainer.innerHTML = awaiting.map(s => `
+        <div class="profile-card" style="margin-bottom:10px;">
+          <div class="profile-info" style="flex:1;">
+            <p style="font-weight:500;">${escapeHtml(s.role_needed) || "—"}</p>
+            <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"}</p>
+          </div>
+        </div>
+      `).join("");
+    } else {
+      awaitingContainer.innerHTML = `<div class="empty-state"><p>No workers awaiting arrival.</p></div>`;
+    }
   }
 
   // ── Filled shifts ──
@@ -273,6 +315,137 @@ async function cancelShift(shiftId) {
 
   await loadShifts(facilityEmail);
   await loadApplications(facilityEmail);
+}
+
+// ── Load completed shifts ──
+async function loadCompletedShifts() {
+  const container = document.getElementById("completedShiftsContainer");
+  if (!container) return;
+
+  const { data: result } = await ccFetch("/shifts/history", { method: "GET" });
+
+  if (!result?.success || !result.data || result.data.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>No completed shifts yet.</p>
+        <p style="font-size:13px;">Finished shifts will appear here after workers check out.</p>
+      </div>`;
+    return;
+  }
+
+  const totalSpent = result.data.reduce((sum, s) => {
+    return sum + (parseFloat((s.total_pay || "").replace(/[^0-9.]/g, "")) || 0);
+  }, 0);
+
+  container.innerHTML = `
+    <p style="font-size:13px; color:rgba(255,255,255,0.3); margin-bottom:12px;">
+      ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total spent: <strong style="color:#5DCAA5;">GHS ${totalSpent.toLocaleString()}</strong>
+    </p>
+    ${result.data.map(s => `
+      <div class="profile-card" style="margin-bottom:10px;">
+        <div class="profile-info" style="flex:1;">
+          <h3>${escapeHtml(s.role_needed) || "—"}</h3>
+          <p>${escapeHtml(s.facility_name) || "—"} · ${escapeHtml(s.city) || "—"}</p>
+          <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
+          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+        </div>
+      </div>
+    `).join("")}
+  `;
+}
+
+// ── Load facility profile for editing ──
+let facilityProfile = null;
+
+async function loadFacilityProfile() {
+  const { data, error } = await _supabase
+    .from("facilities")
+    .select("*")
+    .eq("email", facilityEmail)
+    .single();
+
+  if (!error && data) {
+    facilityProfile = data;
+  }
+}
+
+// ── Facility settings modal ──
+function openFacilitySettings() {
+  if (!facilityProfile) { alert("Complete your profile first."); return; }
+  document.getElementById("editFacilityName").value = facilityProfile.facility_name || "";
+  document.getElementById("editFacilityType").value = facilityProfile.facility_type || "";
+  document.getElementById("editFacilityCity").value = facilityProfile.city || "";
+  document.getElementById("editContactName").value = facilityProfile.contact_name || "";
+  document.getElementById("editContactRole").value = facilityProfile.contact_role || "";
+  document.getElementById("editFacilityPhone").value = facilityProfile.phone || "";
+  document.getElementById("editStaffNeeds").value = facilityProfile.staff_needs || "";
+  document.getElementById("editFrequency").value = facilityProfile.frequency || "";
+  document.getElementById("facilityModal").style.display = "flex";
+}
+
+function closeFacilitySettings() {
+  document.getElementById("facilityModal").style.display = "none";
+}
+
+document.getElementById("facilityProfileForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const btn = this.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  try {
+    const { data: result } = await ccFetch("/facility", {
+      method: "PUT",
+      body: JSON.stringify({
+        facility_name: document.getElementById("editFacilityName").value.trim(),
+        facility_type: document.getElementById("editFacilityType").value,
+        city: document.getElementById("editFacilityCity").value,
+        contact_name: document.getElementById("editContactName").value.trim(),
+        contact_role: document.getElementById("editContactRole").value.trim(),
+        phone: document.getElementById("editFacilityPhone").value.trim(),
+        staff_needs: document.getElementById("editStaffNeeds").value,
+        frequency: document.getElementById("editFrequency").value
+      })
+    });
+
+    if (result.success) {
+      alert("Profile updated!");
+      closeFacilitySettings();
+      await loadFacilityProfile();
+    } else {
+      alert(result.message || "Could not update profile.");
+    }
+  } catch (err) {
+    console.error("Update error:", err);
+    alert("Something went wrong.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save changes";
+  }
+});
+
+// ── Delete facility account ──
+async function confirmDeleteFacilityAccount() {
+  if (!confirm("Permanently delete your facility account and all data? This cannot be undone.")) return;
+  const email = prompt("Type your email to confirm deletion:");
+  if (!email) return;
+
+  try {
+    const { data: result } = await ccFetch("/account/delete", {
+      method: "POST",
+      body: JSON.stringify({ email })
+    });
+
+    if (result.success) {
+      await _supabase.auth.signOut();
+      window.location.href = "index.html";
+    } else {
+      alert(result.message || "Could not delete account.");
+    }
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("Something went wrong.");
+  }
 }
 
 // ── Logout ──

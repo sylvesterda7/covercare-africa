@@ -24,6 +24,8 @@ async function init() {
   await loadProfile(user.email);
   await loadShifts();
   await loadMyShifts();
+  await loadMyApplications();
+  await loadCompletedShifts();
 }
 
 // ── Load profile ──
@@ -315,6 +317,119 @@ async function withdrawApplication(applicationId, btn) {
   } catch (err) {
     console.error("Withdraw error:", err);
     if (btn) { btn.disabled = false; btn.textContent = "Withdraw"; }
+  }
+}
+
+// ── Load completed shifts ──
+async function loadCompletedShifts() {
+  const container = document.getElementById("completedShiftsContainer");
+  if (!container) return;
+
+  const { data: result } = await ccFetch("/shifts/history", { method: "GET" });
+
+  if (!result?.success || !result.data || result.data.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>No completed shifts yet.</p>
+        <p style="font-size:13px;">Once you complete a shift, it'll appear here with your earnings.</p>
+      </div>`;
+    return;
+  }
+
+  const totalEarned = result.data.reduce((sum, s) => {
+    return sum + (parseFloat((s.total_pay || "").replace(/[^0-9.]/g, "")) || 0);
+  }, 0);
+
+  container.innerHTML = `
+    <p style="font-size:13px; color:rgba(255,255,255,0.3); margin-bottom:12px;">
+      ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total earned: <strong style="color:#5DCAA5;">GHS ${totalEarned.toLocaleString()}</strong>
+    </p>
+    ${result.data.map(s => `
+      <div class="profile-card" style="margin-bottom:10px;">
+        <div class="profile-info" style="flex:1;">
+          <h3>${escapeHtml(s.facility_name) || "—"}</h3>
+          <p>${escapeHtml(s.role_needed) || "—"} · ${escapeHtml(s.city) || "—"}</p>
+          <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
+          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+        </div>
+      </div>
+    `).join("")}
+  `;
+}
+
+// ── Profile settings ──
+function openProfileSettings() {
+  if (!currentWorker) { alert("Complete your profile first."); return; }
+  document.getElementById("editFullname").value = currentWorker.full_name || "";
+  document.getElementById("editPhone").value = currentWorker.phone || "";
+  document.getElementById("editRole").value = currentWorker.role || "";
+  document.getElementById("editLicense").value = currentWorker.license_number || "";
+  document.getElementById("editCity").value = currentWorker.city || "";
+  document.getElementById("editExperience").value = currentWorker.experience || "";
+  document.getElementById("profileModal").style.display = "flex";
+}
+
+function closeProfileSettings() {
+  document.getElementById("profileModal").style.display = "none";
+}
+
+document.getElementById("profileForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const btn = this.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  try {
+    const { data: result } = await ccFetch("/worker", {
+      method: "PUT",
+      body: JSON.stringify({
+        full_name: document.getElementById("editFullname").value.trim(),
+        phone: document.getElementById("editPhone").value.trim(),
+        role: document.getElementById("editRole").value,
+        license_number: document.getElementById("editLicense").value.trim(),
+        city: document.getElementById("editCity").value,
+        experience: document.getElementById("editExperience").value
+      })
+    });
+
+    if (result.success) {
+      alert("Profile updated!");
+      closeProfileSettings();
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (session) await loadProfile(session.user.email);
+    } else {
+      alert(result.message || "Could not update profile.");
+    }
+  } catch (err) {
+    console.error("Update error:", err);
+    alert("Something went wrong.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save changes";
+  }
+});
+
+// ── Delete account ──
+async function confirmDeleteAccount() {
+  if (!confirm("Permanently delete your account and all data? This cannot be undone.")) return;
+  const email = prompt("Type your email to confirm deletion:");
+  if (!email) return;
+
+  try {
+    const { data: result } = await ccFetch("/account/delete", {
+      method: "POST",
+      body: JSON.stringify({ email })
+    });
+
+    if (result.success) {
+      await _supabase.auth.signOut();
+      window.location.href = "index.html";
+    } else {
+      alert(result.message || "Could not delete account.");
+    }
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("Something went wrong.");
   }
 }
 
