@@ -105,6 +105,15 @@ async function verifyLicense() {
   btn.textContent = "Verify";
 }
 
+// ── Session check — show password fields if not authenticated ──
+(async function() {
+  const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    document.getElementById("regFields").style.display = "block";
+  }
+})();
+
 // ── Form submission ──
 document.getElementById("workerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -139,6 +148,60 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     return;
   }
 
+  const btn = this.querySelector(".btn-submit");
+  btn.disabled = true;
+  btn.textContent = "Creating account...";
+
+  const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+  const { data: { session } } = await _supabase.auth.getSession();
+
+  // Step 1: Register account if not logged in
+  if (!session) {
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (!password || password.length < 8) {
+      alert("Password must be at least 8 characters.");
+      btn.disabled = false;
+      btn.textContent = "Create my profile";
+      return;
+    }
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      btn.disabled = false;
+      btn.textContent = "Create my profile";
+      return;
+    }
+
+    const { data: signUpData, error: signUpError } = await _supabase.auth.signUp({
+      email: worker.email,
+      password,
+      options: { data: { full_name: worker.name, user_type: "worker" } }
+    });
+
+    if (signUpError) {
+      alert(signUpError.message);
+      btn.disabled = false;
+      btn.textContent = "Create my profile";
+      return;
+    }
+
+    // If email confirmation is required, stop here
+    if (!signUpData.session) {
+      document.getElementById("workerForm").style.display = "none";
+      document.getElementById("successCard").querySelector("h2").textContent = "Account created!";
+      document.getElementById("successCard").querySelector("p").textContent =
+        "Check your email to confirm your account, then sign in and complete your profile.";
+      document.getElementById("successCard").style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Create my profile";
+      return;
+    }
+  }
+
+  // Step 2: Save profile
+  btn.textContent = "Saving profile...";
+
   try {
     const { response, data: result } = await ccFetch("/worker", {
       method: "POST",
@@ -156,15 +219,17 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     console.log("Save result:", result);
 
     if (response.ok && result.success) {
-      document.getElementById("workerForm").style.display = "none";
-      document.getElementById("successCard").style.display = "block";
-      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+      window.location.href = "dashboard-worker.html";
     } else {
       alert("Something went wrong. Please try again.");
+      btn.disabled = false;
+      btn.textContent = "Create my profile";
     }
 
   } catch (err) {
     console.error("Submit error:", err);
     alert("Something went wrong. Please try again.");
+    btn.disabled = false;
+    btn.textContent = "Create my profile";
   }
 });

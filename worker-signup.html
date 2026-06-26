@@ -14,7 +14,7 @@
   <!-- NAV -->
   <nav class="nav">
     <a href="index.html" class="nav-logo">CoverCare Africa</a>
-    <a href="index.html#waitlist" class="nav-link">For Facilities</a>
+    <a href="facility-signup.html" class="nav-link">For Facilities</a>
   </nav>
 
   <!-- HEADER -->
@@ -33,9 +33,20 @@
         <input type="text" id="fullname" placeholder="e.g. Kwame Mensah" required />
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="emailGroup">
         <label for="email">Email address</label>
         <input type="email" id="email" placeholder="e.g. kwame@gmail.com" required />
+      </div>
+
+      <div id="regFields" style="display:none;">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="At least 8 characters" required />
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm password</label>
+          <input type="password" id="confirmPassword" placeholder="Repeat your password" required />
+        </div>
       </div>
 
       <div class="form-group">

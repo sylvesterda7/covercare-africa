@@ -75,9 +75,20 @@
         </select>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="emailGroup">
         <label for="email">Work email address</label>
         <input type="email" id="email" placeholder="e.g. ama@nyaho.com" required />
+      </div>
+
+      <div id="regFields" style="display:none;">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="At least 8 characters" required />
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm password</label>
+          <input type="password" id="confirmPassword" placeholder="Repeat your password" required />
+        </div>
       </div>
 
       <div class="form-group">
