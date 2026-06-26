@@ -191,7 +191,91 @@
   color: #E24B4A;
 }
 
-/* ── Dashboard body ── */
+/* ── Dashboard layout (sidebar + main) ── */
+.dashboard-layout {
+  display: flex;
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.dashboard-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.dashboard-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-sidebar-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.dashboard-sidebar-card .sidebar-card-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+}
+
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-actions .btn-sidebar {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.7);
+}
+
+.sidebar-actions .btn-sidebar:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.sidebar-actions .btn-sidebar-danger {
+  color: #E24B4A;
+  border-color: rgba(226,75,74,0.2);
+}
+
+.sidebar-actions .btn-sidebar-danger:hover {
+  background: rgba(226,75,74,0.1);
+}
+
+@media (max-width: 720px) {
+  .dashboard-layout {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  .dashboard-sidebar {
+    width: 100%;
+  }
+}
+
+/* ── Dashboard body (legacy fallback) ── */
 .dashboard-body {
   max-width: 900px;
   margin: 0 auto;

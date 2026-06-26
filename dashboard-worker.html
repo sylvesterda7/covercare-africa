@@ -20,88 +20,102 @@
     </div>
   </nav>
 
-  <!-- DASHBOARD BODY -->
-  <div class="dashboard-body">
+  <!-- DASHBOARD LAYOUT -->
+  <div class="dashboard-layout">
 
-    <!-- HEADER -->
-    <div class="dashboard-header">
-      <h1 id="welcomeMsg">Welcome back</h1>
-      <p>Manage your shifts, profile and earnings from here.</p>
-    </div>
+    <!-- SIDEBAR -->
+    <aside class="dashboard-sidebar">
 
-    <!-- STATS -->
-    <div class="stats-row">
-      <div class="stat-box">
-        <div class="num" id="totalShifts">0</div>
-        <div class="label">Shifts completed</div>
+      <!-- Profile card in sidebar -->
+      <div class="dashboard-sidebar-card">
+        <div class="sidebar-card-title">Your profile</div>
+        <div class="profile-card" id="profileCard" style="background:none; border:none; padding:0;">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <div class="profile-info">
+            <h3 id="profileName">Loading...</h3>
+            <p id="profileRole">—</p>
+            <p id="profileCity">—</p>
+            <div id="profileBadges"></div>
+          </div>
+        </div>
       </div>
-      <div class="stat-box">
-        <div class="num" id="totalEarnings">GHS 0</div>
-        <div class="label">Total earnings</div>
-      </div>
-      <div class="stat-box">
-        <div class="num" id="rating">—</div>
-        <div class="label">Your rating</div>
-      </div>
-      <div class="stat-box">
-        <div class="num" id="verifiedBadge">—</div>
-        <div class="label">Verification</div>
-      </div>
-    </div>
 
-    <!-- PROFILE CARD -->
-    <div class="section-title">Your profile</div>
-    <div class="profile-card" id="profileCard">
-      <div class="profile-avatar" id="profileAvatar">?</div>
-      <div class="profile-info">
-        <h3 id="profileName">Loading...</h3>
-        <p id="profileRole">—</p>
-        <p id="profileCity">—</p>
-        <div id="profileBadges"></div>
+      <!-- Quick actions -->
+      <div class="dashboard-sidebar-card">
+        <div class="sidebar-card-title">Quick actions</div>
+        <div class="sidebar-actions">
+          <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
+          <button onclick="openProfileSettings()" class="btn-sidebar">Edit profile</button>
+          <button onclick="confirmDeleteAccount()" class="btn-sidebar btn-sidebar-danger">Delete account</button>
+          <a href="index.html" class="btn-sidebar">View homepage</a>
+        </div>
       </div>
-    </div>
 
-    <!-- AVAILABLE SHIFTS -->
-    <div class="section-title" style="margin-top: 2rem;">Available shifts near you</div>
-    <div id="shiftsContainer">
-      <div class="empty-state">
-        <p>No shifts available in your area right now.</p>
-        <p style="font-size:13px;">We'll notify you when new shifts are posted near you.</p>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+
+      <!-- HEADER -->
+      <div class="dashboard-header">
+        <h1 id="welcomeMsg">Welcome back</h1>
+        <p>Manage your shifts, profile and earnings from here.</p>
       </div>
-    </div>
 
-    <!-- MY ACTIVE SHIFTS + QR -->
-    <div class="section-title" style="margin-top: 2rem;">My active shifts</div>
-    <div id="myShiftsContainer">
-      <div class="empty-state">
-        <p>No active shifts. Accept a shift above to get your QR check-in code.</p>
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="num" id="totalShifts">0</div>
+          <div class="label">Shifts completed</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="totalEarnings">GHS 0</div>
+          <div class="label">Total earnings</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="rating">—</div>
+          <div class="label">Your rating</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="verifiedBadge">—</div>
+          <div class="label">Verification</div>
+        </div>
       </div>
-    </div>
 
-    <!-- MY APPLICATIONS -->
-    <div class="section-title" style="margin-top: 2rem;">My applications</div>
-    <div id="myApplicationsContainer">
-      <div class="empty-state">
-        <p>No applications yet.</p>
+      <!-- AVAILABLE SHIFTS -->
+      <div class="section-title" style="margin-top: 2rem;">Available shifts near you</div>
+      <div id="shiftsContainer">
+        <div class="empty-state">
+          <p>No shifts available in your area right now.</p>
+          <p style="font-size:13px;">We'll notify you when new shifts are posted near you.</p>
+        </div>
       </div>
-    </div>
 
-    <!-- COMPLETED SHIFTS -->
-    <div class="section-title" style="margin-top: 2rem;">Completed shifts</div>
-    <div id="completedShiftsContainer">
-      <div class="empty-state">
-        <p>No completed shifts yet.</p>
+      <!-- MY ACTIVE SHIFTS + QR -->
+      <div class="section-title" style="margin-top: 2rem;">My active shifts</div>
+      <div id="myShiftsContainer">
+        <div class="empty-state">
+          <p>No active shifts. Accept a shift above to get your QR check-in code.</p>
+        </div>
       </div>
-    </div>
 
-    <!-- QUICK LINKS -->
-    <div class="section-title" style="margin-top: 2rem;">Quick actions</div>
-    <div style="display:flex; gap:12px; flex-wrap:wrap;" id="quickActions">
-  <a href="identity-verify.html" class="btn-primary-sm">Verify my identity</a>
-  <button onclick="openProfileSettings()" class="btn-primary-sm" style="background:rgba(93,202,165,0.1); color:#5DCAA5; border:1px solid rgba(93,202,165,0.3); cursor:pointer; font-family:inherit;">Edit profile</button>
-  <button onclick="confirmDeleteAccount()" class="btn-primary-sm" style="background:rgba(226,75,74,0.1); color:#E24B4A; border:1px solid rgba(226,75,74,0.3); cursor:pointer; font-family:inherit;">Delete account</button>
-  <a href="index.html" class="btn-primary-sm" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.12);">View homepage</a>
-</div>
+      <!-- MY APPLICATIONS -->
+      <div class="section-title" style="margin-top: 2rem;">My applications</div>
+      <div id="myApplicationsContainer">
+        <div class="empty-state">
+          <p>No applications yet.</p>
+        </div>
+      </div>
+
+      <!-- COMPLETED SHIFTS -->
+      <div class="section-title" style="margin-top: 2rem;">Completed shifts</div>
+      <div id="completedShiftsContainer">
+        <div class="empty-state">
+          <p>No completed shifts yet.</p>
+        </div>
+      </div>
+
+    </main>
 
   </div>
 

@@ -47,17 +47,10 @@ async function loadProfile(email) {
 
   currentWorker = data;
 
-  // Show identity verify button if not verified
-  if (!data.identity_verified) {
-    const quickActions = document.getElementById("quickActions");
-    if (quickActions) {
-      const btn = document.createElement("a");
-      btn.href = "identity-verify.html";
-      btn.className = "btn-primary-sm";
-      btn.style.cssText = "background:rgba(93,202,165,0.1); color:#5DCAA5; border:1px solid rgba(93,202,165,0.3);";
-      btn.textContent = "Verify my identity";
-      quickActions.appendChild(btn);
-    }
+  // Show/hide identity verify link
+  const verifyLink = document.getElementById("verifyIdentityLink");
+  if (verifyLink) {
+    verifyLink.style.display = data.identity_verified ? "none" : "block";
   }
 
   const initials = data.full_name
@@ -363,7 +356,19 @@ function openProfileSettings() {
   document.getElementById("editFullname").value = currentWorker.full_name || "";
   document.getElementById("editPhone").value = currentWorker.phone || "";
   document.getElementById("editRole").value = currentWorker.role || "";
-  document.getElementById("editLicense").value = currentWorker.license_number || "";
+  const licField = document.getElementById("editLicense");
+  licField.value = currentWorker.license_number || "";
+  if (currentWorker.license_verified) {
+    licField.disabled = true;
+    licField.title = "License verified — cannot be changed";
+    licField.style.opacity = "0.5";
+    licField.style.cursor = "not-allowed";
+  } else {
+    licField.disabled = false;
+    licField.title = "";
+    licField.style.opacity = "1";
+    licField.style.cursor = "";
+  }
   document.getElementById("editCity").value = currentWorker.city || "";
   document.getElementById("editExperience").value = currentWorker.experience || "";
   document.getElementById("profileModal").style.display = "flex";
