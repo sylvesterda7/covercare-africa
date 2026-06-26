@@ -69,10 +69,12 @@ document.getElementById("registerForm").addEventListener("submit", async functio
   successMsg.style.display = "block";
 
   setTimeout(() => {
-    if (userType === "worker") {
-      window.location.href = "worker-signup.html";
+    if (CC_CONFIG.ADMIN_EMAILS.includes(email)) {
+      window.location.href = "admin.html";
+    } else if (userType === "worker") {
+      window.location.href = "dashboard-worker.html";
     } else if (userType === "facility" || userType === "homecare") {
-      window.location.href = "facility-signup.html";
+      window.location.href = "dashboard-facility.html";
     } else {
       window.location.href = "index.html";
     }
