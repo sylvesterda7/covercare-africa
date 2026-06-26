@@ -26,6 +26,9 @@ async function init() {
   await loadMyShifts();
   await loadMyApplications();
   await loadCompletedShifts();
+  await loadMatchedShifts();
+  await loadPayroll();
+  await loadRatings();
 }
 
 // ── Load profile ──
@@ -71,6 +74,7 @@ async function loadProfile(email) {
 
   document.getElementById("profileBadges").innerHTML = badges;
   document.getElementById("verifiedBadge").textContent = data.license_verified ? "✓" : "Pending";
+  updateAvailBtn(true);
 }
 
 // ── Load available shifts ──
@@ -442,6 +446,177 @@ async function confirmDeleteAccount() {
 async function logout() {
   await _supabase.auth.signOut();
   window.location.href = "login.html";
+}
+
+// ── Matched shifts ──
+async function loadMatchedShifts() {
+  const container = document.getElementById("matchedShiftsContainer");
+  if (!container) return;
+  const { data: result } = await ccFetch("/matches/worker", { method: "GET" });
+  const badge = document.getElementById("matchCount");
+  if (!result?.data || result.data.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No matched shifts right now.</p><p style="font-size:13px;">We\'ll match you with shifts based on your profile and preferences.</p></div>';
+    if (badge) badge.textContent = "0";
+    return;
+  }
+  const sorted = [...result.data].sort((a, b) => (b.score || 0) - (a.score || 0));
+  if (badge) badge.textContent = sorted.length;
+  container.innerHTML = sorted.map(m => {
+    const score = m.score || 0;
+    const barColor = score >= 80 ? "#5DCAA5" : score >= 50 ? "#F0B429" : "#E24B4A";
+    return `
+      <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <div style="flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+            <div style="width:${score}%; height:100%; background:${barColor}; border-radius:3px; transition:width 0.4s ease;"></div>
+          </div>
+          <span style="font-size:11px; color:${barColor}; font-weight:500; min-width:32px; text-align:right;">${score}%</span>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
+          <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
+            ${escapeHtml(m.role_needed || "").substring(0, 2).toUpperCase() || "SH"}
+          </div>
+          <div class="profile-info" style="flex:1;">
+            <h3>${escapeHtml(m.facility_name) || "—"}</h3>
+            <p>${escapeHtml(m.role_needed) || "—"} · ${escapeHtml(m.city) || "—"}</p>
+            <p>${escapeHtml(m.shift_date) || "—"} · ${escapeHtml(m.start_time) || "—"} · ${escapeHtml(m.duration) || "—"}</p>
+            <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(m.pay_rate) || "—"}</p>
+            ${m.breakdown ? `<p style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:4px;">${escapeHtml(m.breakdown)}</p>` : ""}
+          </div>
+          <div>
+            <button onclick="applyToShift('${escapeHtml(m.shift_id || m.id)}', this)" class="btn-primary-sm" style="font-size:13px; padding:8px 16px;">Apply</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// ── Availability toggle ──
+async function toggleAvailability() {
+  try {
+    const { data: current } = await ccFetch("/worker/availability", { method: "GET" });
+    const newAvail = !current.available;
+    await ccFetch("/worker/availability", {
+      method: "POST",
+      body: JSON.stringify({ available: newAvail })
+    });
+    updateAvailBtn(newAvail);
+  } catch (e) { console.error(e); }
+}
+function updateAvailBtn(available) {
+  const btn = document.getElementById("availBtn");
+  if (!btn) return;
+  btn.textContent = available ? "Set unavailable" : "Set available";
+  btn.style.borderColor = available ? "rgba(93,202,165,0.3)" : "rgba(226,75,74,0.3)";
+}
+
+// ── Payroll ──
+async function loadPayroll() {
+  const container = document.getElementById("payrollContainer");
+  if (!container) return;
+  const { data: result } = await ccFetch("/payroll/summary", { method: "GET" });
+  if (!result?.data) {
+    container.innerHTML = '<div class="empty-state"><p>No payroll data yet.</p></div>';
+    return;
+  }
+  const d = result.data;
+  let html = '<div class="stats-row" style="margin-bottom:12px;">';
+  html += `<div class="stat-box"><div class="num">GHS ${(d.total_earnings || 0).toLocaleString()}</div><div class="label">Total earnings</div></div>`;
+  html += `<div class="stat-box"><div class="num">${d.paid_shifts || 0}</div><div class="label">Paid shifts</div></div>`;
+  html += `<div class="stat-box"><div class="num">${d.last_payout_date ? new Date(d.last_payout_date).toLocaleDateString() : "—"}</div><div class="label">Last payout</div></div>`;
+  html += '</div>';
+  html += '<div style="margin-top:8px;"><button onclick="togglePayslips()" class="btn-sidebar" style="text-align:center; width:100%;" id="payslipToggle">View payslips</button></div>';
+  html += '<div id="payslipContainer" style="display:none; margin-top:12px;"><div class="empty-state"><p>Loading...</p></div></div>';
+  container.innerHTML = html;
+}
+async function togglePayslips() {
+  const container = document.getElementById("payslipContainer");
+  const toggle = document.getElementById("payslipToggle");
+  if (!container) return;
+  if (container.style.display === "none") {
+    container.style.display = "block";
+    if (toggle) toggle.textContent = "Hide payslips";
+    const { data: result } = await ccFetch("/payroll/earnings", { method: "GET" });
+    if (!result?.data || result.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>No payslips available.</p></div>';
+      return;
+    }
+    container.innerHTML = result.data.map(s => `
+      <div class="profile-card" style="margin-bottom:8px;">
+        <div class="profile-info" style="flex:1;">
+          <h3>${escapeHtml(s.facility_name) || "—"}</h3>
+          <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.role_needed) || "—"}</p>
+          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+          <div style="margin-top:4px;"><span class="badge ${s.paid ? 'badge-green' : 'badge-yellow'}">${s.paid ? "Paid" : "Pending"}</span></div>
+        </div>
+      </div>
+    `).join("");
+  } else {
+    container.style.display = "none";
+    if (toggle) toggle.textContent = "View payslips";
+  }
+}
+
+// ── Ratings ──
+async function loadRatings() {
+  const container = document.getElementById("ratingsContainer");
+  if (!container) return;
+  const { data: result } = await ccFetch("/ratings/mine", { method: "GET" });
+  if (!result?.data || result.data.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No ratings yet.</p></div>';
+    return;
+  }
+  container.innerHTML = result.data.map(r => `
+    <div class="profile-card" style="margin-bottom:8px;">
+      <div class="profile-info" style="flex:1;">
+        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.score || 0))}${"☆".repeat(5 - Math.round(r.score || 0))} <span style="color:rgba(255,255,255,0.4);">${r.score || 0}/5</span></p>
+        ${r.comment ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.comment)}"</p>` : ""}
+        <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.facility_name ? escapeHtml(r.facility_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── Notifications ──
+let notifOpen = false;
+async function loadNotifications() {
+  const { data } = await ccFetch("/notifications", { method: "GET" });
+  if (!data) return;
+  const badge = document.getElementById("notifBadge");
+  const list = document.getElementById("notifList");
+  if (!badge || !list) return;
+  if (data.unread_count > 0) {
+    badge.style.display = "flex";
+    badge.textContent = data.unread_count;
+  } else {
+    badge.style.display = "none";
+  }
+  if (!data.data || data.data.length === 0) {
+    list.innerHTML = '<div style="padding:16px; text-align:center; color:rgba(255,255,255,0.3); font-size:13px;">No notifications</div>';
+    return;
+  }
+  list.innerHTML = data.data.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markRead('${escapeHtml(n.id)}')" data-id="${escapeHtml(n.id)}">
+      <div style="color:rgba(255,255,255,0.8);">${escapeHtml(n.title)}</div>
+      <div style="color:rgba(255,255,255,0.4); font-size:12px; margin-top:2px;">${escapeHtml(n.message)}</div>
+      <div class="notif-time">${n.created_at ? new Date(n.created_at).toLocaleDateString() : ""}</div>
+    </div>
+  `).join("");
+}
+function toggleNotifications() {
+  notifOpen = !notifOpen;
+  const dd = document.getElementById("notifDropdown");
+  if (dd) dd.style.display = notifOpen ? "block" : "none";
+  if (notifOpen) loadNotifications();
+}
+async function markRead(id) {
+  await ccFetch(`/notifications/${id}/read`, { method: "PUT" });
+  loadNotifications();
+}
+async function markAllRead() {
+  await ccFetch("/notifications/read-all", { method: "POST" });
+  loadNotifications();
 }
 
 init();

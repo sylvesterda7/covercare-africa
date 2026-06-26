@@ -14,8 +14,21 @@
   <!-- NAV -->
   <nav class="dashboard-nav">
     <a href="index.html" class="nav-logo">CoverCare Africa</a>
-    <div class="nav-right">
+    <div class="nav-right" style="position:relative;">
       <span class="nav-user" id="navUser">Loading...</span>
+      <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:rgba(255,255,255,0.5);">
+        <span>🔔</span>
+        <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:#fff; font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
+      </button>
+      <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:#0F172A; border:1px solid rgba(255,255,255,0.08); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+        <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:500; color:rgba(255,255,255,0.7);">Notifications</span>
+          <button onclick="markAllRead()" style="font-size:11px; color:#5DCAA5; background:none; border:none; cursor:pointer; font-family:inherit;">Mark all read</button>
+        </div>
+        <div id="notifList" style="padding:8px 0;">
+          <div style="padding:16px; text-align:center; color:rgba(255,255,255,0.3); font-size:13px;">No notifications</div>
+        </div>
+      </div>
       <button class="btn-logout" onclick="logout()">Sign out</button>
     </div>
   </nav>
@@ -64,6 +77,17 @@
           <div class="num" id="totalSpend">GHS 0</div>
           <div class="label">Total spend</div>
         </div>
+      </div>
+
+      <!-- RECOMMENDED WORKERS -->
+      <div class="section-title" style="margin-top: 2rem;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          Recommended workers
+          <span class="badge badge-green" id="recommendedCount" style="font-size:11px;">0</span>
+        </span>
+      </div>
+      <div id="recommendedContainer">
+        <div class="empty-state"><p>Loading recommendations...</p></div>
       </div>
 
       <!-- POST SHIFT CTA -->
@@ -140,6 +164,20 @@
         <div class="empty-state">
           <p>No completed shifts yet.</p>
           <p style="font-size:13px;">Finished shifts will appear here after workers check out.</p>
+        </div>
+      </div>
+
+      <!-- PAYROLL -->
+      <div class="section-title" style="margin-top: 2rem;">Payroll & Spend</div>
+      <div id="payrollContainer">
+        <div class="empty-state"><p>Loading...</p></div>
+      </div>
+
+      <!-- RATINGS -->
+      <div class="section-title" style="margin-top: 2rem;">Ratings</div>
+      <div id="ratingsContainer">
+        <div class="empty-state">
+          <p>No ratings yet.</p>
         </div>
       </div>
 

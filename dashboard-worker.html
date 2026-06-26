@@ -14,8 +14,21 @@
   <!-- NAV -->
   <nav class="dashboard-nav">
     <a href="index.html" class="nav-logo">CoverCare Africa</a>
-    <div class="nav-right">
+    <div class="nav-right" style="position:relative;">
       <span class="nav-user" id="navUser">Loading...</span>
+      <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:rgba(255,255,255,0.5);">
+        <span>🔔</span>
+        <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:#fff; font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
+      </button>
+      <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:#0F172A; border:1px solid rgba(255,255,255,0.08); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+        <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:500; color:rgba(255,255,255,0.7);">Notifications</span>
+          <button onclick="markAllRead()" style="font-size:11px; color:#5DCAA5; background:none; border:none; cursor:pointer; font-family:inherit;">Mark all read</button>
+        </div>
+        <div id="notifList" style="padding:8px 0;">
+          <div style="padding:16px; text-align:center; color:rgba(255,255,255,0.3); font-size:13px;">No notifications</div>
+        </div>
+      </div>
       <button class="btn-logout" onclick="logout()">Sign out</button>
     </div>
   </nav>
@@ -47,6 +60,7 @@
           <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
           <button onclick="openProfileSettings()" class="btn-sidebar">Edit profile</button>
           <button onclick="confirmDeleteAccount()" class="btn-sidebar btn-sidebar-danger">Delete account</button>
+          <button onclick="toggleAvailability()" class="btn-sidebar" id="availBtn">Set unavailable</button>
           <a href="index.html" class="btn-sidebar">View homepage</a>
         </div>
       </div>
@@ -82,6 +96,19 @@
         </div>
       </div>
 
+      <!-- MATCHED SHIFTS -->
+      <div class="section-title" style="margin-top: 2rem;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          Best matches for you
+          <span class="badge badge-green" id="matchCount" style="font-size:11px;">0</span>
+        </span>
+      </div>
+      <div id="matchedShiftsContainer">
+        <div class="empty-state">
+          <p>Loading your best matches...</p>
+        </div>
+      </div>
+
       <!-- AVAILABLE SHIFTS -->
       <div class="section-title" style="margin-top: 2rem;">Available shifts near you</div>
       <div id="shiftsContainer">
@@ -112,6 +139,20 @@
       <div id="completedShiftsContainer">
         <div class="empty-state">
           <p>No completed shifts yet.</p>
+        </div>
+      </div>
+
+      <!-- PAYROLL -->
+      <div class="section-title" style="margin-top: 2rem;">Payroll</div>
+      <div id="payrollContainer">
+        <div class="empty-state"><p>Loading payroll data...</p></div>
+      </div>
+
+      <!-- RATINGS -->
+      <div class="section-title" style="margin-top: 2rem;">Ratings received</div>
+      <div id="ratingsContainer">
+        <div class="empty-state">
+          <p>No ratings yet.</p>
         </div>
       </div>
 

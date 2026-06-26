@@ -27,6 +27,9 @@ async function init() {
   await loadApplications(facilityEmail);
   await loadCompletedShifts();
   await loadFacilityProfile();
+  await loadRecommendedWorkers();
+  await loadPayroll();
+  await loadRatings();
 }
 
 // ── Load shifts ──
@@ -452,6 +455,163 @@ async function confirmDeleteFacilityAccount() {
 async function logout() {
   await _supabase.auth.signOut();
   window.location.href = "login.html";
+}
+
+// ── Recommended workers ──
+async function loadRecommendedWorkers() {
+  const container = document.getElementById("recommendedContainer");
+  if (!container) return;
+  const { data: result } = await ccFetch("/matches/facility", { method: "GET" });
+  const badge = document.getElementById("recommendedCount");
+  if (!result?.data || result.data.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No recommendations yet.</p><p style="font-size:13px;">Recommendations will appear based on your open shifts.</p></div>';
+    if (badge) badge.textContent = "0";
+    return;
+  }
+  const totalMatches = result.data.reduce((sum, s) => sum + (s.workers ? s.workers.length : 0), 0);
+  if (badge) badge.textContent = totalMatches;
+  container.innerHTML = result.data.map(shift => {
+    const workers = shift.workers || [];
+    if (workers.length === 0) return "";
+    return `
+      <div style="margin-bottom:16px;">
+        <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:8px; padding-left:4px;">
+          ${escapeHtml(shift.role_needed) || "Shift"} — ${escapeHtml(shift.shift_date) || ""}
+        </p>
+        ${workers.map(w => {
+          const score = w.score || 0;
+          const barColor = score >= 80 ? "#5DCAA5" : score >= 50 ? "#F0B429" : "#E24B4A";
+          return `
+            <div class="profile-card" style="flex-direction:column; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <div style="flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+                  <div style="width:${score}%; height:100%; background:${barColor}; border-radius:3px; transition:width 0.4s ease;"></div>
+                </div>
+                <span style="font-size:11px; color:${barColor}; font-weight:500; min-width:32px; text-align:right;">${score}%</span>
+              </div>
+              <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
+                <div class="profile-avatar" style="font-size:14px;">
+                  ${w.full_name ? escapeHtml(w.full_name).split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2) : "?"}
+                </div>
+                <div class="profile-info" style="flex:1;">
+                  <h3>${escapeHtml(w.full_name) || "Unknown"}</h3>
+                  <p>${escapeHtml(w.role) || "—"} · ${escapeHtml(w.city) || "—"} · ${escapeHtml(w.experience) || "—"} exp</p>
+                  ${w.breakdown ? `<p style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:4px;">${escapeHtml(w.breakdown)}</p>` : ""}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }).join("");
+}
+
+// ── Payroll ──
+async function loadPayroll() {
+  const container = document.getElementById("payrollContainer");
+  if (!container) return;
+  const { data: result } = await ccFetch("/payroll/summary", { method: "GET" });
+  if (!result?.data) {
+    container.innerHTML = '<div class="empty-state"><p>No payroll data yet.</p></div>';
+    return;
+  }
+  const d = result.data;
+  let html = '<div class="stats-row" style="margin-bottom:12px;">';
+  html += `<div class="stat-box"><div class="num">GHS ${(d.total_spend || 0).toLocaleString()}</div><div class="label">Total spend</div></div>`;
+  html += `<div class="stat-box"><div class="num">${d.paid_shifts || 0}</div><div class="label">Paid shifts</div></div>`;
+  html += '</div>';
+  html += '<div style="margin-top:8px;"><button onclick="toggleTransactions()" class="btn-sidebar" style="text-align:center; width:100%;" id="txToggle">View transactions</button></div>';
+  html += '<div id="txContainer" style="display:none; margin-top:12px;"><div class="empty-state"><p>Loading...</p></div></div>';
+  container.innerHTML = html;
+}
+async function toggleTransactions() {
+  const container = document.getElementById("txContainer");
+  const toggle = document.getElementById("txToggle");
+  if (!container) return;
+  if (container.style.display === "none") {
+    container.style.display = "block";
+    if (toggle) toggle.textContent = "Hide transactions";
+    const { data: result } = await ccFetch("/payroll/transactions", { method: "GET" });
+    if (!result?.data || result.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>No transactions yet.</p></div>';
+      return;
+    }
+    container.innerHTML = result.data.map(s => `
+      <div class="profile-card" style="margin-bottom:8px;">
+        <div class="profile-info" style="flex:1;">
+          <h3>${escapeHtml(s.role_needed) || "—"}</h3>
+          <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.worker_name) || "—"}</p>
+          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+          <div style="margin-top:4px;"><span class="badge ${s.paid ? 'badge-green' : 'badge-yellow'}">${s.paid ? "Paid" : "Pending"}</span></div>
+        </div>
+      </div>
+    `).join("");
+  } else {
+    container.style.display = "none";
+    if (toggle) toggle.textContent = "View transactions";
+  }
+}
+
+// ── Ratings ──
+async function loadRatings() {
+  const container = document.getElementById("ratingsContainer");
+  if (!container) return;
+  const { data: result } = await ccFetch("/ratings/mine", { method: "GET" });
+  if (!result?.data || result.data.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No ratings yet.</p></div>';
+    return;
+  }
+  container.innerHTML = result.data.map(r => `
+    <div class="profile-card" style="margin-bottom:8px;">
+      <div class="profile-info" style="flex:1;">
+        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.score || 0))}${"☆".repeat(5 - Math.round(r.score || 0))} <span style="color:rgba(255,255,255,0.4);">${r.score || 0}/5</span></p>
+        ${r.comment ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.comment)}"</p>` : ""}
+        <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.worker_name ? escapeHtml(r.worker_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── Notifications ──
+let notifOpen = false;
+async function loadNotifications() {
+  const { data } = await ccFetch("/notifications", { method: "GET" });
+  if (!data) return;
+  const badge = document.getElementById("notifBadge");
+  const list = document.getElementById("notifList");
+  if (!badge || !list) return;
+  if (data.unread_count > 0) {
+    badge.style.display = "flex";
+    badge.textContent = data.unread_count;
+  } else {
+    badge.style.display = "none";
+  }
+  if (!data.data || data.data.length === 0) {
+    list.innerHTML = '<div style="padding:16px; text-align:center; color:rgba(255,255,255,0.3); font-size:13px;">No notifications</div>';
+    return;
+  }
+  list.innerHTML = data.data.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markRead('${escapeHtml(n.id)}')" data-id="${escapeHtml(n.id)}">
+      <div style="color:rgba(255,255,255,0.8);">${escapeHtml(n.title)}</div>
+      <div style="color:rgba(255,255,255,0.4); font-size:12px; margin-top:2px;">${escapeHtml(n.message)}</div>
+      <div class="notif-time">${n.created_at ? new Date(n.created_at).toLocaleDateString() : ""}</div>
+    </div>
+  `).join("");
+}
+function toggleNotifications() {
+  notifOpen = !notifOpen;
+  const dd = document.getElementById("notifDropdown");
+  if (dd) dd.style.display = notifOpen ? "block" : "none";
+  if (notifOpen) loadNotifications();
+}
+async function markRead(id) {
+  await ccFetch(`/notifications/${id}/read`, { method: "PUT" });
+  loadNotifications();
+}
+async function markAllRead() {
+  await ccFetch("/notifications/read-all", { method: "POST" });
+  loadNotifications();
 }
 
 init();
