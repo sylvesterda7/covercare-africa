@@ -1,5 +1,14 @@
 const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
+// Pre-select account type from URL param e.g. ?type=worker or ?type=facility
+const urlType = new URLSearchParams(window.location.search).get("type");
+if (urlType) {
+  const sel = document.getElementById("userType");
+  if ([...sel.options].some(o => o.value === urlType)) {
+    sel.value = urlType;
+  }
+}
+
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
