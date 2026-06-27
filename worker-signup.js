@@ -1,21 +1,3 @@
-// ── Profile photo preview ──
-document.getElementById("profilePhoto")?.addEventListener("change", function() {
-  const file = this.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    let preview = document.getElementById("photoPreview");
-    if (!preview) {
-      preview = document.createElement("img");
-      preview.id = "photoPreview";
-      preview.style.cssText = "width:80px; height:80px; border-radius:50%; object-fit:cover; margin-top:6px; border:2px solid rgba(93,202,165,0.2);";
-      document.getElementById("profilePhoto").closest(".form-group").appendChild(preview);
-    }
-    preview.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-});
-
 // ── License verification ──
 let licenseVerified = false;
 
@@ -217,30 +199,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     }
   }
 
-  // Step 2: Upload profile photo (optional)
-  btn.textContent = "Uploading photo...";
-
-  let profilePhotoUrl = null;
-  const photoFile = document.getElementById("profilePhoto")?.files?.[0];
-  if (photoFile) {
-    try {
-      const { data: photoResult } = await ccFetch("/api/upload", {
-        method: "POST",
-        body: JSON.stringify({
-          image: await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(photoFile);
-          }),
-          folder: "worker-photos"
-        })
-      });
-      if (photoResult?.success) profilePhotoUrl = photoResult.url;
-    } catch (e) { console.error("Photo upload error:", e); }
-  }
-
-  // Step 3: Save profile
+  // Step 2: Save profile
   btn.textContent = "Saving profile...";
 
   try {
@@ -253,8 +212,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         role: worker.role,
         license_number: worker.license,
         city: worker.city,
-        experience: worker.experience,
-        profile_photo_url: profilePhotoUrl
+        experience: worker.experience
       })
     });
 
