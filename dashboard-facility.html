@@ -13,11 +13,11 @@
 
   <!-- NAV -->
   <nav class="dashboard-nav">
-    <a href="index.html" class="nav-logo">CoverCare Africa</a>
+    <a href="index.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
     <div class="nav-right" style="position:relative;">
       <span class="nav-user" id="navUser">Loading...</span>
-      <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:rgba(255,255,255,0.5);">
-        <span>🔔</span>
+      <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" aria-label="Toggle notifications" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:rgba(255,255,255,0.5);">
+        <span role="img" aria-label="Notifications">🔔</span>
         <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:#fff; font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
       </button>
       <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:#0F172A; border:1px solid rgba(255,255,255,0.08); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
@@ -189,7 +189,7 @@
   <!-- FACILITY SETTINGS MODAL -->
   <div id="facilityModal" class="scan-modal-overlay" style="display:none;">
     <div class="scan-modal" style="max-width:500px;">
-      <button class="scan-modal-close" onclick="closeFacilitySettings()">✕</button>
+      <button class="scan-modal-close" onclick="closeFacilitySettings()" aria-label="Close">✕</button>
       <h2 style="margin-bottom:1.5rem;">Edit facility profile</h2>
       <form id="facilityProfileForm" style="display:flex; flex-direction:column; gap:12px;">
         <input id="editFacilityName" class="glass-input" type="text" placeholder="Facility name" required />
@@ -241,7 +241,7 @@
   <!-- SCAN CONFIRM MODAL -->
   <div id="scanModal" class="scan-modal-overlay" style="display:none;">
     <div class="scan-modal">
-      <button class="scan-modal-close" onclick="closeScanModal()">✕</button>
+      <button class="scan-modal-close" onclick="closeScanModal()" aria-label="Close scan modal">✕</button>
 
       <div id="scanModalLoading" class="scan-modal-state">
         <div class="arrive-spinner"></div>
@@ -302,7 +302,7 @@
   <!-- SUPPORT MODAL -->
   <div id="supportModal" class="scan-modal-overlay" style="display:none;">
     <div class="scan-modal" style="max-width:480px;">
-      <button class="scan-modal-close" onclick="closeSupportModal()">✕</button>
+      <button class="scan-modal-close" onclick="closeSupportModal()" aria-label="Close">✕</button>
       <h2 style="margin-bottom:1.5rem;">Contact support</h2>
       <form id="supportForm" style="display:flex; flex-direction:column; gap:12px;">
         <select id="supportCategory" class="glass-input" required>

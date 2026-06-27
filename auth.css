@@ -10,7 +10,8 @@
 .auth-card {
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(30px);
-  border: 1px solid rgba(255,255,255,0.08);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 2.5rem;
   width: 100%;
@@ -20,11 +21,12 @@
 .auth-logo {
   font-size: 14px;
   font-weight: 500;
-  color: #5DCAA5;
+  color: var(--accent);
   letter-spacing: 0.5px;
   text-decoration: none;
   display: block;
   margin-bottom: 1.75rem;
+  font-family: var(--font-heading);
 }
 
 .auth-card h1 {
@@ -159,8 +161,9 @@
 .dashboard-nav .nav-logo {
   font-size: 15px;
   font-weight: 500;
-  color: #5DCAA5;
+  color: var(--accent);
   text-decoration: none;
+  font-family: var(--font-heading);
 }
 
 .dashboard-nav .nav-right {
@@ -214,10 +217,11 @@
 }
 
 .dashboard-sidebar-card {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
   padding: 1.25rem;
 }
 
@@ -306,9 +310,10 @@
 }
 
 .stat-box {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
   border-radius: 14px;
   padding: 1.25rem;
   text-align: center;
@@ -317,12 +322,12 @@
 .stat-box .num {
   font-size: 28px;
   font-weight: 500;
-  color: #5DCAA5;
+  color: var(--accent);
 }
 
 .stat-box .label {
   font-size: 12px;
-  color: rgba(255,255,255,0.35);
+  color: var(--fg-muted);
   margin-top: 4px;
 }
 
@@ -339,28 +344,14 @@
   text-align: center;
   padding: 3rem 2rem;
   background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 16px;
-  color: rgba(255,255,255,0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  color: var(--fg-muted);
   font-size: 14px;
 }
 
 .empty-state p {
   margin-bottom: 1rem;
-}
-
-.btn-primary-sm {
-  display: inline-block;
-  background: #5DCAA5;
-  color: #04342C;
-  padding: 9px 18px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
 }
 
 .profile-card {
@@ -937,6 +928,7 @@
 }
 
 /* ── Notifications ── */
+.notif-dropdown { background: var(--bg-card) !important; }
 .notif-btn:hover { color: rgba(255,255,255,0.8) !important; }
 .notif-dropdown { border-radius: 12px; overflow: hidden; }
 .notif-item { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; cursor: pointer; }

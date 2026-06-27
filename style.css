@@ -1,4 +1,25 @@
 /* ── CoverCare Africa — Premium Dark Design System ── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-deep: #020617;
+  --bg-card: #0E1223;
+  --bg-elevated: #1A1E2F;
+  --border: #334155;
+  --fg-primary: #F8FAFC;
+  --fg-muted: rgba(248,250,252,0.4);
+  --accent: #5DCAA5;
+  --accent-dim: rgba(93,202,165,0.1);
+  --accent-border: rgba(93,202,165,0.2);
+  --glass-opacity: 0.03;
+  --glass-border: rgba(255,255,255,0.05);
+  --glass-bg: rgba(255,255,255,0.03);
+  --blur-amount: 15px;
+  --radius-card: 16px;
+  --radius-sm: 10px;
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Work Sans', sans-serif;
+}
 
 * {
   box-sizing: border-box;
@@ -7,9 +28,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #0a1628;
-  color: #f0efe8;
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  color: var(--fg-primary);
   line-height: 1.7;
   min-height: 100vh;
 }
@@ -30,19 +51,19 @@ body {
 
 .orb-1 {
   width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(29,158,117,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%);
   top: -150px; right: -150px;
 }
 
 .orb-2 {
   width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(15,110,86,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(15,110,86,0.1) 0%, transparent 70%);
   bottom: -100px; left: -150px;
 }
 
 .orb-3 {
   width: 350px; height: 350px;
-  background: radial-gradient(circle, rgba(93,202,165,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(93,202,165,0.08) 0%, transparent 70%);
   top: 45%; left: 35%;
 }
 
@@ -60,7 +81,8 @@ body {
   padding: 1.25rem 2rem;
   background: rgba(255,255,255,0.03);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -88,7 +110,12 @@ body {
 }
 
 .nav-link:hover {
-  color: #5DCAA5;
+  color: var(--accent);
+}
+
+.nav-link.active {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
 }
 
 .nav-btn {
@@ -108,16 +135,17 @@ body {
 
 /* ── Glass cards ── */
 .glass-card {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
   padding: 1.5rem;
   transition: border-color 0.2s;
 }
 
 .glass-card:hover {
-  border-color: rgba(93,202,165,0.25);
+  border-color: var(--accent-border);
 }
 
 /* ── Buttons ── */
@@ -155,8 +183,22 @@ body {
 }
 
 .btn-ghost:hover {
-  border-color: rgba(93,202,165,0.3);
-  color: #5DCAA5;
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.btn-primary-sm {
+  display: inline-block;
+  background: var(--accent);
+  color: #04342C;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
 }
 
 .btn-sm {
@@ -171,12 +213,13 @@ body {
   padding: 11px 16px;
   background: rgba(255,255,255,0.06);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
-  color: #f0efe8;
+  color: var(--fg-primary);
   transition: border-color 0.2s;
-  font-family: inherit;
+  font-family: var(--font-body);
 }
 
 .glass-input:focus {
@@ -279,9 +322,10 @@ textarea.glass-input {
 }
 
 .stat-card {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
   border-radius: 14px;
   padding: 1.25rem;
   text-align: center;
@@ -290,12 +334,12 @@ textarea.glass-input {
 .stat-num {
   font-size: 30px;
   font-weight: 500;
-  color: #5DCAA5;
+  color: var(--accent);
 }
 
 .stat-label {
   font-size: 12px;
-  color: rgba(255,255,255,0.35);
+  color: var(--fg-muted);
   margin-top: 4px;
 }
 
@@ -338,5 +382,85 @@ footer {
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0a1628; }
-::-webkit-scrollbar-thumb { background: rgba(93,202,165,0.3); border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 3px; }
+
+/* ── Bullet chart (payroll KPIs) ── */
+.bullet-chart {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+.bullet-chart .bc-label {
+  font-size: 13px;
+  color: var(--fg-muted);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+.bullet-chart .bc-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+}
+.bullet-chart .bc-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+  background: var(--accent);
+}
+.bullet-chart .bc-fill.bc-fill-warn { background: #FFF9C4; }
+.bullet-chart .bc-fill.bc-fill-bad { background: #FFCDD2; }
+.bullet-chart .bc-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-primary);
+  min-width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Loading spinner (form submissions) ── */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+}
+.btn-loading::after {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: arrive-spin 0.6s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* ── Featured / Trusted bar ── */
+.trusted-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+}
+.trusted-bar .trusted-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--fg-muted);
+}
+.trusted-bar .trusted-item {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+  opacity: 0.6;
+}
