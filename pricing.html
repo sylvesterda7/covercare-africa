@@ -6,35 +6,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pricing – CoverCare Africa</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobbin.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <style>
-    .faq-item { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 0; overflow: hidden; margin-bottom: 8px; }
-    .faq-q { padding: 1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; color: #fff; }
-    .faq-q:hover { background: rgba(255,255,255,0.02); }
-    .faq-arrow { font-size: 12px; color: rgba(255,255,255,0.3); transition: transform 0.2s; }
-    .faq-q.open .faq-arrow { transform: rotate(180deg); }
-    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; padding: 0 1.25rem; font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.7; }
-    .faq-a.open { max-height: 200px; padding: 0 1.25rem 1rem; }
-    .pricing-col { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 2rem; display: flex; flex-direction: column; transition: border-color 0.2s; }
-    .pricing-col:hover { border-color: rgba(93,202,165,0.25); }
-    .pricing-col.featured { border-color: rgba(93,202,165,0.3); background: rgba(93,202,165,0.06); position: relative; }
-    .pricing-col.featured::before { content: "Most popular"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #5DCAA5; color: #04342C; font-size: 11px; font-weight: 600; padding: 4px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .pricing-price { font-size: 36px; font-weight: 600; color: #fff; margin-bottom: 0.25rem; }
-    .pricing-price span { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.3); }
-    .pricing-label { font-size: 13px; color: rgba(255,255,255,0.3); margin-bottom: 1.5rem; }
-    .pricing-features { list-style: none; padding: 0; margin: 0 0 1.5rem; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-    .pricing-features li { font-size: 13px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 8px; }
-    .pricing-features li i { color: #5DCAA5; font-size: 16px; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .pricing-col {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: var(--shadow-card);
+    }
+    .pricing-col:hover {
+      border-color: var(--accent-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .pricing-col.featured {
+      border-color: var(--accent-border);
+      background: rgba(93,202,165,0.04);
+      position: relative;
+    }
+    .pricing-col.featured::before {
+      content: "Most popular";
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #04342C;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pricing-price {
+      font-family: var(--font-heading);
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--fg-primary);
+      margin-bottom: 0.25rem;
+    }
+    .pricing-price span {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--fg-muted);
+    }
+    .pricing-label {
+      font-size: 13px;
+      color: var(--fg-muted);
+      margin-bottom: 1.5rem;
+    }
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+    .pricing-features li {
+      font-size: 13px;
+      color: var(--fg-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pricing-features li i {
+      color: var(--accent);
+      font-size: 16px;
+    }
+    @media (max-width: 720px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 
-<body>
-
-  <div class="bg-wrap">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
+<body class="mobbin-theme">
 
   <div class="content-layer">
 
@@ -42,132 +99,242 @@
     <nav class="nav">
       <a href="index.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
       <div class="nav-links">
-        <a href="facility-signup.html" class="nav-link">For Facilities</a>
-        <a href="for-workers.html" class="nav-link">For Professionals</a>
+        <a href="facility-signup.html" class="nav-link">For facilities</a>
+        <a href="worker-signup.html" class="nav-link">For professionals</a>
         <a href="login.html" class="nav-link">Sign in</a>
-        <a href="facility-signup.html" class="nav-btn">Get started</a>
+        <a href="register.html" class="nav-btn">Get started</a>
       </div>
     </nav>
 
     <!-- HERO -->
-    <section style="padding: 5rem 2rem 3rem; text-align:center; max-width:600px; margin:0 auto;">
-      <h1 style="font-size:40px; font-weight:500; line-height:1.1; color:#fff; margin-bottom:1rem;">
-        Simple, Transparent<br><span style="color:#5DCAA5;">Pricing</span>
+    <section class="hero-section">
+      <h1 class="hero-title">
+        Simple, <span class="text-accent">transparent</span><br>pricing
       </h1>
-      <p style="font-size:15px; color:rgba(255,255,255,0.4); line-height:1.7;">
-        No hidden fees. Pay only for what you need. All plans include access to our full network of verified professionals.
+      <p class="hero-sub">
+        Posting shifts is free. You only pay when a shift is successfully filled. No hidden fees, no surprises.
       </p>
     </section>
 
-    <!-- PRICING COLUMNS -->
-    <section style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:1.5rem; padding:0 2rem 3rem; max-width:900px; margin:0 auto;">
+    <!-- PRICING CARDS -->
+    <section class="section-wrap" style="max-width:900px;">
+      <div class="pricing-grid">
+        <div class="pricing-col">
+          <div class="pricing-price">Free<span> /per shift</span></div>
+          <div class="pricing-label">Post shifts at no cost</div>
+          <ul class="pricing-features">
+            <li><i class="ti ti-circle-check"></i> Post unlimited shifts</li>
+            <li><i class="ti ti-circle-check"></i> 24/7 matching engine</li>
+            <li><i class="ti ti-circle-check"></i> QR check-in system</li>
+            <li><i class="ti ti-circle-check"></i> Basic reporting</li>
+          </ul>
+          <a href="register.html" class="btn-primary" style="text-align:center;">Get started</a>
+        </div>
 
-      <div class="pricing-col">
-        <div class="pricing-price">GHS 0 <span>/shift</span></div>
-        <div class="pricing-label">Listing fee — pay only when you find a match</div>
-        <ul class="pricing-features">
-          <li><i class="ti ti-circle-check"></i> Post unlimited open shifts</li>
-          <li><i class="ti ti-circle-check"></i> Access to all verified professionals</li>
-          <li><i class="ti ti-circle-check"></i> QR check-in & time tracking</li>
-          <li><i class="ti ti-circle-check"></i> In-app messaging with workers</li>
-          <li><i class="ti ti-circle-check"></i> Pay only 25% platform fee on filled shifts</li>
-          <li><i class="ti ti-circle-check"></i> No monthly commitment</li>
-        </ul>
-        <a href="facility-signup.html" class="btn-primary" style="text-align:center;">Post a shift</a>
+        <div class="pricing-col featured">
+          <div class="pricing-price">25%<span> /per filled shift</span></div>
+          <div class="pricing-label">Pay only when you find staff</div>
+          <ul class="pricing-features">
+            <li><i class="ti ti-circle-check"></i> Everything in Free</li>
+            <li><i class="ti ti-circle-check"></i> 25% platform fee on filled shifts</li>
+            <li><i class="ti ti-circle-check"></i> Priority matching algorithm</li>
+            <li><i class="ti ti-circle-check"></i> Worker ratings &amp; reviews</li>
+            <li><i class="ti ti-circle-check"></i> Payroll &amp; spend analytics</li>
+            <li><i class="ti ti-circle-check"></i> Direct facility invitations</li>
+            <li><i class="ti ti-circle-check"></i> Email support</li>
+          </ul>
+          <a href="register.html" class="btn-primary" style="text-align:center;">Get started</a>
+        </div>
+
+        <div class="pricing-col">
+          <div class="pricing-price">Custom<span> /per month</span></div>
+          <div class="pricing-label">For high-volume facilities</div>
+          <ul class="pricing-features">
+            <li><i class="ti ti-circle-check"></i> Everything in 25% plan</li>
+            <li><i class="ti ti-circle-check"></i> Reduced platform fee (&lt;20%)</li>
+            <li><i class="ti ti-circle-check"></i> Dedicated account manager</li>
+            <li><i class="ti ti-circle-check"></i> Custom onboarding &amp; training</li>
+            <li><i class="ti ti-circle-check"></i> API access</li>
+            <li><i class="ti ti-circle-check"></i> Priority support (phone + chat)</li>
+          </ul>
+          <a href="facility-signup.html" class="btn-ghost" style="text-align:center;">Contact sales</a>
+        </div>
       </div>
+    </section>
 
-      <div class="pricing-col featured">
-        <div class="pricing-price">GHS 299 <span>/month</span></div>
-        <div class="pricing-label">For high-volume facilities</div>
-        <ul class="pricing-features">
-          <li><i class="ti ti-circle-check"></i> Everything in Per Shift, plus:</li>
-          <li><i class="ti ti-circle-check"></i> 15% platform fee on filled shifts</li>
-          <li><i class="ti ti-circle-check"></i> Priority matching with top-rated workers</li>
-          <li><i class="ti ti-circle-check"></i> Dedicated account manager</li>
-          <li><i class="ti ti-circle-check"></i> Bulk shift posting</li>
-          <li><i class="ti ti-circle-check"></i> Monthly invoicing</li>
-          <li><i class="ti ti-circle-check"></i> Performance analytics dashboard</li>
-        </ul>
-        <a href="facility-signup.html" class="btn-primary" style="text-align:center;">Choose Monthly</a>
+    <!-- HOW IT WORKS -->
+    <section class="section-wrap">
+      <p class="section-tag">How pricing works</p>
+      <h2 class="section-title">You only pay for success</h2>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-content">
+            <h3>Post a shift for free</h3>
+            <p>No upfront costs. Create as many shift postings as you need at no charge.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-content">
+            <h3>Get matched with professionals</h3>
+            <p>Our intelligent matching engine finds the best-fit verified professionals automatically.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-content">
+            <h3>Pay only when filled</h3>
+            <p>A small platform fee is deducted only when a worker completes the shift. No fill, no fee.</p>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <div class="pricing-col">
-        <div class="pricing-price">Custom</div>
-        <div class="pricing-label">For hospitals & large organisations</div>
-        <ul class="pricing-features">
-          <li><i class="ti ti-circle-check"></i> Everything in Monthly, plus:</li>
-          <li><i class="ti ti-circle-check"></i> Custom platform fee (as low as 10%)</li>
-          <li><i class="ti ti-circle-check"></i> API integration with your HR system</li>
-          <li><i class="ti ti-circle-check"></i> White-label check-in for staff</li>
-          <li><i class="ti ti-circle-check"></i> Dedicated onboarding & training</li>
-          <li><i class="ti ti-circle-check"></i> Custom reporting & compliance tools</li>
-          <li><i class="ti ti-circle-check"></i> SLA guarantees</li>
-        </ul>
-        <a href="facility-signup.html" class="btn-ghost" style="text-align:center;">Contact sales</a>
+    <!-- FEATURE DETAILS -->
+    <section class="section-wrap">
+      <p class="section-tag">What you get</p>
+      <h2 class="section-title">Everything you need to staff your facility</h2>
+      <div class="feature-detail-grid">
+        <div class="detail-card">
+          <div class="detail-card-icon"><i class="ti ti-shield-check"></i></div>
+          <h3>Verified professionals</h3>
+          <p>Every worker is identity and license verified before their first shift.</p>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon"><i class="ti ti-clock"></i></div>
+          <h3>2-hour average fill time</h3>
+          <p>Most urgent shifts are covered within 2 hours of posting.</p>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon"><i class="ti ti-cash"></i></div>
+          <h3>No hidden fees</h3>
+          <p>No subscription, no monthly minimums, no surprise charges. Ever.</p>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon"><i class="ti ti-qrcode"></i></div>
+          <h3>QR check-in</h3>
+          <p>Secure QR arrival confirmation so you know exactly when staff shows up.</p>
+        </div>
       </div>
+    </section>
 
+    <!-- TESTIMONIALS -->
+    <section class="section-wrap">
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"The 25% fee is well worth it. We'd spend far more on agency fees and the shifts still wouldn't get filled this fast."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">AO</div>
+            <div>
+              <div class="testimonial-name">Dr. Ama Owusu</div>
+              <div class="testimonial-role">Owner · Nyaho Pharmacy, Accra</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Posting is free and we only pay for what we use. It's the most transparent pricing model I've seen."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">EM</div>
+            <div>
+              <div class="testimonial-name">Esi Mensah</div>
+              <div class="testimonial-role">HR Manager · Cape Coast Medical Centre</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"We run a small clinic and the per-shift model is perfect. No big commitments, just results."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">SN</div>
+            <div>
+              <div class="testimonial-name">Samuel Nkansah</div>
+              <div class="testimonial-role">Admin · Premier Clinic, Kumasi</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- FAQ -->
-    <section style="padding:0 2rem 4rem; max-width:700px; margin:0 auto;">
-      <div class="section-tag" style="text-align:center;">FAQ</div>
-      <h2 class="section-title" style="text-align:center;">Pricing FAQ</h2>
-
+    <section class="section-wrap" style="max-width:700px;">
+      <p class="section-tag" style="text-align:center;">FAQ</p>
+      <h2 class="section-title" style="text-align:center;">Frequently asked questions</h2>
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          Is there a fee to post a shift?
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
+          Is it really free to post shifts?
           <span class="faq-arrow">▾</span>
         </div>
-        <div class="faq-a">No. Posting shifts is completely free. You only pay the platform fee when a shift is successfully filled and completed by a worker.</div>
+        <div class="faq-a">Yes. Creating an account and posting shifts is completely free. You are only charged a platform fee when a shift is successfully filled and completed by a worker.</div>
       </div>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          How is the platform fee calculated?
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
+          When does the 25% fee apply?
           <span class="faq-arrow">▾</span>
         </div>
-        <div class="faq-a">The platform fee is 25% of the worker's total pay on the Per Shift plan, 15% on Monthly, and custom on Enterprise. This fee covers matching, verification, payment processing, and support.</div>
+        <div class="faq-a">The 25% platform fee is calculated on the worker's gross pay and deducted when the worker completes their shift and payment is released. If a shift isn't filled, you pay nothing.</div>
       </div>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          Can I switch plans at any time?
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
+          Can I switch plans later?
           <span class="faq-arrow">▾</span>
         </div>
-        <div class="faq-a">Yes. You can start with Per Shift and upgrade to Monthly or Enterprise at any time. There are no long-term contracts.</div>
+        <div class="faq-a">Yes. You can start on the per-shift plan and switch to a custom monthly plan at any time. Contact our sales team for a custom quote.</div>
       </div>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          What payment methods do you accept?
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
+          Are there any hidden fees?
           <span class="faq-arrow">▾</span>
         </div>
-        <div class="faq-a">We accept Mobile Money (MTN, Vodafone, AirtelTigo), bank transfers, and card payments. Enterprise customers can request invoice-based payment terms.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          Is there a refund if a worker doesn't show up?
-          <span class="faq-arrow">▾</span>
-        </div>
-        <div class="faq-a">Yes. If a confirmed worker fails to show up, we waive the platform fee for that shift and prioritise finding a replacement at no extra cost.</div>
+        <div class="faq-a">No. There are no setup fees, monthly minimums, or cancellation charges. The only fee is the platform fee on completed shifts.</div>
       </div>
     </section>
 
-    <footer>
-      © 2025 CoverCare Africa · Accra, Ghana · <span style="color:#5DCAA5;">covercare.africa</span>
+    <!-- FINAL CTA -->
+    <section class="cta-section">
+      <h2 class="cta-title">Never run out of staff again</h2>
+      <p class="cta-sub">Post your first shift free. Pay only when it's filled.</p>
+      <div class="cta-buttons">
+        <a href="register.html" class="btn-primary">Get started free</a>
+        <a href="facility-signup.html" class="btn-ghost">Talk to sales</a>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-cols">
+        <div class="footer-col">
+          <div class="footer-brand">CoverCare Africa</div>
+          <p class="footer-desc">Africa's smartest healthcare staffing platform. Based in Accra, Ghana.</p>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Platform</div>
+          <a href="facility-signup.html" class="footer-link">For facilities</a>
+          <a href="worker-signup.html" class="footer-link">For professionals</a>
+          <a href="pricing.html" class="footer-link">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Company</div>
+          <a href="index.html#homecare" class="footer-link">Homecare</a>
+          <a href="#" class="footer-link">Blog</a>
+          <a href="#" class="footer-link">Contact</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Legal</div>
+          <a href="#" class="footer-link">Privacy policy</a>
+          <a href="#" class="footer-link">Terms of service</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2025 CoverCare Africa · Accra, Ghana · <span class="text-accent">covercare.africa</span>
+      </div>
     </footer>
 
   </div>
 
   <script src="config.js"></script>
-  <script>
-    function toggleFaq(el) {
-      el.classList.toggle("open");
-      var answer = el.nextElementSibling;
-      answer.classList.toggle("open");
-    }
-  </script>
 
 </body>
 </html>

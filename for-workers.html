@@ -6,25 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>For Professionals – CoverCare Africa</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobbin.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <style>
-    .faq-item { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 0; overflow: hidden; margin-bottom: 8px; }
-    .faq-q { padding: 1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; color: #fff; }
-    .faq-q:hover { background: rgba(255,255,255,0.02); }
-    .faq-arrow { font-size: 12px; color: rgba(255,255,255,0.3); transition: transform 0.2s; }
-    .faq-q.open .faq-arrow { transform: rotate(180deg); }
-    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; padding: 0 1.25rem; font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.7; }
-    .faq-a.open { max-height: 200px; padding: 0 1.25rem 1rem; }
-  </style>
 </head>
 
-<body>
-
-  <div class="bg-wrap">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
+<body class="mobbin-theme">
 
   <div class="content-layer">
 
@@ -40,152 +26,216 @@
     </nav>
 
     <!-- HERO -->
-    <section style="padding: 5rem 2rem 3rem; text-align:center; max-width:700px; margin:0 auto;">
-      <h1 style="font-size:46px; font-weight:500; line-height:1.1; color:#fff; margin-bottom:1.25rem;">
-        Book Shifts on<br>Your <span style="color:#5DCAA5;">Schedule</span>
+    <section class="hero-section">
+      <h1 class="hero-title">
+        Book Shifts on<br>Your <span class="text-accent">Schedule</span>
       </h1>
-      <p style="font-size:16px; color:rgba(255,255,255,0.45); line-height:1.75; margin-bottom:2rem; max-width:500px; margin-left:auto; margin-right:auto;">
+      <p class="hero-sub">
         Instantly book the shifts you want, set your own schedule, and get paid promptly.
       </p>
-      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <a href="#" class="btn-primary">Download for iOS</a>
-        <a href="#" class="btn-ghost">Download for Android</a>
+      <div class="hero-ctas">
+        <a href="worker-signup.html" class="btn-primary">Join as a professional</a>
+        <a href="#how-it-works" class="btn-ghost">See how it works</a>
       </div>
     </section>
 
-    <!-- HOW IT WORKS -->
-    <section style="padding:0 2rem 3rem; max-width:800px; margin:0 auto;">
-      <div class="section-tag">How it works</div>
+    <!-- BIG STATS -->
+    <section class="stats-section">
+      <p class="section-tag" style="text-align:center;">Trusted by healthcare professionals</p>
+      <div class="stats-big">
+        <div class="stat-big-item">
+          <div class="stat-big-num">500+</div>
+          <div class="stat-big-label">Active professionals</div>
+        </div>
+        <div class="stat-big-item">
+          <div class="stat-big-num">GHS 80</div>
+          <div class="stat-big-label">Avg hourly rate</div>
+        </div>
+        <div class="stat-big-item">
+          <div class="stat-big-num">2hr</div>
+          <div class="stat-big-label">Avg payout time</div>
+        </div>
+        <div class="stat-big-item">
+          <div class="stat-big-num">5</div>
+          <div class="stat-big-label">Cities live</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURE CATEGORIES -->
+    <section class="section-wrap" id="how-it-works">
+      <p class="section-tag">How it works</p>
       <h2 class="section-title">Three simple steps</h2>
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <div style="display:flex; gap:16px; padding:1.25rem; background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.06); border-radius:12px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:rgba(93,202,165,0.1); border:1px solid rgba(93,202,165,0.25); color:#5DCAA5; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:500; flex-shrink:0;">1</div>
-          <div>
-            <h3 style="font-size:14px; font-weight:500; color:#fff; margin-bottom:4px;">Book the Shifts You Want</h3>
-            <p style="font-size:12px; color:rgba(255,255,255,0.35); line-height:1.6;">Browse available shifts and book instantly, no approval needed.</p>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-content">
+            <h3>Book the Shifts You Want</h3>
+            <p>Browse available shifts and book instantly, no approval needed.</p>
           </div>
         </div>
-        <div style="display:flex; gap:16px; padding:1.25rem; background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.06); border-radius:12px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:rgba(93,202,165,0.1); border:1px solid rgba(93,202,165,0.25); color:#5DCAA5; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:500; flex-shrink:0;">2</div>
-          <div>
-            <h3 style="font-size:14px; font-weight:500; color:#fff; margin-bottom:4px;">Work & Earn</h3>
-            <p style="font-size:12px; color:rgba(255,255,255,0.35); line-height:1.6;">Show up, do your shift, track your hours.</p>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-content">
+            <h3>Work &amp; Earn</h3>
+            <p>Show up, do your shift, track your hours.</p>
           </div>
         </div>
-        <div style="display:flex; gap:16px; padding:1.25rem; background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.06); border-radius:12px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:rgba(93,202,165,0.1); border:1px solid rgba(93,202,165,0.25); color:#5DCAA5; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:500; flex-shrink:0;">3</div>
-          <div>
-            <h3 style="font-size:14px; font-weight:500; color:#fff; margin-bottom:4px;">Get Paid</h3>
-            <p style="font-size:12px; color:rgba(255,255,255,0.35); line-height:1.6;">Choose instant payout or free 2-3 day transfer.</p>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-content">
+            <h3>Get Paid</h3>
+            <p>Choose instant payout or free 2–3 day transfer.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- WHY JOIN -->
-    <section style="padding:0 2rem 3rem; max-width:800px; margin:0 auto;">
-      <div class="section-tag">Why join CoverCare</div>
+    <!-- WHY JOIN (feature detail cards) -->
+    <section class="section-wrap">
+      <p class="section-tag">Why join CoverCare</p>
       <h2 class="section-title">Built for healthcare professionals</h2>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:12px;">
-        <div class="glass-card">
-          <div style="width:40px; height:40px; border-radius:10px; background:rgba(93,202,165,0.1); border:1px solid rgba(93,202,165,0.15); display:flex; align-items:center; justify-content:center; font-size:20px; color:#5DCAA5; margin-bottom:14px;">
-            <i class="ti ti-calendar"></i>
-          </div>
-          <h3 style="font-size:14px; font-weight:500; color:#fff; margin-bottom:6px;">Set your own schedule</h3>
-          <p style="font-size:12px; color:rgba(255,255,255,0.35); line-height:1.65;">Work when you want. Pick up shifts around your current job or studies.</p>
+      <div class="feature-detail-grid">
+        <div class="detail-card">
+          <div class="detail-card-icon"><i class="ti ti-calendar"></i></div>
+          <h3>Set your own schedule</h3>
+          <p>Work when you want. Pick up shifts around your current job or studies.</p>
         </div>
-        <div class="glass-card">
-          <div style="width:40px; height:40px; border-radius:10px; background:rgba(93,202,165,0.1); border:1px solid rgba(93,202,165,0.15); display:flex; align-items:center; justify-content:center; font-size:20px; color:#5DCAA5; margin-bottom:14px;">
-            <i class="ti ti-cash"></i>
-          </div>
-          <h3 style="font-size:14px; font-weight:500; color:#fff; margin-bottom:6px;">Competitive pay</h3>
-          <p style="font-size:12px; color:rgba(255,255,255,0.35); line-height:1.65;">Earn market-leading rates with instant Mobile Money payouts after every shift.</p>
+        <div class="detail-card">
+          <div class="detail-card-icon"><i class="ti ti-cash"></i></div>
+          <h3>Competitive pay</h3>
+          <p>Earn market-leading rates with instant Mobile Money payouts after every shift.</p>
         </div>
-        <div class="glass-card">
-          <div style="width:40px; height:40px; border-radius:10px; background:rgba(93,202,165,0.1); border:1px solid rgba(93,202,165,0.15); display:flex; align-items:center; justify-content:center; font-size:20px; color:#5DCAA5; margin-bottom:14px;">
-            <i class="ti ti-star"></i>
+        <div class="detail-card">
+          <div class="detail-card-icon"><i class="ti ti-star"></i></div>
+          <h3>Build your reputation</h3>
+          <p>Collect ratings and reviews. Top professionals get access to premium facilities.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section-wrap">
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"I love being able to pick up extra shifts around my schedule. The instant MoMo payout is incredible."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">KA</div>
+            <div>
+              <div class="testimonial-name">Kwame Asare</div>
+              <div class="testimonial-role">Pharmacist · Kumasi</div>
+            </div>
           </div>
-          <h3 style="font-size:14px; font-weight:500; color:#fff; margin-bottom:6px;">Build your reputation</h3>
-          <p style="font-size:12px; color:rgba(255,255,255,0.35); line-height:1.65;">Collect ratings and reviews. Top professionals get access to premium facilities.</p>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"CoverCare helped me find extra shifts during the holidays. The QR check-in makes everything smooth."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">MA</div>
+            <div>
+              <div class="testimonial-name">Mariam Alhassan</div>
+              <div class="testimonial-role">Nurse · Tamale</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"I've doubled my income by picking up weekend shifts. Best decision I've made for my career."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">DO</div>
+            <div>
+              <div class="testimonial-name">Dr. David Ofori</div>
+              <div class="testimonial-role">Medical Doctor · Accra</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- FAQ -->
-    <section style="padding:0 2rem 3rem; max-width:700px; margin:0 auto;">
-      <div class="section-tag" style="text-align:center;">FAQ</div>
+    <section class="section-wrap" style="max-width:700px;">
+      <p class="section-tag" style="text-align:center;">FAQ</p>
       <h2 class="section-title" style="text-align:center;">Frequently asked questions</h2>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
           What documents do I need to join?
           <span class="faq-arrow">▾</span>
         </div>
         <div class="faq-a">You'll need a valid professional license or registration (e.g. Pharmacy Council), a government-issued ID, and proof of qualification. The verification process takes less than 24 hours.</div>
       </div>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
           How and when do I get paid?
           <span class="faq-arrow">▾</span>
         </div>
-        <div class="faq-a">You can choose instant payout to your Mobile Money wallet for a small fee, or free 2-3 business day bank transfer. Payments are released once the facility confirms your shift is complete.</div>
+        <div class="faq-a">You can choose instant payout to your Mobile Money wallet for a small fee, or free 2–3 business day bank transfer. Payments are released once the facility confirms your shift is complete.</div>
       </div>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
           Can I cancel a shift I've booked?
           <span class="faq-arrow">▾</span>
         </div>
         <div class="faq-a">Yes, you can cancel up to 4 hours before the shift starts without penalty. Late cancellations may affect your reliability score.</div>
       </div>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
           Is there a minimum commitment?
           <span class="faq-arrow">▾</span>
         </div>
         <div class="faq-a">No. You work as much or as little as you want. There are no minimum hours or shift requirements.</div>
       </div>
-
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
           How does the QR check-in work?
           <span class="faq-arrow">▾</span>
         </div>
         <div class="faq-a">When you arrive at a facility, show your unique QR code from the app. The facility scans it to confirm your arrival and start the shift.</div>
       </div>
+    </section>
 
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          What cities are you available in?
-          <span class="faq-arrow">▾</span>
-        </div>
-        <div class="faq-a">We're live in Accra, Kumasi, Tamale, Cape Coast, and Takoradi. We're expanding to more cities soon.</div>
+    <!-- FINAL CTA -->
+    <section class="cta-section">
+      <h2 class="cta-title">Ready to start?</h2>
+      <p class="cta-sub">Join thousands of healthcare professionals earning on their terms.</p>
+      <div class="cta-buttons">
+        <a href="worker-signup.html" class="btn-primary">Get started</a>
       </div>
     </section>
 
-    <!-- CTA -->
-    <div style="background:rgba(255,255,255,0.04); backdrop-filter:blur(30px); border:1px solid rgba(93,202,165,0.15); border-radius:20px; padding:3rem 2rem; margin:0 2rem 3rem; text-align:center;">
-      <h2 style="font-size:26px; font-weight:500; color:#fff; margin-bottom:0.5rem;">Ready to start?</h2>
-      <p style="font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:1.75rem;">Join thousands of healthcare professionals earning on their terms.</p>
-      <a href="worker-signup.html" class="btn-primary">Get started</a>
-    </div>
-
-    <footer>
-      © 2025 CoverCare Africa · Accra, Ghana · <span style="color:#5DCAA5;">covercare.africa</span>
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-cols">
+        <div class="footer-col">
+          <div class="footer-brand">CoverCare Africa</div>
+          <p class="footer-desc">Africa's smartest healthcare staffing platform. Based in Accra, Ghana.</p>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Platform</div>
+          <a href="facility-signup.html" class="footer-link">For facilities</a>
+          <a href="worker-signup.html" class="footer-link">For professionals</a>
+          <a href="pricing.html" class="footer-link">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Company</div>
+          <a href="index.html#homecare" class="footer-link">Homecare</a>
+          <a href="#" class="footer-link">Blog</a>
+          <a href="#" class="footer-link">Contact</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Legal</div>
+          <a href="#" class="footer-link">Privacy policy</a>
+          <a href="#" class="footer-link">Terms of service</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2025 CoverCare Africa · Accra, Ghana · <span class="text-accent">covercare.africa</span>
+      </div>
     </footer>
 
   </div>
 
   <script src="config.js"></script>
-  <script>
-    function toggleFaq(el) {
-      el.classList.toggle("open");
-      var answer = el.nextElementSibling;
-      answer.classList.toggle("open");
-    }
-  </script>
 
 </body>
 </html>
