@@ -56,10 +56,18 @@ async function loadProfile(email) {
     verifyLink.style.display = data.identity_verified ? "none" : "block";
   }
 
-  const initials = data.full_name
-    .split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
-
-  document.getElementById("profileAvatar").textContent = initials;
+  const avatarEl = document.getElementById("profileAvatar");
+  if (data.profile_photo_url) {
+    avatarEl.innerHTML = `<img src="${escapeHtml(data.profile_photo_url)}" alt="Profile photo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
+    avatarEl.style.background = "none";
+    avatarEl.style.border = "none";
+  } else {
+    const initials = data.full_name
+      .split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+    avatarEl.textContent = initials;
+    avatarEl.style.background = "";
+    avatarEl.style.border = "";
+  }
   document.getElementById("profileName").textContent = data.full_name;
   document.getElementById("profileRole").textContent = data.role;
   document.getElementById("profileCity").textContent = `📍 ${data.city}`;
@@ -376,6 +384,8 @@ function openProfileSettings() {
   }
   document.getElementById("editCity").value = currentWorker.city || "";
   document.getElementById("editExperience").value = currentWorker.experience || "";
+  document.getElementById("profilePhotoPreview").src = currentWorker.profile_photo_url || "";
+  document.getElementById("profilePhotoPreview").style.display = currentWorker.profile_photo_url ? "block" : "none";
   document.getElementById("profileModal").style.display = "flex";
 }
 
@@ -383,11 +393,44 @@ function closeProfileSettings() {
   document.getElementById("profileModal").style.display = "none";
 }
 
+// ── Profile photo preview in edit modal ──
+document.getElementById("editPhoto")?.addEventListener("change", function() {
+  const file = this.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById("profilePhotoPreview");
+    preview.src = e.target.result;
+    preview.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+});
+
 document.getElementById("profileForm").addEventListener("submit", async function(e) {
   e.preventDefault();
   const btn = this.querySelector('button[type="submit"]');
   btn.disabled = true;
   btn.textContent = "Saving...";
+
+  const fileInput = document.getElementById("editPhoto");
+  let profilePhotoUrl = currentWorker.profile_photo_url || null;
+  if (fileInput?.files?.[0]) {
+    try {
+      const { data: photoResult } = await ccFetch("/api/upload", {
+        method: "POST",
+        body: JSON.stringify({
+          image: await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(fileInput.files[0]);
+          }),
+          folder: "worker-photos"
+        })
+      });
+      if (photoResult?.success) profilePhotoUrl = photoResult.url;
+    } catch (e) { console.error("Photo upload error:", e); }
+  }
 
   try {
     const { data: result } = await ccFetch("/worker", {
@@ -398,7 +441,8 @@ document.getElementById("profileForm").addEventListener("submit", async function
         role: document.getElementById("editRole").value,
         license_number: document.getElementById("editLicense").value.trim(),
         city: document.getElementById("editCity").value,
-        experience: document.getElementById("editExperience").value
+        experience: document.getElementById("editExperience").value,
+        profile_photo_url: profilePhotoUrl
       })
     });
 

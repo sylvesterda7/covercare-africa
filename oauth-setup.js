@@ -41,5 +41,12 @@ document.getElementById("setupForm").addEventListener("submit", async function(e
     return;
   }
   const { data: { session } } = await _supabase.auth.getSession();
-  window.location.href = getDashboardUrl(type, session?.user?.email || "");
+  const email = session?.user?.email || "";
+  if (type === "facility" || type === "homecare") {
+    window.location.href = "facility-signup.html";
+  } else if (type === "worker") {
+    window.location.href = "worker-signup.html";
+  } else {
+    window.location.href = getDashboardUrl(type, email);
+  }
 });

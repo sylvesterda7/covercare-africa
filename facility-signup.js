@@ -52,13 +52,13 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     if (!password || password.length < 8) {
       alert("Password must be at least 8 characters.");
       btn.disabled = false;
-      btn.textContent = "Request early access";
+      btn.textContent = "Create facility account";
       return;
     }
     if (password !== confirmPassword) {
       alert("Passwords do not match.");
       btn.disabled = false;
-      btn.textContent = "Request early access";
+      btn.textContent = "Create facility account";
       return;
     }
 
@@ -71,7 +71,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     if (signUpError) {
       alert(signUpError.message);
       btn.disabled = false;
-      btn.textContent = "Request early access";
+      btn.textContent = "Create facility account";
       return;
     }
 

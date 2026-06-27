@@ -1,3 +1,21 @@
+// ── Profile photo preview ──
+document.getElementById("profilePhoto")?.addEventListener("change", function() {
+  const file = this.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let preview = document.getElementById("photoPreview");
+    if (!preview) {
+      preview = document.createElement("img");
+      preview.id = "photoPreview";
+      preview.style.cssText = "width:80px; height:80px; border-radius:50%; object-fit:cover; margin-top:6px; border:2px solid rgba(93,202,165,0.2);";
+      document.getElementById("profilePhoto").closest(".form-group").appendChild(preview);
+    }
+    preview.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
 // ── License verification ──
 let licenseVerified = false;
 
@@ -56,7 +74,7 @@ async function verifyLicense() {
       licenseVerified = true;
       resultBox.className = "verify-result success";
       resultBox.innerHTML = `
-        ✓ <strong>Verified — Active and in good standing</strong><br>
+        <strong>Verified — Active and in good standing</strong><br>
         ${data.message}<br>
         <span style="font-size:12px; color:#0F6E56;">
           Source: Pharmacy Council Ghana · ${new Date().toLocaleDateString()}
@@ -66,7 +84,7 @@ async function verifyLicense() {
       licenseVerified = false;
       resultBox.className = "verify-result warning";
       resultBox.innerHTML = `
-        ⚠ <strong>Name mismatch</strong><br>
+        <strong>Name mismatch</strong><br>
         This registration number exists but the name does not match 
         Pharmacy Council records. Please check that your full name 
         matches exactly as registered with the Council.
@@ -75,7 +93,7 @@ async function verifyLicense() {
       licenseVerified = false;
       resultBox.className = "verify-result warning";
       resultBox.innerHTML = `
-        ⚠ <strong>Not found</strong><br>
+        <strong>Not found</strong><br>
         We couldn't find this registration number in Pharmacy Council records. 
         Please check and try again, or contact us for manual verification.
       `;
@@ -83,7 +101,7 @@ async function verifyLicense() {
       licenseVerified = false;
       resultBox.className = "verify-result error";
       resultBox.innerHTML = `
-        ✗ <strong>Verification unavailable</strong><br>
+        <strong>Verification unavailable</strong><br>
         Our verification service is temporarily unavailable. 
         Your application will be reviewed manually within 24 hours.
       `;
@@ -94,7 +112,7 @@ async function verifyLicense() {
     licenseVerified = false;
     resultBox.className = "verify-result error";
     resultBox.innerHTML = `
-      ✗ <strong>Verification unavailable</strong><br>
+      <strong>Verification unavailable</strong><br>
       Our verification service is temporarily unavailable. 
       Your application will be reviewed manually within 24 hours.
     `;
@@ -199,7 +217,30 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     }
   }
 
-  // Step 2: Save profile
+  // Step 2: Upload profile photo (optional)
+  btn.textContent = "Uploading photo...";
+
+  let profilePhotoUrl = null;
+  const photoFile = document.getElementById("profilePhoto")?.files?.[0];
+  if (photoFile) {
+    try {
+      const { data: photoResult } = await ccFetch("/api/upload", {
+        method: "POST",
+        body: JSON.stringify({
+          image: await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(photoFile);
+          }),
+          folder: "worker-photos"
+        })
+      });
+      if (photoResult?.success) profilePhotoUrl = photoResult.url;
+    } catch (e) { console.error("Photo upload error:", e); }
+  }
+
+  // Step 3: Save profile
   btn.textContent = "Saving profile...";
 
   try {
@@ -212,7 +253,8 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         role: worker.role,
         license_number: worker.license,
         city: worker.city,
-        experience: worker.experience
+        experience: worker.experience,
+        profile_photo_url: profilePhotoUrl
       })
     });
 
