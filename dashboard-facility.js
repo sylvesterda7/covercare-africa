@@ -370,7 +370,70 @@ async function loadFacilityProfile() {
 
   if (!error && data) {
     facilityProfile = data;
+    renderDocumentStatus(data);
   }
+}
+
+// ── Facility document status ──
+function renderDocumentStatus(profile) {
+  const container = document.getElementById("documentsContainer");
+  if (!container) return;
+
+  const docs = [
+    { key: "incorporation_doc_url", label: "Incorporation certificate (Registrar of Companies)" },
+    { key: "hefra_license_url", label: "HEFRA license" },
+    { key: "pharmacy_council_url", label: "Pharmacy Council permit" },
+  ];
+
+  container.innerHTML = docs.map(d => {
+    const hasDoc = !!profile[d.key];
+    return `
+      <div class="profile-card" style="margin-bottom:8px; align-items:center;">
+        <div class="profile-info" style="flex:1;">
+          <p style="font-size:13px; color:rgba(255,255,255,0.7);">${d.label}</p>
+          <p style="font-size:12px; color:${hasDoc ? '#5DCAA5' : 'rgba(255,255,255,0.3)'};">
+            ${hasDoc ? '✓ Uploaded' : 'Not uploaded'}
+          </p>
+        </div>
+        ${hasDoc ? `<a href="${escapeHtml(profile[d.key])}" target="_blank" class="btn-primary-sm" style="font-size:11px; padding:6px 12px; text-decoration:none;">View</a>` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+async function uploadFacilityDoc(fileInputId, targetField) {
+  const fileInput = document.getElementById(fileInputId);
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById(fileInputId + "-status");
+  statusEl.textContent = "Uploading...";
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64 = e.target.result;
+    const { data: uploadResult } = await ccFetch("/api/upload", {
+      method: "POST",
+      body: JSON.stringify({ image: base64, folder: "facility-docs" })
+    });
+
+    if (uploadResult?.success) {
+      facilityProfile[targetField] = uploadResult.url;
+      statusEl.textContent = "✓ Uploaded";
+      statusEl.style.color = "#5DCAA5";
+      const { data: saveResult } = await ccFetch("/facility", {
+        method: "PUT",
+        body: JSON.stringify({ [targetField]: uploadResult.url })
+      });
+      if (saveResult?.success) {
+        renderDocumentStatus(facilityProfile);
+      }
+    } else {
+      statusEl.textContent = "Upload failed. Try again.";
+      statusEl.style.color = "#E24B4A";
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 // ── Facility settings modal ──

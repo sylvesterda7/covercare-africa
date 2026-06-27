@@ -83,12 +83,38 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
         "Check your email to confirm your account, then sign in and complete your facility profile.";
       document.getElementById("successCard").style.display = "block";
       btn.disabled = false;
-      btn.textContent = "Request early access";
+      btn.textContent = "Create facility account";
       return;
     }
   }
 
-  // Step 2: Save profile
+  // Step 2: Upload documents (optional)
+  btn.textContent = "Uploading documents...";
+
+  async function uploadFile(fileInput) {
+    const file = fileInput?.files?.[0];
+    if (!file) return null;
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async function(ev) {
+        const { data: result } = await ccFetch("/api/upload", {
+          method: "POST",
+          body: JSON.stringify({ image: ev.target.result, folder: "facility-docs" })
+        });
+        resolve(result?.success ? result.url : null);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const [incorporationDoc, hefraDoc, pharmacyDoc] = await Promise.all([
+    uploadFile(document.getElementById("docIncorporation")),
+    uploadFile(document.getElementById("docHefra")),
+    uploadFile(document.getElementById("docPharmacy"))
+  ]);
+
+  // Step 3: Save profile
   btn.textContent = "Saving...";
 
   try {
@@ -103,7 +129,10 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
         email: facility.email,
         phone: facility.phone,
         staff_needs: facility.staffNeeds,
-        frequency: facility.frequency
+        frequency: facility.frequency,
+        incorporation_doc_url: incorporationDoc,
+        hefra_license_url: hefraDoc,
+        pharmacy_council_url: pharmacyDoc
       })
     });
 
@@ -114,13 +143,13 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     } else {
       alert("Something went wrong. Please try again.");
       btn.disabled = false;
-      btn.textContent = "Request early access";
+      btn.textContent = "Create facility account";
     }
 
   } catch (err) {
     console.error("Submit error:", err);
     alert("Something went wrong. Please try again.");
     btn.disabled = false;
-    btn.textContent = "Request early access";
+    btn.textContent = "Create facility account";
   }
 });
