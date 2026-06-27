@@ -35,19 +35,55 @@ function validateStep1() {
 
 // ── Validate step 2 ──
 function validateStep2() {
-  const fields = ["role", "shiftDate", "startTime", "duration", "payRate"];
+  const fields = ["role", "shiftDate", "startTime", "duration"];
   for (let field of fields) {
     if (!document.getElementById(field).value) {
       alert("Please fill in all shift details before continuing.");
       return false;
     }
   }
+  const payRateInput = document.getElementById("payRate");
+  if (!payRateInput.value) {
+    const roleVal = document.getElementById("role").value;
+    if (suggestedRates[roleVal]) {
+      payRateInput.value = suggestedRates[roleVal];
+    } else {
+      alert("Please enter a pay rate.");
+      return false;
+    }
+  }
   return true;
 }
 
-// ── Live pay estimate ──
+// ── Suggested rates ──
+let suggestedRates = {};
+
+async function fetchSuggestedRates() {
+  const { data } = await ccFetch("/roles/rates", { method: "GET" });
+  if (data?.success && data.data) {
+    suggestedRates = data.data;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+  fetchSuggestedRates();
+
+  const roleEl = document.getElementById("role");
   const payRateEl = document.getElementById("payRate");
+  const rateHintEl = document.getElementById("rateHint");
+
+  roleEl.addEventListener("change", function() {
+    const val = this.value;
+    if (val && suggestedRates[val]) {
+      const suggested = suggestedRates[val];
+      payRateEl.placeholder = `Suggested: GHS ${suggested}/hr`;
+      rateHintEl.textContent = `Suggested: GHS ${suggested}/hr`;
+      rateHintEl.style.display = "block";
+    } else {
+      payRateEl.placeholder = "e.g. 80";
+      rateHintEl.style.display = "none";
+    }
+  });
   const durationEl = document.getElementById("duration");
 
   function updateEstimate() {
@@ -100,7 +136,15 @@ function showSummary() {
 document.getElementById("shiftForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  var payRateVal = document.getElementById("payRate").value;
+  var payRateInput = document.getElementById("payRate");
+  var payRateVal = payRateInput.value;
+  if (!payRateVal || payRateVal.trim() === "") {
+    var roleVal = document.getElementById("role").value;
+    if (suggestedRates[roleVal]) {
+      payRateVal = suggestedRates[roleVal];
+      payRateInput.value = payRateVal;
+    }
+  }
   var durationVal = document.getElementById("duration").value;
 
   var shift = {

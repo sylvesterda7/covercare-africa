@@ -614,4 +614,28 @@ async function markAllRead() {
   loadNotifications();
 }
 
+// ── Support ──
+function openSupportModal() { document.getElementById("supportModal").style.display = "flex"; }
+function closeSupportModal() { document.getElementById("supportModal").style.display = "none"; }
+document.getElementById("supportForm")?.addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const btn = this.querySelector(".btn-auth");
+  btn.disabled = true; btn.textContent = "Sending...";
+  const { data } = await ccFetch("/support/ticket", {
+    method: "POST",
+    body: JSON.stringify({
+      subject: document.getElementById("supportSubject").value.trim(),
+      message: document.getElementById("supportMessage").value.trim(),
+      category: document.getElementById("supportCategory").value
+    })
+  });
+  if (data?.success) {
+    alert("Support ticket sent! We'll respond within 24 hours.");
+    closeSupportModal();
+  } else {
+    alert("Failed to send. Please try again.");
+  }
+  btn.disabled = false; btn.textContent = "Send";
+});
+
 init();
