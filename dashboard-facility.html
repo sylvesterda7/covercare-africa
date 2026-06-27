@@ -299,6 +299,27 @@
     </div>
   </div>
 
+  <!-- RATING MODAL -->
+  <div id="ratingModal" class="scan-modal-overlay" style="display:none;">
+    <div class="scan-modal" style="max-width:420px;">
+      <button class="scan-modal-close" onclick="closeFacilityRatingModal()" aria-label="Close">✕</button>
+      <h2 style="margin-bottom:0.5rem;">Rate this worker</h2>
+      <p id="ratingWorkerName" style="font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:1.5rem;">—</p>
+      <div style="display:flex; gap:6px; justify-content:center; margin-bottom:1.5rem; font-size:32px;">
+        <span onclick="setFacilityRating(1)" id="fStar1" style="cursor:pointer; color:rgba(255,255,255,0.15); transition:color 0.2s;">★</span>
+        <span onclick="setFacilityRating(2)" id="fStar2" style="cursor:pointer; color:rgba(255,255,255,0.15); transition:color 0.2s;">★</span>
+        <span onclick="setFacilityRating(3)" id="fStar3" style="cursor:pointer; color:rgba(255,255,255,0.15); transition:color 0.2s;">★</span>
+        <span onclick="setFacilityRating(4)" id="fStar4" style="cursor:pointer; color:rgba(255,255,255,0.15); transition:color 0.2s;">★</span>
+        <span onclick="setFacilityRating(5)" id="fStar5" style="cursor:pointer; color:rgba(255,255,255,0.15); transition:color 0.2s;">★</span>
+      </div>
+      <textarea id="facilityRatingReview" class="glass-input" placeholder="Write a review (optional)..." rows="3" style="resize:vertical; padding:11px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:14px; color:#f0efe8; font-family:inherit; width:100%; box-sizing:border-box;"></textarea>
+      <div style="display:flex; gap:12px; margin-top:1rem;">
+        <button onclick="submitFacilityRating()" class="btn-auth" style="flex:1;" id="submitFacilityRatingBtn">Submit rating</button>
+        <button onclick="closeFacilityRatingModal()" class="btn-auth" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SUPPORT MODAL -->
   <div id="supportModal" class="scan-modal-overlay" style="display:none;">
     <div class="scan-modal" style="max-width:480px;">

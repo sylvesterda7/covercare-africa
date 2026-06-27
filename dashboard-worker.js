@@ -349,6 +349,7 @@ async function loadCompletedShifts() {
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
           <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
         </div>
+        <button onclick="openRatingModal('${escapeHtml(s.id)}', '${escapeHtml(s.contact_email)}', '${escapeHtml(s.facility_name)}')" class="btn-primary-sm" style="font-size:12px; padding:7px 14px; flex-shrink:0;">Rate</button>
       </div>
     `).join("")}
   `;
@@ -567,12 +568,17 @@ async function loadRatings() {
     container.innerHTML = '<div class="empty-state"><p>No ratings yet.</p></div>';
     return;
   }
+  let totalRating = 0;
+  result.data.forEach(r => { totalRating += r.rating || 0; });
+  const avgRating = result.data.length > 0 ? (totalRating / result.data.length).toFixed(1) : "—";
+  document.getElementById("rating").textContent = avgRating;
+
   container.innerHTML = result.data.map(r => `
     <div class="profile-card" style="margin-bottom:8px;">
       <div class="profile-info" style="flex:1;">
-        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.score || 0))}${"☆".repeat(5 - Math.round(r.score || 0))} <span style="color:rgba(255,255,255,0.4);">${r.score || 0}/5</span></p>
-        ${r.comment ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.comment)}"</p>` : ""}
-        <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.facility_name ? escapeHtml(r.facility_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
+        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:rgba(255,255,255,0.4);">${r.rating || 0}/5</span></p>
+        ${r.review ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.review)}"</p>` : ""}
+        <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.rater_name ? escapeHtml(r.rater_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
       </div>
     </div>
   `).join("");
@@ -617,6 +623,63 @@ async function markRead(id) {
 async function markAllRead() {
   await ccFetch("/notifications/read-all", { method: "POST" });
   loadNotifications();
+}
+
+// ── Rating modal ──
+let ratingShiftId = null;
+let ratingTargetEmail = null;
+let selectedRating = 0;
+
+function openRatingModal(shiftId, targetEmail, facilityName) {
+  ratingShiftId = shiftId;
+  ratingTargetEmail = targetEmail;
+  selectedRating = 0;
+  document.getElementById("ratingFacilityName").textContent = facilityName || "Facility";
+  document.getElementById("ratingReview").value = "";
+  document.getElementById("submitRatingBtn").textContent = "Submit rating";
+  document.getElementById("submitRatingBtn").disabled = false;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById("star" + i).style.color = "rgba(255,255,255,0.15)";
+  }
+  document.getElementById("ratingModal").style.display = "flex";
+}
+
+function closeRatingModal() {
+  document.getElementById("ratingModal").style.display = "none";
+}
+
+function setRating(val) {
+  selectedRating = val;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById("star" + i).style.color = i <= val ? "#F0B429" : "rgba(255,255,255,0.15)";
+  }
+}
+
+async function submitRating() {
+  if (selectedRating === 0) { alert("Please select a rating."); return; }
+  const btn = document.getElementById("submitRatingBtn");
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+  const review = document.getElementById("ratingReview").value.trim();
+  const { data: result } = await ccFetch("/ratings", {
+    method: "POST",
+    body: JSON.stringify({
+      shift_id: ratingShiftId,
+      rating: selectedRating,
+      review: review,
+      target_email: ratingTargetEmail
+    })
+  });
+  if (result?.success) {
+    alert("Rating submitted! Thank you for your feedback.");
+    closeRatingModal();
+    loadCompletedShifts();
+    loadRatings();
+  } else {
+    alert(result?.message || "Failed to submit rating.");
+    btn.disabled = false;
+    btn.textContent = "Submit rating";
+  }
 }
 
 // ── Support ──

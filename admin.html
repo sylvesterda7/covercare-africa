@@ -78,6 +78,9 @@
         <button class="tab-btn" id="tab-shifts" onclick="showTab('shifts')">
           <i class="ti ti-calendar"></i> Shifts
         </button>
+        <button class="tab-btn" id="tab-analytics" onclick="showTab('analytics')">
+          <i class="ti ti-chart-bar"></i> Analytics
+        </button>
       </div>
 
       <!-- WORKERS TABLE -->
@@ -99,6 +102,34 @@
       <div id="panel-shifts" style="display:none;">
         <div class="section-title">All Shifts</div>
         <div id="shiftsTable"></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div id="panel-analytics" style="display:none;">
+        <div class="section-title">Platform Analytics</div>
+
+        <div class="stats-row" id="analyticsStats">
+          <div class="stat-box"><div class="num" id="analAvgRating">—</div><div class="label">Avg rating</div></div>
+          <div class="stat-box"><div class="num" id="analActiveShifts">—</div><div class="label">Active shifts</div></div>
+          <div class="stat-box"><div class="num" id="analPendingApps">—</div><div class="label">Pending applications</div></div>
+          <div class="stat-box"><div class="num" id="analOpenTickets">—</div><div class="label">Open support tickets</div></div>
+          <div class="stat-box"><div class="num" id="analIdVerified">—</div><div class="label">Identity verified</div></div>
+        </div>
+
+        <div style="margin-top:2rem;">
+          <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:1rem;">Workers registered (last 6 months)</p>
+          <div id="workersChart" class="chart-bars"></div>
+        </div>
+
+        <div style="margin-top:2rem;">
+          <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:1rem;">Shifts posted (last 6 months)</p>
+          <div id="shiftsChart" class="chart-bars"></div>
+        </div>
+
+        <div style="margin-top:2rem;">
+          <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:1rem;">Revenue (GHS, last 6 months)</p>
+          <div id="revenueChart" class="chart-bars"></div>
+        </div>
       </div>
 
     </div>

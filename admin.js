@@ -40,7 +40,8 @@ async function init() {
   await Promise.all([
     loadWorkers(),
     loadFacilities(),
-    loadShifts()
+    loadShifts(),
+    loadAnalytics()
   ]);
 }
 
@@ -294,9 +295,45 @@ async function loadShifts() {
   `;
 }
 
+// ── Load analytics ──
+async function loadAnalytics() {
+  const { data: result } = await ccFetch("/admin/analytics", { method: "GET" });
+  if (!result?.success) return;
+
+  document.getElementById("analAvgRating").textContent = result.avgRating || "—";
+  document.getElementById("analActiveShifts").textContent = result.activeShifts || 0;
+  document.getElementById("analPendingApps").textContent = result.pendingApplications || 0;
+  document.getElementById("analOpenTickets").textContent = result.openSupportTickets || 0;
+  document.getElementById("analIdVerified").textContent = result.identityVerifiedCount || 0;
+
+  renderBarChart("workersChart", result.workersByMonth || [], "#5DCAA5");
+  renderBarChart("shiftsChart", result.shiftsByMonth || [], "#5DCAA5");
+  renderBarChart("revenueChart", (result.revenueByMonth || []).map(r => ({ ...r, count: r.amount })), "#F0B429");
+}
+
+function renderBarChart(containerId, data, color) {
+  const container = document.getElementById(containerId);
+  if (!container || !data || data.length === 0) {
+    container.innerHTML = '<div style="color:rgba(255,255,255,0.2); font-size:13px;">No data</div>';
+    return;
+  }
+  const maxVal = Math.max(...data.map(d => d.count || 0), 1);
+  container.innerHTML = data.map(d => {
+    const pct = Math.max((d.count || 0) / maxVal * 100, 4);
+    const val = typeof d.count === "number" ? (d.count % 1 === 0 ? d.count : "GHS " + Number(d.count).toLocaleString()) : d.count;
+    return `
+      <div class="chart-bar-wrap">
+        <div class="chart-bar-value">${val}</div>
+        <div class="chart-bar" style="height:${pct}%; background:${color}; opacity:${0.4 + (pct / 100) * 0.6};"></div>
+        <div class="chart-bar-label">${d.month || ""}</div>
+      </div>
+    `;
+  }).join("");
+}
+
 // ── Tab switching ──
 function showTab(tab) {
-  ["workers", "facilities", "shifts"].forEach(t => {
+  ["workers", "facilities", "shifts", "analytics"].forEach(t => {
     document.getElementById("panel-" + t).style.display = t === tab ? "block" : "none";
     document.getElementById("tab-" + t).classList.toggle("active", t === tab);
   });

@@ -204,6 +204,23 @@
     </div>
   </div>
 
+  <!-- RATING MODAL -->
+  <div id="ratingModal" class="scan-modal-overlay" style="display:none;">
+    <div class="scan-modal" style="max-width:420px;">
+      <button class="scan-modal-close" onclick="closeRatingModal()" aria-label="Close">✕</button>
+      <h2 style="margin-bottom:0.5rem;">Rate this facility</h2>
+      <p id="ratingFacilityName" style="font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:1.5rem;">—</p>
+      <div style="display:flex; gap:6px; justify-content:center; margin-bottom:1.5rem; font-size:32px;">
+        ${[1,2,3,4,5].map(i => `<span onclick="setRating(${i})" id="star${i}" style="cursor:pointer; color:rgba(255,255,255,0.15); transition:color 0.2s;">★</span>`).join("")}
+      </div>
+      <textarea id="ratingReview" class="glass-input" placeholder="Write a review (optional)..." rows="3" style="resize:vertical; padding:11px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:14px; color:#f0efe8; font-family:inherit; width:100%; box-sizing:border-box;"></textarea>
+      <div style="display:flex; gap:12px; margin-top:1rem;">
+        <button onclick="submitRating()" class="btn-auth" style="flex:1;" id="submitRatingBtn">Submit rating</button>
+        <button onclick="closeRatingModal()" class="btn-auth" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SUPPORT MODAL -->
   <div id="supportModal" class="scan-modal-overlay" style="display:none;">
     <div class="scan-modal" style="max-width:480px;">

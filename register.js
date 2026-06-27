@@ -1,5 +1,23 @@
 const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
+async function signUpWithGoogle() {
+  const btn = document.getElementById("googleBtn");
+  btn.disabled = true;
+  btn.textContent = "Redirecting to Google...";
+  const { error } = await _supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + "/login.html"
+    }
+  });
+  if (error) {
+    document.getElementById("errorMsg").textContent = error.message;
+    document.getElementById("errorMsg").style.display = "block";
+    btn.disabled = false;
+    btn.innerHTML = 'Continue with Google';
+  }
+}
+
 // Pre-select account type from URL param e.g. ?type=worker or ?type=facility
 const urlType = new URLSearchParams(window.location.search).get("type");
 if (urlType) {

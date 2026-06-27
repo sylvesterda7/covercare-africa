@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complete Setup – CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <a href="index.html" class="auth-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
+      <h1>Almost done!</h1>
+      <p>Choose your account type to get started.</p>
+      <div class="auth-error" id="errorMsg"></div>
+      <form class="auth-form" id="setupForm">
+        <div class="form-group">
+          <label for="setupName">Full name</label>
+          <input type="text" id="setupName" placeholder="e.g. Kwame Mensah" required />
+        </div>
+        <div class="form-group">
+          <label for="setupType">I am a</label>
+          <select id="setupType" required>
+            <option value="" disabled selected>Select account type</option>
+            <option value="worker">Healthcare Professional</option>
+            <option value="facility">Facility Manager</option>
+            <option value="homecare">Homecare Company</option>
+            <option value="public">Individual / Family</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-auth" id="setupBtn">Complete setup</button>
+      </form>
+    </div>
+  </div>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="oauth-setup.js"></script>
+</body>
+</html>

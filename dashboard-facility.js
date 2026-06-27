@@ -352,6 +352,7 @@ async function loadCompletedShifts() {
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
           <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
         </div>
+        <button onclick="openFacilityRatingModal('${escapeHtml(s.id)}', '${escapeHtml(s.worker_id || "")}')" class="btn-primary-sm" style="font-size:12px; padding:7px 14px; flex-shrink:0;">Rate</button>
       </div>
     `).join("")}
   `;
@@ -565,9 +566,9 @@ async function loadRatings() {
   container.innerHTML = result.data.map(r => `
     <div class="profile-card" style="margin-bottom:8px;">
       <div class="profile-info" style="flex:1;">
-        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.score || 0))}${"☆".repeat(5 - Math.round(r.score || 0))} <span style="color:rgba(255,255,255,0.4);">${r.score || 0}/5</span></p>
-        ${r.comment ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.comment)}"</p>` : ""}
-        <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.worker_name ? escapeHtml(r.worker_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
+        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:rgba(255,255,255,0.4);">${r.rating || 0}/5</span></p>
+        ${r.review ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.review)}"</p>` : ""}
+        <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.rater_name ? escapeHtml(r.rater_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
       </div>
     </div>
   `).join("");
@@ -612,6 +613,70 @@ async function markRead(id) {
 async function markAllRead() {
   await ccFetch("/notifications/read-all", { method: "POST" });
   loadNotifications();
+}
+
+// ── Facility rating modal ──
+let facilityRatingShiftId = null;
+let facilityRatingWorkerEmail = null;
+let facilitySelectedRating = 0;
+
+async function openFacilityRatingModal(shiftId, workerId) {
+  if (!workerId) { alert("No worker assigned to this shift."); return; }
+  const { data: worker } = await _supabase
+    .from("workers")
+    .select("full_name, email")
+    .eq("id", workerId)
+    .single();
+  if (!worker) { alert("Worker not found."); return; }
+  facilityRatingShiftId = shiftId;
+  facilityRatingWorkerEmail = worker.email;
+  facilitySelectedRating = 0;
+  document.getElementById("ratingWorkerName").textContent = worker.full_name || "Worker";
+  document.getElementById("facilityRatingReview").value = "";
+  document.getElementById("submitFacilityRatingBtn").textContent = "Submit rating";
+  document.getElementById("submitFacilityRatingBtn").disabled = false;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById("fStar" + i).style.color = "rgba(255,255,255,0.15)";
+  }
+  document.getElementById("ratingModal").style.display = "flex";
+}
+
+function closeFacilityRatingModal() {
+  document.getElementById("ratingModal").style.display = "none";
+}
+
+function setFacilityRating(val) {
+  facilitySelectedRating = val;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById("fStar" + i).style.color = i <= val ? "#F0B429" : "rgba(255,255,255,0.15)";
+  }
+}
+
+async function submitFacilityRating() {
+  if (facilitySelectedRating === 0) { alert("Please select a rating."); return; }
+  const btn = document.getElementById("submitFacilityRatingBtn");
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+  const review = document.getElementById("facilityRatingReview").value.trim();
+  const { data: result } = await ccFetch("/ratings", {
+    method: "POST",
+    body: JSON.stringify({
+      shift_id: facilityRatingShiftId,
+      rating: facilitySelectedRating,
+      review: review,
+      target_email: facilityRatingWorkerEmail
+    })
+  });
+  if (result?.success) {
+    alert("Rating submitted!");
+    closeFacilityRatingModal();
+    loadCompletedShifts();
+    loadRatings();
+  } else {
+    alert(result?.message || "Failed to submit rating.");
+    btn.disabled = false;
+    btn.textContent = "Submit rating";
+  }
 }
 
 // ── Support ──
