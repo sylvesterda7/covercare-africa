@@ -384,8 +384,11 @@ function openProfileSettings() {
   }
   document.getElementById("editCity").value = currentWorker.city || "";
   document.getElementById("editExperience").value = currentWorker.experience || "";
-  document.getElementById("profilePhotoPreview").src = currentWorker.profile_photo_url || "";
-  document.getElementById("profilePhotoPreview").style.display = currentWorker.profile_photo_url ? "block" : "none";
+  const previewEl = document.getElementById("profilePhotoPreview");
+  if (previewEl) {
+    previewEl.src = currentWorker.profile_photo_url || "";
+    previewEl.style.display = currentWorker.profile_photo_url ? "block" : "none";
+  }
   document.getElementById("profileModal").style.display = "flex";
 }
 
