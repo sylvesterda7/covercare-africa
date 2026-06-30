@@ -1,12 +1,116 @@
-// ── Session check — show password fields if not authenticated ──
+// ── Supabase client ──
+const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+
+let googleProfile = null;
+
+// ── Live location ──
+function useLiveLocation() {
+  if (!navigator.geolocation) {
+    ccToast("Geolocation is not supported by your browser.", "error");
+    return;
+  }
+  const btn = document.getElementById("locationBtn");
+  btn.disabled = true;
+  btn.textContent = "Detecting...";
+  navigator.geolocation.getCurrentPosition(
+    async function(pos) {
+      document.getElementById("lat").value = pos.coords.latitude;
+      document.getElementById("lng").value = pos.coords.longitude;
+      try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=en`);
+        const geo = await resp.json();
+        const cityParts = [geo.address?.city, geo.address?.town, geo.address?.village, geo.address?.county].filter(Boolean);
+        if (cityParts.length) {
+          const city = cityParts[0].toLowerCase().replace(/\s+/g, "-");
+          const sel = document.getElementById("city");
+          for (let opt of sel.options) {
+            if (opt.value === city) { sel.value = city; break; }
+          }
+        }
+        ccToast("Location detected.", "success");
+      } catch (_) {
+        ccToast("Location coordinates captured.", "success");
+      }
+      btn.disabled = false;
+      btn.textContent = "📍 Use my location";
+    },
+    function() {
+      ccToast("Could not detect location. Please allow location access.", "error");
+      btn.disabled = false;
+      btn.textContent = "📍 Use my location";
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+// ── Google sign-in ──
+async function signUpWithGoogle() {
+  const { error } = await _supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin + "/facility-signup.html",
+      queryParams: { access_type: "offline", prompt: "consent" }
+    }
+  });
+  if (error) ccToast(error.message, "error");
+}
+
+function applyGoogleProfile(session) {
+  const meta = session.user.user_metadata;
+  if (meta?.provider !== "google") return false;
+  googleProfile = meta;
+  const emailField = document.getElementById("email");
+  const nameField = document.getElementById("contactName");
+  document.getElementById("contactName").value = meta.full_name || meta.name || "";
+  emailField.value = meta.email || session.user.email || "";
+  emailField.readOnly = true;
+  document.getElementById("regFields").style.display = "none";
+  document.getElementById("googleBadge").style.display = "inline-flex";
+  document.getElementById("googleBtnWrap").style.display = "none";
+  document.getElementById("googleEmail").textContent = emailField.value;
+  return true;
+}
+
+_supabase.auth.onAuthStateChange((event, session) => {
+  if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+    if (session.user.user_metadata?.user_type === "facility") {
+      window.location.href = "dashboard-facility.html";
+      return;
+    }
+    if (session.user.user_metadata?.provider === "google") {
+      applyGoogleProfile(session);
+    }
+  }
+});
+
+// ── On-page session handler (redirect + page load) ──
 (async function() {
-  const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+  const hash = window.location.hash;
+  if (hash && (hash.includes("access_token") || hash.includes("type=signup") || hash.includes("type=recovery"))) {
+    const { data, error } = await _supabase.auth.getSession();
+    if (!error && data.session) {
+      applyGoogleProfile(data.session);
+      window.location.hash = "";
+    }
+  }
   const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) {
+  if (session) {
+    if (session.user.user_metadata?.user_type === "facility") {
+      window.location.href = "dashboard-facility.html";
+      return;
+    }
+    if (session.user.user_metadata?.provider === "google") {
+      applyGoogleProfile(session);
+    } else {
+      document.getElementById("regFields").style.display = "none";
+      document.getElementById("email").readOnly = true;
+    }
+  } else {
     document.getElementById("regFields").style.display = "block";
   }
 })();
 
+// ── Form submission ──
 document.getElementById("facilityForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -41,10 +145,9 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
   btn.disabled = true;
   btn.textContent = "Creating account...";
 
-  const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
   const { data: { session } } = await _supabase.auth.getSession();
 
-  // Step 1: Register account if not logged in
+  // Step 1: Register account if not logged in (email/password flow)
   if (!session) {
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
@@ -75,7 +178,6 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
       return;
     }
 
-    // If email confirmation is required, stop here
     if (!signUpData.session) {
       document.getElementById("facilityForm").style.display = "none";
       document.getElementById("successCard").querySelector("h2").textContent = "Account created!";
@@ -139,6 +241,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     console.log("Save result:", result);
 
     if (response.ok && result.success) {
+      await _supabase.auth.updateUser({ data: { user_type: "facility" } }).catch(() => {});
       window.location.href = "dashboard-facility.html";
     } else {
       ccToast("Something went wrong. Please try again.", "error");
