@@ -27,8 +27,9 @@
         <a href="facility-signup.html" class="nav-link">For facilities</a>
         <a href="worker-signup.html" class="nav-link">For professionals</a>
         <a href="pricing.html" class="nav-link">Pricing</a>
-        <a href="login.html" class="nav-link">Sign in</a>
-        <a href="register.html" class="nav-btn">Get started</a>
+        <a href="login.html" class="nav-link" id="navAuthLink">Sign in</a>
+        <a href="register.html" class="nav-btn" id="navRegisterBtn">Get started</a>
+        <a href="dashboard-worker.html" class="nav-btn" id="navDashboardBtn" style="display:none;">Dashboard</a>
       </div>
     </nav>
 
@@ -307,6 +308,40 @@
   </div>
 
   <script src="config.js"></script>
+  <script>
+    // ── Auth-aware nav: show "Dashboard" if logged in, "Sign in" if not ──
+    (async function() {
+      const authLink = document.getElementById("navAuthLink");
+      const registerBtn = document.getElementById("navRegisterBtn");
+      const dashBtn = document.getElementById("navDashboardBtn");
+      if (!authLink || !dashBtn) return;
+      try {
+        const supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          authLink.style.display = "none";
+          if (registerBtn) registerBtn.style.display = "none";
+          dashBtn.style.display = "inline-block";
+          // determine correct dashboard
+          const meta = session.user.user_metadata || {};
+          let type = meta.user_type;
+          if (type === "worker") {
+            dashBtn.href = "dashboard-worker.html";
+          } else if (type === "facility") {
+            dashBtn.href = "dashboard-facility.html";
+          } else {
+            // try the workers table
+            const { data: worker } = await supabase.from("workers").select("id").eq("email", session.user.email).maybeSingle();
+            if (worker) {
+              dashBtn.href = "dashboard-worker.html";
+            } else {
+              dashBtn.href = "dashboard-facility.html";
+            }
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
   <script src="script.js"></script>
 
 </body>
