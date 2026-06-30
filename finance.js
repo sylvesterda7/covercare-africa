@@ -1,7 +1,8 @@
 const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 ccInitInactivityLogout(_supabase);
+let currentWorker = null;
 
-// ── Sidebar drawer ──
+/* ── Sidebar ── */
 function toggleSidebar() {
   const sidebar = document.querySelector(".dashboard-sidebar");
   const overlay = document.getElementById("sidebarOverlay");
@@ -13,20 +14,32 @@ function toggleSidebar() {
   if (layout) layout.classList.toggle("sidebar-open", isOpen);
 }
 
+/* ── Tabs ── */
+function switchFinTab(tab) {
+  ["wallet","methods","transactions"].forEach(t => {
+    document.getElementById("finTab" + t.charAt(0).toUpperCase() + t.slice(1)).style.color = t === tab ? "#5DCAA5" : "rgba(255,255,255,0.4)";
+    document.getElementById("fin" + t.charAt(0).toUpperCase() + t.slice(1) + "Tab").style.display = t === tab ? "block" : "none";
+  });
+  if (tab === "wallet") loadWallet();
+  if (tab === "methods") loadFinanceProfile();
+  if (tab === "transactions") loadFinanceTransactions();
+}
+
+/* ── Init ── */
 async function init() {
   const { data: { session } } = await _supabase.auth.getSession();
   if (!session) { window.location.href = "login.html"; return; }
   const meta = session.user.user_metadata;
   document.getElementById("navUser").textContent = meta.full_name || session.user.email;
-  await loadSidebarProfile(session.user.email);
-  await loadFinanceProfile();
+  await loadWorkerProfile(session.user.email);
+  loadWallet();
 }
 init();
 
-// ── Sidebar profile ──
-async function loadSidebarProfile(email) {
-  const { data } = await _supabase.from("workers").select("*").eq("email", email).single();
-  if (!data) return;
+async function loadWorkerProfile(email) {
+  const { data, error } = await _supabase.from("workers").select("*").eq("email", email).single();
+  if (error || !data) return;
+  currentWorker = data;
   const avatarEl = document.getElementById("profileAvatar");
   if (data.profile_photo_url) {
     avatarEl.innerHTML = `<img src="${escapeHtml(data.profile_photo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
@@ -39,48 +52,126 @@ async function loadSidebarProfile(email) {
   document.getElementById("profileName").textContent = data.full_name;
   document.getElementById("profileRole").textContent = data.role;
   document.getElementById("profileCity").textContent = data.city;
-  let badges = "";
-  badges += data.license_verified
-    ? '<span class="badge badge-green" style="margin-right:6px;">License verified</span>'
-    : '<span class="badge badge-yellow" style="margin-right:6px;">License pending</span>';
-  badges += data.identity_verified
-    ? '<span class="badge badge-green">Identity verified</span>'
-    : '<span class="badge badge-yellow">Identity pending</span>';
-  document.getElementById("profileBadges").innerHTML = badges;
-  const link = document.getElementById("verifyIdentityLink");
-  if (link) link.style.display = data.identity_verified ? "none" : "block";
 }
 
-// ── Tab switching ──
-function switchFinTab(tab) {
-  document.getElementById("finMethodsTab").style.display = tab === "methods" ? "block" : "none";
-  document.getElementById("finTransactionsTab").style.display = tab === "transactions" ? "block" : "none";
-  const methodsBtn = document.getElementById("finTabMethods");
-  const txBtn = document.getElementById("finTabTransactions");
-  methodsBtn.style.color = tab === "methods" ? "#5DCAA5" : "rgba(255,255,255,0.4)";
-  methodsBtn.style.fontWeight = tab === "methods" ? "600" : "500";
-  txBtn.style.color = tab === "transactions" ? "#5DCAA5" : "rgba(255,255,255,0.4)";
-  txBtn.style.fontWeight = tab === "transactions" ? "600" : "500";
-  if (tab === "transactions") loadFinanceTransactions();
+/* ══════════════════════════════════════════════
+   WALLET
+   ══════════════════════════════════════════════ */
+async function loadWallet() {
+  try {
+    const { data: result } = await ccFetch("/finance/wallet", { method: "GET" });
+    if (!result?.success) return;
+    const w = result.data;
+    document.getElementById("walletAvailable").textContent = formatCurrency(w.available_balance);
+    document.getElementById("walletTotalEarned").textContent = formatCurrency(w.total_earned);
+    document.getElementById("walletAutoPaid").textContent = formatCurrency(w.auto_paid);
+    document.getElementById("walletPending").textContent = formatCurrency(w.pending_requests);
+    document.getElementById("walletPayoutsPaid").textContent = formatCurrency(w.payout_requests_paid);
+  } catch (e) { console.error("Wallet error:", e); }
+  loadPayoutHistory();
 }
 
+async function loadPayoutHistory() {
+  const container = document.getElementById("payoutHistoryList");
+  try {
+    const { data: result } = await ccFetch("/finance/payout/history", { method: "GET" });
+    if (!result?.success || !result.data?.length) {
+      container.innerHTML = '<div class="empty-state"><p>No payout requests yet.</p></div>';
+      return;
+    }
+    container.innerHTML = result.data.map(p => {
+      const statusColor = p.status === "completed" ? "#5DCAA5" : p.status === "failed" ? "#E24B4A" : p.status === "processing" ? "#F0B429" : "rgba(255,255,255,0.3)";
+      const methodLabel = p.method === "bank" ? "Bank" : "Mobile Money";
+      const methodDetail = p.method === "bank" ? p.bank_name + " · " + p.bank_account_number : p.momo_provider + " · " + p.momo_number;
+      return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="flex:1;">
+          <p style="font-size:14px; font-weight:500; color:#fff; margin:0;">${methodLabel} withdrawal</p>
+          <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">${methodDetail} · ${new Date(p.created_at).toLocaleDateString()}</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:15px; font-weight:600; color:#fff; margin:0;">${formatCurrency(p.amount)}</p>
+          <span style="font-size:11px; color:${statusColor};">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
+        </div>
+      </div>`;
+    }).join("");
+  } catch (e) { console.error("Payout history error:", e); container.innerHTML = '<div class="empty-state"><p>Failed to load.</p></div>'; }
+}
+
+/* ── Payout modal ── */
+function openPayoutModal() {
+  document.getElementById("payoutModal").style.display = "flex";
+  document.getElementById("payoutModalMsg").style.display = "none";
+  document.getElementById("payoutAmount").value = "";
+  document.getElementById("payoutMethod").value = "momo";
+  updatePayoutMethodInfo();
+}
+
+function closePayoutModal() {
+  document.getElementById("payoutModal").style.display = "none";
+}
+
+function updatePayoutMethodInfo() {
+  const method = document.getElementById("payoutMethod").value;
+  const info = document.getElementById("payoutMethodInfo");
+  if (method === "momo") {
+    const prov = currentWorker?.momo_provider || "—";
+    const num = currentWorker?.momo_number || "—";
+    info.textContent = prov && num ? `Receiving via ${prov} · ${num}` : "No Mobile Money details saved. Set up in Payment Methods first.";
+  } else {
+    const bank = currentWorker?.bank_name || "—";
+    const acct = currentWorker?.bank_account_number || "—";
+    info.textContent = bank && acct ? `Receiving via ${bank} · ${acct}` : "No bank details saved. Set up in Payment Methods first.";
+  }
+}
+
+document.getElementById("payoutMethod")?.addEventListener("change", updatePayoutMethodInfo);
+
+async function submitPayoutRequest() {
+  const btn = document.getElementById("submitPayoutBtn");
+  const msg = document.getElementById("payoutModalMsg");
+  const amount = parseFloat(document.getElementById("payoutAmount").value);
+  const method = document.getElementById("payoutMethod").value;
+  msg.style.display = "none";
+  if (!amount || amount <= 0) { msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Enter a valid amount."; return; }
+  if (!currentWorker) { msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Profile not loaded."; return; }
+  btn.disabled = true; btn.textContent = "Submitting...";
+  try {
+    const { data: result } = await ccFetch("/finance/payout/request", {
+      method: "POST",
+      body: JSON.stringify({ amount, method })
+    });
+    msg.style.display = "block";
+    if (result.success) {
+      msg.style.color = "#5DCAA5"; msg.textContent = result.message || "Payout request submitted!";
+      closePayoutModal();
+      loadWallet();
+    } else {
+      msg.style.color = "#E24B4A"; msg.textContent = result.message || "Failed to submit.";
+    }
+  } catch (e) {
+    msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Something went wrong.";
+  }
+  btn.disabled = false; btn.textContent = "Request payout";
+}
+
+/* ══════════════════════════════════════════════
+   PAYMENT METHODS
+   ══════════════════════════════════════════════ */
 async function loadFinanceProfile() {
   try {
     const { data: result } = await ccFetch("/finance/worker/profile", { method: "GET" });
-    if (result?.success && result.data) {
-      const d = result.data;
-      document.getElementById("finBankName").value = d.bank_name || "";
-      document.getElementById("finBankAccount").value = d.bank_account_number || "";
-      document.getElementById("finBankAccountName").value = d.bank_account_name || "";
-      document.getElementById("finMomoProvider").value = d.momo_provider || "";
-      document.getElementById("finMomoNumber").value = d.momo_number || "";
-    }
+    if (!result?.success || !result.data) return;
+    document.getElementById("finBankName").value = result.data.bank_name || "";
+    document.getElementById("finBankAccount").value = result.data.bank_account_number || "";
+    document.getElementById("finBankAccountName").value = result.data.bank_account_name || "";
+    document.getElementById("finMomoProvider").value = result.data.momo_provider || "";
+    document.getElementById("finMomoNumber").value = result.data.momo_number || "";
   } catch (e) { console.error("Finance profile load error:", e); }
 }
 
-document.getElementById("financeForm").addEventListener("submit", async function(e) {
+document.getElementById("financeForm")?.addEventListener("submit", async function(e) {
   e.preventDefault();
-  const btn = document.getElementById("finSaveBtn");
+  const btn = this.querySelector('button[type="submit"]');
   const msg = document.getElementById("finSaveMsg");
   btn.disabled = true; btn.textContent = "Saving..."; msg.style.display = "none";
   try {
@@ -95,18 +186,19 @@ document.getElementById("financeForm").addEventListener("submit", async function
       })
     });
     msg.style.display = "block";
-    if (result?.success) { msg.style.color = "#5DCAA5"; msg.textContent = "Payout details saved!"; }
-    else { msg.style.color = "#E24B4A"; msg.textContent = result?.message || "Failed to save."; }
+    if (result.success) { msg.style.color = "#5DCAA5"; msg.textContent = "Payment methods saved!"; }
+    else { msg.style.color = "#E24B4A"; msg.textContent = result.message || "Failed to save."; }
   } catch (e) {
-    console.error("Finance save error:", e);
     msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Something went wrong.";
   }
   btn.disabled = false; btn.textContent = "Save payout details";
 });
 
+/* ══════════════════════════════════════════════
+   TRANSACTIONS
+   ══════════════════════════════════════════════ */
 async function loadFinanceTransactions() {
   const container = document.getElementById("finTransactionsList");
-  if (!container) return;
   container.innerHTML = '<div class="empty-state"><p>Loading...</p></div>';
   try {
     const { data: result } = await ccFetch("/finance/worker/transactions", { method: "GET" });
