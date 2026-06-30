@@ -5,10 +5,12 @@ let currentWorker = null;
 function toggleSidebar() {
   const sidebar = document.querySelector(".dashboard-sidebar");
   const overlay = document.getElementById("sidebarOverlay");
+  const layout = document.querySelector(".dashboard-layout");
   if (!sidebar) return;
   const isOpen = sidebar.classList.toggle("open");
   sidebar.classList.toggle("closed", !isOpen);
   if (overlay) overlay.classList.toggle("show", isOpen);
+  if (layout) layout.classList.toggle("sidebar-open", isOpen);
 }
 
 function scrollToSection(id) {
@@ -26,6 +28,7 @@ async function init() {
   document.getElementById("emailVerifiedBadge").className = emailVerified ? "badge badge-green" : "badge badge-yellow";
   await loadWorkerProfile(session.user.email);
   loadNotifPrefs();
+  loadCurrencyPref();
 }
 init();
 
@@ -176,6 +179,21 @@ function saveNotifPrefs() {
   localStorage.setItem("cc_notif_prefs", JSON.stringify(prefs));
   const msg = document.getElementById("settingsNotifMsg");
   msg.style.display = "block"; msg.style.color = "#5DCAA5"; msg.textContent = "Notification preferences saved!";
+  setTimeout(() => msg.style.display = "none", 3000);
+}
+
+// ── Currency preference ──
+function loadCurrencyPref() {
+  const el = document.getElementById("settingsCurrency");
+  if (el) el.value = getPreferredCurrency();
+}
+
+function saveCurrencyPref() {
+  const el = document.getElementById("settingsCurrency");
+  if (!el) return;
+  localStorage.setItem("cc_currency", JSON.stringify(el.value));
+  const msg = document.getElementById("settingsCurrencyMsg");
+  msg.style.display = "block"; msg.style.color = "#5DCAA5"; msg.textContent = "Currency preference saved!";
   setTimeout(() => msg.style.display = "none", 3000);
 }
 

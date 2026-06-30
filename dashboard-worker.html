@@ -38,45 +38,44 @@
     </div>
   </nav>
 
+  <!-- SIDEBAR -->
+  <aside class="dashboard-sidebar closed">
+
+    <!-- Profile card in sidebar -->
+    <div class="dashboard-sidebar-card">
+      <div class="sidebar-card-title">Your profile</div>
+      <div class="profile-card" id="profileCard" style="background:none; border:none; padding:0;">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <div class="profile-info">
+          <h3 id="profileName">Loading...</h3>
+          <p id="profileRole">—</p>
+          <p id="profileCity">—</p>
+          <div id="profileBadges"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="dashboard-sidebar-card">
+      <div class="sidebar-card-title">Quick actions</div>
+      <div class="sidebar-actions">
+        <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
+        <button onclick="openProfileSettings()" class="btn-sidebar">Edit profile</button>
+        <a href="settings.html" class="btn-sidebar">Settings</a>
+        <a href="finance.html" class="btn-sidebar" style="color:#5DCAA5; font-weight:600;">
+          <span style="margin-right:6px;">💰</span> Finance
+        </a>
+        <button onclick="toggleAvailability()" class="btn-sidebar" id="availBtn">Set unavailable</button>
+        <button onclick="openSupportModal()" class="btn-sidebar">Contact support</button>
+        <a href="index.html" class="btn-sidebar">View homepage</a>
+      </div>
+    </div>
+
+  </aside>
+
   <!-- DASHBOARD LAYOUT -->
   <div class="dashboard-layout">
 
-    <!-- SIDEBAR -->
-    <aside class="dashboard-sidebar closed">
-
-      <!-- Profile card in sidebar -->
-      <div class="dashboard-sidebar-card">
-        <div class="sidebar-card-title">Your profile</div>
-        <div class="profile-card" id="profileCard" style="background:none; border:none; padding:0;">
-          <div class="profile-avatar" id="profileAvatar">?</div>
-          <div class="profile-info">
-            <h3 id="profileName">Loading...</h3>
-            <p id="profileRole">—</p>
-            <p id="profileCity">—</p>
-            <div id="profileBadges"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick actions -->
-      <div class="dashboard-sidebar-card">
-        <div class="sidebar-card-title">Quick actions</div>
-        <div class="sidebar-actions">
-          <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
-          <button onclick="openProfileSettings()" class="btn-sidebar">Edit profile</button>
-          <a href="settings.html" class="btn-sidebar">Settings</a>
-          <a href="finance.html" class="btn-sidebar" style="color:#5DCAA5; font-weight:600;">
-            <span style="margin-right:6px;">💰</span> Finance
-          </a>
-          <button onclick="toggleAvailability()" class="btn-sidebar" id="availBtn">Set unavailable</button>
-          <button onclick="openSupportModal()" class="btn-sidebar">Contact support</button>
-          <a href="index.html" class="btn-sidebar">View homepage</a>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- MAIN CONTENT -->
     <main class="dashboard-main">
 
       <!-- HEADER -->

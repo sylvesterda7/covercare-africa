@@ -5,8 +5,29 @@ const CC_CONFIG = {
   BACKEND_URL: "https://covercare-backend-production.up.railway.app",
   PAYSTACK_PUBLIC_KEY: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02",
   ADMIN_EMAILS: ["sdenyoh-abayateye@st.ug.edu.gh"],
-  ARRIVE_BASE_URL: "https://covercare-africa.vercel.app/arrive"
+  ARRIVE_BASE_URL: "https://covercare-africa.vercel.app/arrive",
+  SUPPORTED_CURRENCIES: [
+    { code: "GHS", symbol: "GHS", name: "Ghana Cedi", locale: "en-GH" },
+    { code: "NGN", symbol: "NGN", name: "Nigerian Naira", locale: "en-NG" },
+    { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US" },
+    { code: "EUR", symbol: "€", name: "Euro", locale: "en-EU" },
+    { code: "GBP", symbol: "£", name: "British Pound", locale: "en-GB" }
+  ]
 };
+
+function getPreferredCurrency() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("cc_currency") || "null");
+    if (saved && CC_CONFIG.SUPPORTED_CURRENCIES.find(c => c.code === saved)) return saved;
+  } catch (e) {}
+  return "GHS";
+}
+
+function formatCurrency(amount) {
+  const code = getPreferredCurrency();
+  const cur = CC_CONFIG.SUPPORTED_CURRENCIES.find(c => c.code === code) || CC_CONFIG.SUPPORTED_CURRENCIES[0];
+  return cur.symbol + " " + Number(amount).toLocaleString(cur.locale || "en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
 
 function escapeHtml(str) {
   if (str == null) return "";

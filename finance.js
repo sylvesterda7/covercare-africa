@@ -5,10 +5,12 @@ ccInitInactivityLogout(_supabase);
 function toggleSidebar() {
   const sidebar = document.querySelector(".dashboard-sidebar");
   const overlay = document.getElementById("sidebarOverlay");
+  const layout = document.querySelector(".dashboard-layout");
   if (!sidebar) return;
   const isOpen = sidebar.classList.toggle("open");
   sidebar.classList.toggle("closed", !isOpen);
   if (overlay) overlay.classList.toggle("show", isOpen);
+  if (layout) layout.classList.toggle("sidebar-open", isOpen);
 }
 
 async function init() {
@@ -112,7 +114,7 @@ async function loadFinanceTransactions() {
     const d = result.data;
     const total = d.total || 0;
     document.getElementById("finStatsRow").innerHTML = `
-      <div class="stat-box"><div class="num" style="color:#5DCAA5;">GHS ${total.toLocaleString()}</div><div class="label">Total earned</div></div>
+      <div class="stat-box"><div class="num" style="color:#5DCAA5;">${formatCurrency(total)}</div><div class="label">Total earned</div></div>
       <div class="stat-box"><div class="num">${d.transactions.length}</div><div class="label">Completed shifts</div></div>
     `;
     const chartEl = document.getElementById("finChart");
@@ -124,7 +126,7 @@ async function loadFinanceTransactions() {
       const pct = Math.max((val / maxVal) * 100, 4);
       const label = new Date(key + "-01").toLocaleDateString("en", { month: "short", year: "numeric" });
       return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
-        <span style="font-size:10px; color:rgba(255,255,255,0.35); font-weight:500;">${val ? "GHS" + val : ""}</span>
+        <span style="font-size:10px; color:rgba(255,255,255,0.35); font-weight:500;">${val ? formatCurrency(val) : ""}</span>
         <div style="width:100%; max-width:56px; height:${pct}%; background:linear-gradient(180deg,#5DCAA5,rgba(93,202,165,0.15)); border-radius:6px 6px 0 0; transition:height 0.5s; box-shadow:0 0 12px rgba(93,202,165,0.15);"></div>
         <span style="font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap;">${label}</span>
       </div>`;
@@ -142,7 +144,7 @@ async function loadFinanceTransactions() {
           <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">${escapeHtml(t.role_needed)} · ${t.shift_date || "—"}</p>
         </div>
         <div style="text-align:right;">
-          <p style="font-size:15px; font-weight:600; color:#5DCAA5; margin:0;">GHS ${t.amount.toLocaleString()}</p>
+          <p style="font-size:15px; font-weight:600; color:#5DCAA5; margin:0;">${formatCurrency(t.amount)}</p>
           <span style="font-size:11px; color:${statusColor};">${statusLabel}</span>
         </div>
       </div>`;

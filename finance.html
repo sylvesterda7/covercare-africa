@@ -23,40 +23,39 @@
     </div>
   </nav>
 
+  <!-- SIDEBAR -->
+  <aside class="dashboard-sidebar closed">
+
+    <div class="dashboard-sidebar-card">
+      <div class="sidebar-card-title">Your profile</div>
+      <div class="profile-card" id="profileCard" style="background:none; border:none; padding:0;">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <div class="profile-info">
+          <h3 id="profileName">Loading...</h3>
+          <p id="profileRole">—</p>
+          <p id="profileCity">—</p>
+          <div id="profileBadges"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-sidebar-card">
+      <div class="sidebar-card-title">Quick actions</div>
+      <div class="sidebar-actions">
+        <a href="dashboard-worker.html" class="btn-sidebar">Dashboard</a>
+        <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
+        <a href="finance.html" class="btn-sidebar" style="color:#5DCAA5; font-weight:600;">
+          <span style="margin-right:6px;">💰</span> Finance
+        </a>
+        <a href="index.html" class="btn-sidebar">View homepage</a>
+      </div>
+    </div>
+
+  </aside>
+
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
   <div class="dashboard-layout">
-
-    <!-- SIDEBAR -->
-    <aside class="dashboard-sidebar closed">
-
-      <div class="dashboard-sidebar-card">
-        <div class="sidebar-card-title">Your profile</div>
-        <div class="profile-card" id="profileCard" style="background:none; border:none; padding:0;">
-          <div class="profile-avatar" id="profileAvatar">?</div>
-          <div class="profile-info">
-            <h3 id="profileName">Loading...</h3>
-            <p id="profileRole">—</p>
-            <p id="profileCity">—</p>
-            <div id="profileBadges"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="dashboard-sidebar-card">
-        <div class="sidebar-card-title">Quick actions</div>
-        <div class="sidebar-actions">
-          <a href="dashboard-worker.html" class="btn-sidebar">Dashboard</a>
-          <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
-          <a href="finance.html" class="btn-sidebar" style="color:#5DCAA5; font-weight:600;">
-            <span style="margin-right:6px;">💰</span> Finance
-          </a>
-          <a href="index.html" class="btn-sidebar">View homepage</a>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- SIDEBAR OVERLAY (mobile) -->
-    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <!-- MAIN -->
     <main class="dashboard-main">

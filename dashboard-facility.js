@@ -767,4 +767,15 @@ document.getElementById("supportForm")?.addEventListener("submit", async functio
   btn.disabled = false; btn.textContent = "Send";
 });
 
+function toggleSidebar() {
+  const sidebar = document.querySelector(".dashboard-sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  const layout = document.querySelector(".dashboard-layout");
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.toggle("open");
+  sidebar.classList.toggle("closed", !isOpen);
+  if (overlay) overlay.classList.toggle("show", isOpen);
+  if (layout) layout.classList.toggle("sidebar-open", isOpen);
+}
+
 init();

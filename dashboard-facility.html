@@ -13,7 +13,12 @@
 
   <!-- NAV -->
   <nav class="dashboard-nav">
-    <a href="index.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button onclick="toggleSidebar()" class="sidebar-toggle" aria-label="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <a href="index.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
+    </div>
     <div class="nav-right" style="position:relative;">
       <span class="nav-user" id="navUser">Loading...</span>
       <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" aria-label="Toggle notifications" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:rgba(255,255,255,0.5);">
@@ -33,25 +38,24 @@
     </div>
   </nav>
 
+  <!-- SIDEBAR -->
+  <aside class="dashboard-sidebar closed">
+
+    <!-- Account actions -->
+    <div class="dashboard-sidebar-card">
+      <div class="sidebar-card-title">Account</div>
+      <div class="sidebar-actions">
+        <button onclick="openFacilitySettings()" class="btn-sidebar">Edit facility profile</button>
+        <button onclick="confirmDeleteFacilityAccount()" class="btn-sidebar btn-sidebar-danger">Delete account</button>
+        <button onclick="openSupportModal()" class="btn-sidebar">Contact support</button>
+      </div>
+    </div>
+
+  </aside>
+
   <!-- DASHBOARD LAYOUT -->
   <div class="dashboard-layout">
 
-    <!-- SIDEBAR -->
-    <aside class="dashboard-sidebar closed">
-
-      <!-- Account actions -->
-      <div class="dashboard-sidebar-card">
-        <div class="sidebar-card-title">Account</div>
-        <div class="sidebar-actions">
-          <button onclick="openFacilitySettings()" class="btn-sidebar">Edit facility profile</button>
-          <button onclick="confirmDeleteFacilityAccount()" class="btn-sidebar btn-sidebar-danger">Delete account</button>
-          <button onclick="openSupportModal()" class="btn-sidebar">Contact support</button>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- MAIN CONTENT -->
     <main class="dashboard-main">
 
       <!-- HEADER -->
@@ -371,6 +375,8 @@
       </form>
     </div>
   </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

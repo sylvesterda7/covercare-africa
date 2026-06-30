@@ -266,21 +266,40 @@
   max-width: 1140px;
   margin: 0 auto;
   padding: 2rem;
-  position: relative;
-}
-
-.dashboard-sidebar {
-  width: 250px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: padding-left 0.3s ease;
 }
 
 .dashboard-main {
   flex: 1;
   min-width: 0;
+}
+
+/* ── Sidebar — fixed to left edge on all screens ── */
+.dashboard-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 90;
+  background: #0A1417;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 5.5rem 1.25rem 2rem;
+  overflow-y: auto;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+  transform: translateX(-100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.dashboard-sidebar.open {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .dashboard-sidebar-card {
@@ -370,41 +389,14 @@
   z-index: 89;
 }
 
-/* ── Sidebar drawer behavior ── */
-.dashboard-sidebar.closed {
-  transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  visibility: hidden;
-}
-.dashboard-sidebar.open {
-  transform: translateX(0);
-  opacity: 1;
-  pointer-events: auto;
-  position: relative;
-  visibility: visible;
+/* ── Shift layout when sidebar opens on desktop ── */
+@media (min-width: 901px) {
+  .dashboard-layout.sidebar-open {
+    padding-left: calc(260px + 2rem + 2rem);
+  }
 }
 
 @media (max-width: 900px) {
-  .dashboard-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 90;
-    background: #0A1417;
-    border-right: 1px solid rgba(255,255,255,0.06);
-    padding: 6rem 1.5rem 2rem;
-    overflow-y: auto;
-    width: 280px;
-  }
-  .dashboard-sidebar.closed {
-    transform: translateX(-100%);
-  }
-  .dashboard-sidebar.open {
-    transform: translateX(0);
-  }
   .sidebar-overlay.show {
     display: block;
   }
