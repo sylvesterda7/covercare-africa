@@ -161,6 +161,9 @@ async function ccFetch(path, options = {}) {
     "Content-Type": "application/json",
     ...(options.headers || {})
   };
+  const start = Date.now();
+  const logId = Math.random().toString(36).slice(2, 8);
+
   try {
     const client = window._supabase || (window.supabase && window.supabase.createClient(
       CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY
@@ -174,25 +177,34 @@ async function ccFetch(path, options = {}) {
   } catch (e) {}
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25000);
+  const timeout = setTimeout(() => {
+    console.warn(`[ccFetch/${logId}] TIMEOUT after ${Date.now() - start}ms: ${options.method || "GET"} ${path}`);
+    controller.abort();
+  }, 25000);
 
   try {
+    console.log(`[ccFetch/${logId}] => ${options.method || "GET"} ${path}`, options.body || "");
     const response = await fetch(`${CC_CONFIG.BACKEND_URL}${path}`, {
       ...options,
       headers,
       signal: controller.signal
     });
     clearTimeout(timeout);
+    const elapsed = Date.now() - start;
     const data = await response.json().catch(() => ({}));
     if (!response.ok && !data.message) {
       data.message = `Request failed (${response.status})`;
     }
+    console.log(`[ccFetch/${logId}] <= ${response.status} in ${elapsed}ms`, data);
     return { response, data };
   } catch (err) {
     clearTimeout(timeout);
+    const elapsed = Date.now() - start;
     if (err.name === "AbortError") {
+      console.warn(`[ccFetch/${logId}] ABORTED after ${elapsed}ms: ${path}`);
       return { response: { ok: false, status: 0 }, data: { message: "Request timed out. Please check your internet connection and try again." } };
     }
+    console.error(`[ccFetch/${logId}] ERROR after ${elapsed}ms:`, err);
     return { response: { ok: false, status: 0 }, data: { message: "Network error. Please check your internet connection." } };
   }
 }
