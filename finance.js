@@ -1,15 +1,55 @@
 const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 ccInitInactivityLogout(_supabase);
 
+// ── Sidebar drawer ──
+function toggleSidebar() {
+  const sidebar = document.querySelector(".dashboard-sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.toggle("open");
+  sidebar.classList.toggle("closed", !isOpen);
+  if (overlay) overlay.classList.toggle("show", isOpen);
+}
+
 async function init() {
   const { data: { session } } = await _supabase.auth.getSession();
   if (!session) { window.location.href = "login.html"; return; }
   const meta = session.user.user_metadata;
   document.getElementById("navUser").textContent = meta.full_name || session.user.email;
-  loadFinanceProfile();
+  await loadSidebarProfile(session.user.email);
+  await loadFinanceProfile();
 }
 init();
 
+// ── Sidebar profile ──
+async function loadSidebarProfile(email) {
+  const { data } = await _supabase.from("workers").select("*").eq("email", email).single();
+  if (!data) return;
+  const avatarEl = document.getElementById("profileAvatar");
+  if (data.profile_photo_url) {
+    avatarEl.innerHTML = `<img src="${escapeHtml(data.profile_photo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+    avatarEl.style.background = "none"; avatarEl.style.border = "none";
+  } else {
+    const initials = data.full_name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+    avatarEl.textContent = initials;
+    avatarEl.style.background = ""; avatarEl.style.border = "";
+  }
+  document.getElementById("profileName").textContent = data.full_name;
+  document.getElementById("profileRole").textContent = data.role;
+  document.getElementById("profileCity").textContent = data.city;
+  let badges = "";
+  badges += data.license_verified
+    ? '<span class="badge badge-green" style="margin-right:6px;">License verified</span>'
+    : '<span class="badge badge-yellow" style="margin-right:6px;">License pending</span>';
+  badges += data.identity_verified
+    ? '<span class="badge badge-green">Identity verified</span>'
+    : '<span class="badge badge-yellow">Identity pending</span>';
+  document.getElementById("profileBadges").innerHTML = badges;
+  const link = document.getElementById("verifyIdentityLink");
+  if (link) link.style.display = data.identity_verified ? "none" : "block";
+}
+
+// ── Tab switching ──
 function switchFinTab(tab) {
   document.getElementById("finMethodsTab").style.display = tab === "methods" ? "block" : "none";
   document.getElementById("finTransactionsTab").style.display = tab === "transactions" ? "block" : "none";
@@ -53,13 +93,8 @@ document.getElementById("financeForm").addEventListener("submit", async function
       })
     });
     msg.style.display = "block";
-    if (result?.success) {
-      msg.style.color = "#5DCAA5";
-      msg.textContent = "Payout details saved!";
-    } else {
-      msg.style.color = "#E24B4A";
-      msg.textContent = result?.message || "Failed to save.";
-    }
+    if (result?.success) { msg.style.color = "#5DCAA5"; msg.textContent = "Payout details saved!"; }
+    else { msg.style.color = "#E24B4A"; msg.textContent = result?.message || "Failed to save."; }
   } catch (e) {
     console.error("Finance save error:", e);
     msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Something went wrong.";
@@ -86,11 +121,11 @@ async function loadFinanceTransactions() {
     const maxVal = Math.max(...Object.values(monthly), 1);
     chartEl.innerHTML = keys.map(key => {
       const val = monthly[key] || 0;
-      const pct = Math.max((val / maxVal) * 100, 2);
+      const pct = Math.max((val / maxVal) * 100, 4);
       const label = new Date(key + "-01").toLocaleDateString("en", { month: "short", year: "numeric" });
       return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
-        <span style="font-size:10px; color:rgba(255,255,255,0.3);">${val ? "GHS" + val : ""}</span>
-        <div style="width:100%; max-width:48px; height:${pct}%; background:linear-gradient(180deg,#5DCAA5,rgba(93,202,165,0.2)); border-radius:4px 4px 0 0; transition:height 0.4s;"></div>
+        <span style="font-size:10px; color:rgba(255,255,255,0.35); font-weight:500;">${val ? "GHS" + val : ""}</span>
+        <div style="width:100%; max-width:56px; height:${pct}%; background:linear-gradient(180deg,#5DCAA5,rgba(93,202,165,0.15)); border-radius:6px 6px 0 0; transition:height 0.5s; box-shadow:0 0 12px rgba(93,202,165,0.15);"></div>
         <span style="font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap;">${label}</span>
       </div>`;
     }).join("");
@@ -101,7 +136,7 @@ async function loadFinanceTransactions() {
     container.innerHTML = d.transactions.map(t => {
       const statusColor = t.payout_status === "paid" ? "#5DCAA5" : t.payout_status === "failed" ? "#E24B4A" : "#F0B429";
       const statusLabel = t.payout_status === "paid" ? "Paid" : t.payout_status === "failed" ? "Failed" : "Pending";
-      return `<div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+      return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
         <div style="flex:1;">
           <p style="font-size:14px; font-weight:500; color:#fff; margin:0;">${escapeHtml(t.facility_name)}</p>
           <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">${escapeHtml(t.role_needed)} · ${t.shift_date || "—"}</p>
