@@ -35,13 +35,31 @@ function validateStep1() {
 
 // ── Validate step 2 ──
 function validateStep2() {
-  const fields = ["role", "shiftDate", "startTime", "duration"];
+  const fields = ["role", "shiftDate", "startTime", "durationHours", "daysNeeded", "workersNeeded"];
   for (let field of fields) {
     if (!document.getElementById(field).value) {
       ccToast("Please fill in all shift details before continuing.", "error");
       return false;
     }
   }
+
+  const durationHours = parseInt(document.getElementById("durationHours").value, 10);
+  const daysNeeded = parseInt(document.getElementById("daysNeeded").value, 10);
+  const workersNeeded = parseInt(document.getElementById("workersNeeded").value, 10);
+
+  if (Number.isNaN(durationHours) || durationHours < 4) {
+    ccToast("Shift duration must be at least 4 hours.", "error");
+    return false;
+  }
+  if (Number.isNaN(daysNeeded) || daysNeeded < 1) {
+    ccToast("Please choose at least 1 day.", "error");
+    return false;
+  }
+  if (Number.isNaN(workersNeeded) || workersNeeded < 1) {
+    ccToast("Please choose at least 1 professional.", "error");
+    return false;
+  }
+
   const payRateInput = document.getElementById("payRate");
   if (!payRateInput.value) {
     const roleVal = document.getElementById("role").value;
@@ -82,6 +100,9 @@ document.addEventListener("DOMContentLoaded", async function() {
   const roleEl = document.getElementById("role");
   const payRateEl = document.getElementById("payRate");
   const rateHintEl = document.getElementById("rateHint");
+  const durationHoursEl = document.getElementById("durationHours");
+  const daysNeededEl = document.getElementById("daysNeeded");
+  const workersNeededEl = document.getElementById("workersNeeded");
 
   roleEl.addEventListener("change", function() {
     const val = this.value;
@@ -95,12 +116,13 @@ document.addEventListener("DOMContentLoaded", async function() {
       rateHintEl.style.display = "none";
     }
   });
-  const durationEl = document.getElementById("duration");
 
   function updateEstimate() {
     const rate = parseFloat(payRateEl.value) || 0;
-    const hours = parseFloat(durationEl.value) || 0;
-    const total = rate * hours;
+    const hours = parseFloat(durationHoursEl.value) || 0;
+    const days = parseFloat(daysNeededEl.value) || 0;
+    const workers = parseFloat(workersNeededEl.value) || 0;
+    const total = rate * hours * days * workers;
     const facilityTotal = total * 1.25;
 
     const totalPayEl = document.getElementById("totalPay");
@@ -109,14 +131,16 @@ document.addEventListener("DOMContentLoaded", async function() {
     const estimateEl = document.getElementById("payEstimate");
     if (estimateEl && total > 0) {
       estimateEl.innerHTML =
-        "Worker receives: <strong>GHS " + total.toLocaleString() + "</strong>" +
+        "Total worker pay: <strong>GHS " + total.toLocaleString() + "</strong>" +
         " &nbsp;·&nbsp; You pay: <strong>GHS " + facilityTotal.toLocaleString() + "</strong>" +
         " <span style='font-size:12px; opacity:0.6;'>(includes CoverCare fee)</span>";
     }
   }
 
   payRateEl.addEventListener("input", updateEstimate);
-  durationEl.addEventListener("change", updateEstimate);
+  durationHoursEl.addEventListener("input", updateEstimate);
+  daysNeededEl.addEventListener("input", updateEstimate);
+  workersNeededEl.addEventListener("input", updateEstimate);
 });
 
 // ── Show shift summary on step 3 ──
@@ -124,11 +148,13 @@ function showSummary() {
   const role = document.getElementById("role").value;
   const date = document.getElementById("shiftDate").value;
   const time = document.getElementById("startTime").value;
-  const duration = document.getElementById("duration").value;
+  const durationHours = document.getElementById("durationHours").value;
+  const daysNeeded = document.getElementById("daysNeeded").value;
+  const workersNeeded = document.getElementById("workersNeeded").value;
   const pay = document.getElementById("payRate").value;
   const city = document.getElementById("city").value;
   const facility = document.getElementById("facilityName").value;
-  const total = parseFloat(pay) * parseFloat(duration);
+  const total = parseFloat(pay) * parseFloat(durationHours) * parseFloat(daysNeeded) * parseFloat(workersNeeded);
   const facilityTotal = total * 1.25;
 
   document.getElementById("shiftSummary").innerHTML =
@@ -137,9 +163,11 @@ function showSummary() {
     "<strong>Role needed:</strong> " + role + "<br>" +
     "<strong>Date:</strong> " + date + "<br>" +
     "<strong>Start time:</strong> " + time + "<br>" +
-    "<strong>Duration:</strong> " + duration + " hours<br>" +
+    "<strong>Hours per day:</strong> " + durationHours + " hours<br>" +
+    "<strong>Days needed:</strong> " + daysNeeded + "<br>" +
+    "<strong>Professionals needed:</strong> " + workersNeeded + "<br>" +
     "<strong>Worker pay rate:</strong> GHS " + pay + "/hr<br>" +
-    "<strong>Worker total pay:</strong> GHS " + total.toLocaleString() + "<br>" +
+    "<strong>Total worker pay:</strong> GHS " + total.toLocaleString() + "<br>" +
     "<strong>You pay (incl. CoverCare fee):</strong> GHS " + facilityTotal.toLocaleString();
 }
 
@@ -156,7 +184,22 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
       payRateInput.value = payRateVal;
     }
   }
-  var durationVal = document.getElementById("duration").value;
+  var durationVal = document.getElementById("durationHours").value;
+  var daysVal = document.getElementById("daysNeeded").value;
+  var workersVal = document.getElementById("workersNeeded").value;
+
+  if (parseFloat(durationVal) < 4) {
+    ccToast("Shift duration must be at least 4 hours.", "error");
+    return;
+  }
+  if (parseInt(daysVal, 10) < 1) {
+    ccToast("Please choose at least 1 day.", "error");
+    return;
+  }
+  if (parseInt(workersVal, 10) < 1) {
+    ccToast("Please choose at least 1 professional.", "error");
+    return;
+  }
 
   var shift = {
     facility_name: document.getElementById("facilityName").value.trim(),
@@ -168,15 +211,18 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     role_needed: document.getElementById("role").value,
     shift_date: document.getElementById("shiftDate").value,
     start_time: document.getElementById("startTime").value,
-    duration: durationVal + " hours",
+    duration: durationVal + " hours/day for " + daysVal + " day" + (parseInt(daysVal, 10) === 1 ? "" : "s"),
+    duration_hours: parseFloat(durationVal),
+    days_needed: parseInt(daysVal, 10),
+    workers_needed: parseInt(workersVal, 10),
     pay_rate: "GHS " + payRateVal + "/hr",
-    total_pay: "GHS " + (parseFloat(payRateVal) * parseFloat(durationVal)).toLocaleString(),
+    total_pay: "GHS " + (parseFloat(payRateVal) * parseFloat(durationVal) * parseInt(daysVal, 10) * parseInt(workersVal, 10)).toLocaleString(),
     experience_required: document.getElementById("experience").value,
     urgency: document.getElementById("urgency").value,
     notes: document.getElementById("notes").value.trim()
   };
 
-  var totalPay = parseFloat(payRateVal) * parseFloat(durationVal);
+  var totalPay = parseFloat(payRateVal) * parseFloat(durationVal) * parseInt(daysVal, 10) * parseInt(workersVal, 10);
   var facilityAmount = totalPay * 1.25;
 
   console.log("Initializing payment for GHS", facilityAmount);
