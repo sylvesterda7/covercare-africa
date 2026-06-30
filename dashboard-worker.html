@@ -7,6 +7,8 @@
   <title>Worker Dashboard – CoverCare Africa</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="auth.css" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#5DCAA5">
 </head>
 
 <body>
@@ -119,6 +121,24 @@
 
       <!-- AVAILABLE SHIFTS -->
       <div class="section-title" style="margin-top: 2rem;">Available shifts near you</div>
+      <div class="shift-filter-bar">
+        <input type="text" id="filterSearch" placeholder="Search by facility, role, or city..." oninput="applyFilters()">
+        <select id="filterRole" onchange="applyFilters()">
+          <option value="">All roles</option>
+          <option value="Nurse">Nurse</option>
+          <option value="Midwife">Midwife</option>
+          <option value="Pharmacist">Pharmacist</option>
+          <option value="Doctor">Doctor</option>
+          <option value="Lab Tech">Lab Tech</option>
+          <option value="Community Health Worker">Community Health Worker</option>
+        </select>
+        <select id="filterUrgency" onchange="applyFilters()">
+          <option value="">All urgency</option>
+          <option value="today">Urgent (today)</option>
+          <option value="">Standard</option>
+        </select>
+        <button class="filter-btn" onclick="document.getElementById('filterSearch').value='';document.getElementById('filterRole').value='';document.getElementById('filterUrgency').value='';applyFilters();">Reset</button>
+      </div>
       <div id="shiftsContainer">
         <div class="empty-state">
           <p>No shifts available in your area right now.</p>

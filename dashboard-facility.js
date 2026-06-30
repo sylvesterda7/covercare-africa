@@ -266,15 +266,15 @@ async function acceptApplication(applicationId) {
     });
 
     if (result.success) {
-      alert("Worker accepted! Shift is now filled.");
+      ccToast("Worker accepted! Shift is now filled.", "success");
       await loadShifts(facilityEmail);
       await loadApplications(facilityEmail);
     } else {
-      alert(result.message || "Could not accept. Please try again.");
+      ccToast(result.message || "Could not accept. Please try again.", "error");
     }
   } catch (err) {
     console.error("Accept error:", err);
-    alert("Something went wrong. Please try again.");
+    ccToast("Something went wrong. Please try again.", "error");
   }
 }
 
@@ -294,11 +294,11 @@ async function rejectApplication(applicationId) {
     if (result.success) {
       await loadApplications(facilityEmail);
     } else {
-      alert(result.message || "Could not reject. Please try again.");
+      ccToast(result.message || "Could not reject. Please try again.", "error");
     }
   } catch (err) {
     console.error("Reject error:", err);
-    alert("Something went wrong. Please try again.");
+    ccToast("Something went wrong. Please try again.", "error");
   }
 }
 
@@ -313,7 +313,7 @@ async function cancelShift(shiftId) {
     .eq("contact_email", facilityEmail);
 
   if (error) {
-    alert("Could not cancel shift. Please try again.");
+    ccToast("Could not cancel shift. Please try again.", "error");
     return;
   }
 
@@ -439,7 +439,7 @@ async function uploadFacilityDoc(fileInputId, targetField) {
 
 // ── Facility settings modal ──
 function openFacilitySettings() {
-  if (!facilityProfile) { alert("Complete your profile first."); return; }
+  if (!facilityProfile) { ccToast("Complete your profile first.", "error"); return; }
   document.getElementById("editFacilityName").value = facilityProfile.facility_name || "";
   document.getElementById("editFacilityType").value = facilityProfile.facility_type || "";
   document.getElementById("editFacilityCity").value = facilityProfile.city || "";
@@ -477,15 +477,15 @@ document.getElementById("facilityProfileForm").addEventListener("submit", async 
     });
 
     if (result.success) {
-      alert("Profile updated!");
+      ccToast("Profile updated!", "success");
       closeFacilitySettings();
       await loadFacilityProfile();
     } else {
-      alert(result.message || "Could not update profile.");
+      ccToast(result.message || "Could not update profile.", "error");
     }
   } catch (err) {
     console.error("Update error:", err);
-    alert("Something went wrong.");
+    ccToast("Something went wrong.", "error");
   } finally {
     btn.disabled = false;
     btn.textContent = "Save changes";
@@ -508,11 +508,11 @@ async function confirmDeleteFacilityAccount() {
       await _supabase.auth.signOut();
       window.location.href = "index.html";
     } else {
-      alert(result.message || "Could not delete account.");
+      ccToast(result.message || "Could not delete account.", "error");
     }
   } catch (err) {
     console.error("Delete error:", err);
-    alert("Something went wrong.");
+    ccToast("Something went wrong.", "error");
   }
 }
 
@@ -685,13 +685,13 @@ let facilityRatingWorkerEmail = null;
 let facilitySelectedRating = 0;
 
 async function openFacilityRatingModal(shiftId, workerId) {
-  if (!workerId) { alert("No worker assigned to this shift."); return; }
+  if (!workerId) { ccToast("No worker assigned to this shift.", "error"); return; }
   const { data: worker } = await _supabase
     .from("workers")
     .select("full_name, email")
     .eq("id", workerId)
     .single();
-  if (!worker) { alert("Worker not found."); return; }
+  if (!worker) { ccToast("Worker not found.", "error"); return; }
   facilityRatingShiftId = shiftId;
   facilityRatingWorkerEmail = worker.email;
   facilitySelectedRating = 0;
@@ -717,7 +717,7 @@ function setFacilityRating(val) {
 }
 
 async function submitFacilityRating() {
-  if (facilitySelectedRating === 0) { alert("Please select a rating."); return; }
+  if (facilitySelectedRating === 0) { ccToast("Please select a rating.", "error"); return; }
   const btn = document.getElementById("submitFacilityRatingBtn");
   btn.disabled = true;
   btn.textContent = "Submitting...";
@@ -732,12 +732,12 @@ async function submitFacilityRating() {
     })
   });
   if (result?.success) {
-    alert("Rating submitted!");
+    ccToast("Rating submitted!", "success");
     closeFacilityRatingModal();
     loadCompletedShifts();
     loadRatings();
   } else {
-    alert(result?.message || "Failed to submit rating.");
+    ccToast(result?.message || "Failed to submit rating.", "error");
     btn.disabled = false;
     btn.textContent = "Submit rating";
   }
@@ -759,10 +759,10 @@ document.getElementById("supportForm")?.addEventListener("submit", async functio
     })
   });
   if (data?.success) {
-    alert("Support ticket sent! We'll respond within 24 hours.");
+    ccToast("Support ticket sent! We'll respond within 24 hours.", "success");
     closeSupportModal();
   } else {
-    alert("Failed to send. Please try again.");
+    ccToast("Failed to send. Please try again.", "error");
   }
   btn.disabled = false; btn.textContent = "Send";
 });

@@ -86,27 +86,20 @@ async function loadProfile(email) {
   updateAvailBtn(true);
 }
 
-// ── Load available shifts ──
-async function loadShifts() {
-  const { data, error } = await _supabase
-    .from("shifts")
-    .select("*")
-    .eq("status", "open")
-    .order("created_at", { ascending: false })
-    .limit(10);
+// ── Available shifts data store ──
+let _allShifts = [];
 
+function renderShifts(shifts) {
   const container = document.getElementById("shiftsContainer");
-
-  if (error || !data || data.length === 0) {
+  if (!shifts || shifts.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <p>No shifts available in your area right now.</p>
-        <p style="font-size:13px;">We'll notify you when new shifts are posted near you.</p>
+        <p>No shifts match your filters.</p>
+        <p style="font-size:13px;">Try adjusting your search or clear filters.</p>
       </div>`;
     return;
   }
-
-  container.innerHTML = data.map(shift => `
+  container.innerHTML = shifts.map(shift => `
     <div class="profile-card" style="margin-bottom:12px;">
       <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
         ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
@@ -132,6 +125,50 @@ async function loadShifts() {
       </div>
     </div>
   `).join("");
+}
+
+function applyFilters() {
+  const search = (document.getElementById("filterSearch").value || "").toLowerCase();
+  const role = document.getElementById("filterRole").value;
+  const urgency = document.getElementById("filterUrgency").value;
+
+  let filtered = _allShifts;
+
+  if (search) {
+    filtered = filtered.filter(s =>
+      (s.facility_name || "").toLowerCase().includes(search) ||
+      (s.role_needed || "").toLowerCase().includes(search) ||
+      (s.city || "").toLowerCase().includes(search)
+    );
+  }
+
+  if (role) {
+    filtered = filtered.filter(s => s.role_needed === role);
+  }
+
+  if (urgency === "today") {
+    filtered = filtered.filter(s => s.urgency === "today");
+  }
+
+  renderShifts(filtered);
+}
+
+async function loadShifts() {
+  const { data, error } = await _supabase
+    .from("shifts")
+    .select("*")
+    .eq("status", "open")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error || !data) {
+    document.getElementById("shiftsContainer").innerHTML = `
+      <div class="empty-state"><p>No shifts available in your area right now.</p></div>`;
+    return;
+  }
+
+  _allShifts = data;
+  applyFilters();
 }
 
 // ── Load my accepted/active shifts ──
@@ -218,7 +255,7 @@ async function loadMyShifts() {
 // ── Apply to shift ──
 async function applyToShift(shiftId, btn) {
   if (!currentWorker) {
-    alert("Please complete your profile before applying to shifts.");
+    ccToast("Please complete your profile before applying to shifts.", "error");
     return;
   }
 
@@ -235,15 +272,15 @@ async function applyToShift(shiftId, btn) {
 
     if (result.success) {
       if (btn) { btn.disabled = true; btn.textContent = "Applied ✓"; }
-      alert("Application submitted! The facility will review and respond.");
+      ccToast("Application submitted! The facility will review and respond.", "success");
     } else {
-      alert(result.message || "Could not apply. Please try again.");
+      ccToast(result.message || "Could not apply. Please try again.", "error");
       if (btn) { btn.disabled = false; btn.textContent = "Apply"; }
     }
 
   } catch (err) {
     console.error("Apply error:", err);
-    alert("Something went wrong. Please try again.");
+    ccToast("Something went wrong. Please try again.", "error");
     if (btn) { btn.disabled = false; btn.textContent = "Apply"; }
   }
 }
@@ -317,7 +354,7 @@ async function withdrawApplication(applicationId, btn) {
     if (result.success) {
       await loadMyApplications();
     } else {
-      alert(result.message || "Could not withdraw. Please try again.");
+      ccToast(result.message || "Could not withdraw. Please try again.", "error");
       if (btn) { btn.disabled = false; btn.textContent = "Withdraw"; }
     }
   } catch (err) {
@@ -366,7 +403,7 @@ async function loadCompletedShifts() {
 
 // ── Profile settings ──
 function openProfileSettings() {
-  if (!currentWorker) { alert("Complete your profile first."); return; }
+  if (!currentWorker) { ccToast("Complete your profile first.", "error"); return; }
   document.getElementById("editFullname").value = currentWorker.full_name || "";
   document.getElementById("editPhone").value = currentWorker.phone || "";
   document.getElementById("editRole").value = currentWorker.role || "";
@@ -451,16 +488,16 @@ document.getElementById("profileForm").addEventListener("submit", async function
     });
 
     if (result.success) {
-      alert("Profile updated!");
+      ccToast("Profile updated!", "success");
       closeProfileSettings();
       const { data: { session } } = await _supabase.auth.getSession();
       if (session) await loadProfile(session.user.email);
     } else {
-      alert(result.message || "Could not update profile.");
+      ccToast(result.message || "Could not update profile.", "error");
     }
   } catch (err) {
     console.error("Update error:", err);
-    alert("Something went wrong.");
+    ccToast("Something went wrong.", "error");
   } finally {
     btn.disabled = false;
     btn.textContent = "Save changes";
@@ -483,11 +520,11 @@ async function confirmDeleteAccount() {
       await _supabase.auth.signOut();
       window.location.href = "index.html";
     } else {
-      alert(result.message || "Could not delete account.");
+      ccToast(result.message || "Could not delete account.", "error");
     }
   } catch (err) {
     console.error("Delete error:", err);
-    alert("Something went wrong.");
+    ccToast("Something went wrong.", "error");
   }
 }
 
@@ -704,7 +741,7 @@ function setRating(val) {
 }
 
 async function submitRating() {
-  if (selectedRating === 0) { alert("Please select a rating."); return; }
+  if (selectedRating === 0) { ccToast("Please select a rating.", "error"); return; }
   const btn = document.getElementById("submitRatingBtn");
   btn.disabled = true;
   btn.textContent = "Submitting...";
@@ -719,12 +756,12 @@ async function submitRating() {
     })
   });
   if (result?.success) {
-    alert("Rating submitted! Thank you for your feedback.");
+    ccToast("Rating submitted! Thank you for your feedback.", "success");
     closeRatingModal();
     loadCompletedShifts();
     loadRatings();
   } else {
-    alert(result?.message || "Failed to submit rating.");
+    ccToast(result?.message || "Failed to submit rating.", "error");
     btn.disabled = false;
     btn.textContent = "Submit rating";
   }
@@ -746,10 +783,10 @@ document.getElementById("supportForm")?.addEventListener("submit", async functio
     })
   });
   if (data?.success) {
-    alert("Support ticket sent! We'll respond within 24 hours.");
+    ccToast("Support ticket sent! We'll respond within 24 hours.", "success");
     closeSupportModal();
   } else {
-    alert("Failed to send. Please try again.");
+    ccToast("Failed to send. Please try again.", "error");
   }
   btn.disabled = false; btn.textContent = "Send";
 });

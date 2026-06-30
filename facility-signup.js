@@ -33,7 +33,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     !facility.staffNeeds ||
     !facility.frequency
   ) {
-    alert("Please fill in all fields.");
+    ccToast("Please fill in all fields.", "error");
     return;
   }
 
@@ -50,13 +50,13 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     const confirmPassword = document.getElementById("confirmPassword").value;
 
     if (!password || password.length < 8) {
-      alert("Password must be at least 8 characters.");
+      ccToast("Password must be at least 8 characters.", "error");
       btn.disabled = false;
       btn.textContent = "Create facility account";
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      ccToast("Passwords do not match.", "error");
       btn.disabled = false;
       btn.textContent = "Create facility account";
       return;
@@ -69,7 +69,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     });
 
     if (signUpError) {
-      alert(signUpError.message);
+      ccToast(signUpError.message, "error");
       btn.disabled = false;
       btn.textContent = "Create facility account";
       return;
@@ -141,14 +141,14 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     if (response.ok && result.success) {
       window.location.href = "dashboard-facility.html";
     } else {
-      alert("Something went wrong. Please try again.");
+      ccToast("Something went wrong. Please try again.", "error");
       btn.disabled = false;
       btn.textContent = "Create facility account";
     }
 
   } catch (err) {
     console.error("Submit error:", err);
-    alert("Something went wrong. Please try again.");
+    ccToast("Something went wrong. Please try again.", "error");
     btn.disabled = false;
     btn.textContent = "Create facility account";
   }

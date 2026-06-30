@@ -147,7 +147,7 @@ async function toggleLicenseVerified(workerId, currentStatus) {
   });
 
   if (!result?.success) {
-    alert("Failed to update worker. Please try again.");
+    ccToast("Failed to update worker. Please try again.", "error");
     return;
   }
 

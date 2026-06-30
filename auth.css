@@ -1302,3 +1302,86 @@
 .notif-pref-row:last-child {
   border-bottom: none;
 }
+
+/* ── Toast animation ── */
+@keyframes ccToastIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ── Skeleton loading ── */
+.cc-skeleton-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cc-skeleton-line {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: ccShimmer 1.2s ease-in-out infinite;
+}
+.cc-skeleton-line:nth-child(2) { width: 85%; }
+.cc-skeleton-line:nth-child(3) { width: 60%; }
+@keyframes ccShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Shift filter bar ── */
+.shift-filter-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.shift-filter-bar input,
+.shift-filter-bar select {
+  flex: 1;
+  min-width: 160px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+.shift-filter-bar input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.shift-filter-bar select option {
+  background: #1a2a2e;
+  color: #fff;
+}
+.filter-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(93,202,165,0.15);
+  color: #5DCAA5;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.filter-btn:hover {
+  background: rgba(93,202,165,0.25);
+}
+
+/* ── Forgot password ── */
+.auth-small-link {
+  display: block;
+  text-align: right;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-top: -8px;
+  margin-bottom: 16px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.auth-small-link:hover {
+  color: #5DCAA5;
+}

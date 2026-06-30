@@ -26,7 +26,7 @@ function validateStep1() {
   const fields = ["facilityName", "facilityType", "city", "contactName", "contactEmail", "contactPhone"];
   for (let field of fields) {
     if (!document.getElementById(field).value.trim()) {
-      alert("Please fill in all fields before continuing.");
+      ccToast("Please fill in all fields before continuing.", "error");
       return false;
     }
   }
@@ -38,7 +38,7 @@ function validateStep2() {
   const fields = ["role", "shiftDate", "startTime", "duration"];
   for (let field of fields) {
     if (!document.getElementById(field).value) {
-      alert("Please fill in all shift details before continuing.");
+      ccToast("Please fill in all shift details before continuing.", "error");
       return false;
     }
   }
@@ -48,7 +48,7 @@ function validateStep2() {
     if (suggestedRates[roleVal]) {
       payRateInput.value = suggestedRates[roleVal];
     } else {
-      alert("Please enter a pay rate.");
+      ccToast("Please enter a pay rate.", "error");
       return false;
     }
   }
@@ -182,7 +182,7 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     console.log("Payment init:", initData);
 
     if (!initData.success) {
-      alert("Payment initialization failed. Please try again.");
+      ccToast("Payment initialization failed. Please try again.", "error");
       return;
     }
 
@@ -211,12 +211,12 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
             document.getElementById("successCard").style.display = "block";
             document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
           } else {
-            alert("Payment could not be verified. Please contact support.");
+            ccToast("Payment could not be verified. Please contact support.", "error");
           }
         })
         .catch(function(err) {
           console.error("Verify error:", err);
-          alert("Payment made but verification failed. Please contact support.");
+          ccToast("Payment made but verification failed. Please contact support.", "error");
         });
       }
     });
@@ -225,6 +225,6 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
 
   } catch(err) {
     console.error("Payment error:", err);
-    alert("Something went wrong. Please try again.");
+    ccToast("Something went wrong. Please try again.", "error");
   }
 });

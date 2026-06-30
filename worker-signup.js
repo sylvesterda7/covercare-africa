@@ -28,12 +28,12 @@ async function verifyLicense() {
   const btn = document.getElementById("verifyBtn");
 
   if (!role) {
-    alert("Please select your role first.");
+    ccToast("Please select your role first.", "error");
     return;
   }
 
   if (!license) {
-    alert("Please enter your license / registration number.");
+    ccToast("Please enter your license / registration number.", "error");
     return;
   }
 
@@ -138,13 +138,13 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     !worker.city ||
     !worker.experience
   ) {
-    alert("Please fill in all fields.");
+    ccToast("Please fill in all fields.", "error");
     return;
   }
 
   const pharmacyRoles = ["pharmacist", "pharmacy-tech"];
   if (pharmacyRoles.includes(worker.role) && !licenseVerified) {
-    alert("Please verify your pharmacy license before submitting.");
+    ccToast("Please verify your pharmacy license before submitting.", "error");
     return;
   }
 
@@ -161,13 +161,13 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     const confirmPassword = document.getElementById("confirmPassword").value;
 
     if (!password || password.length < 8) {
-      alert("Password must be at least 8 characters.");
+      ccToast("Password must be at least 8 characters.", "error");
       btn.disabled = false;
       btn.textContent = "Create my profile";
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      ccToast("Passwords do not match.", "error");
       btn.disabled = false;
       btn.textContent = "Create my profile";
       return;
@@ -180,7 +180,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     });
 
     if (signUpError) {
-      alert(signUpError.message);
+      ccToast(signUpError.message, "error");
       btn.disabled = false;
       btn.textContent = "Create my profile";
       return;
@@ -221,14 +221,14 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     if (response.ok && result.success) {
       window.location.href = "dashboard-worker.html";
     } else {
-      alert("Something went wrong. Please try again.");
+      ccToast("Something went wrong. Please try again.", "error");
       btn.disabled = false;
       btn.textContent = "Create my profile";
     }
 
   } catch (err) {
     console.error("Submit error:", err);
-    alert("Something went wrong. Please try again.");
+    ccToast("Something went wrong. Please try again.", "error");
     btn.disabled = false;
     btn.textContent = "Create my profile";
   }

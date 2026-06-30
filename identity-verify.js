@@ -49,7 +49,7 @@ function goToStep1() {
 function goToStep2() {
   const idFile = document.getElementById("idFile").files[0];
   if (!idFile) {
-    alert("Please upload your ID document first.");
+    ccToast("Please upload your ID document first.", "error");
     return;
   }
   document.getElementById("step1").style.display = "none";
@@ -89,7 +89,7 @@ async function startCamera() {
     });
     document.getElementById("video").srcObject = videoStream;
   } catch (err) {
-    alert("Could not access camera. Please allow camera permission and try again.");
+    ccToast("Could not access camera. Please allow camera permission and try again.", "error");
     console.error("Camera error:", err);
   }
 }
@@ -125,11 +125,11 @@ function retakeSelfie() {
 // ── Run face verification ──
 async function runVerification() {
   if (!selfieImageElement) {
-    alert("Please take a selfie first.");
+    ccToast("Please take a selfie first.", "error");
     return;
   }
   if (!idImageElement) {
-    alert("ID image not loaded. Please go back and re-upload your ID.");
+    ccToast("ID image not loaded. Please go back and re-upload your ID.", "error");
     return;
   }
 

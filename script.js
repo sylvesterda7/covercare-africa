@@ -31,7 +31,7 @@ async function joinWaitlist() {
   const email = document.getElementById('waitlist-email').value.trim();
 
   if (!name || !email) {
-    alert('Please enter your name and email.');
+    ccToast("Please enter your name and email.", "error");
     return;
   }
 
@@ -43,7 +43,7 @@ async function joinWaitlist() {
     const { error } = await supabase.from("waitlist").insert([{ name, email, type: document.querySelector('.type-btn[style*="background"]')?.textContent?.trim() || '' }]);
 
     if (error) {
-      alert('Could not join waitlist. Please try again.');
+      ccToast("Could not join waitlist. Please try again.", "error");
       return;
     }
 
@@ -52,7 +52,7 @@ async function joinWaitlist() {
     document.getElementById('waitlist-email').value = '';
   } catch (err) {
     console.error('Waitlist error:', err);
-    alert('Something went wrong. Please try again.');
+    ccToast("Something went wrong. Please try again.", "error");
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Join the Waitlist'; }
   }

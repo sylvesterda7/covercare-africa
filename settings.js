@@ -230,11 +230,11 @@ async function confirmDeleteAccount() {
       await _supabase.auth.signOut();
       window.location.href = "index.html";
     } else {
-      alert(result.message || "Could not delete account.");
+      ccToast(result.message || "Could not delete account.", "error");
     }
   } catch (e) {
     console.error("Delete error:", e);
-    alert("Something went wrong.");
+    ccToast("Something went wrong.", "error");
   }
 }
 
