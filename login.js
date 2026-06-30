@@ -83,8 +83,13 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   successMsg.style.display = "block";
 
   setTimeout(() => {
+    const userType = data.user.user_metadata?.user_type;
+    if (!userType) {
+      window.location.href = "oauth-setup.html";
+      return;
+    }
     window.location.href = getDashboardUrl(
-      data.user.user_metadata.user_type,
+      userType,
       data.user.email
     );
   }, 800);

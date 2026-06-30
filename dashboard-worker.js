@@ -11,7 +11,12 @@ async function init() {
   if (!session) { window.location.href = "login.html"; return; }
 
   const user = session.user;
-  const meta = user.user_metadata;
+  const meta = user.user_metadata || {};
+
+  if (!meta.user_type) {
+    window.location.href = "oauth-setup.html";
+    return;
+  }
 
   if (meta.user_type !== "worker") {
     window.location.href = "dashboard-facility.html";
