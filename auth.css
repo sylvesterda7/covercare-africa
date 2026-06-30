@@ -1196,50 +1196,7 @@
   background: rgba(226,75,74,0.06);
 }
 
-/* ── Currency combobox ── */
-.cc-combobox {
-  position: relative;
-  min-width: 200px;
-}
-.cc-combobox-input {
-  width: 100% !important;
-  box-sizing: border-box;
-}
-.cc-combobox-dropdown {
-  display: none;
-  z-index: 99999;
-  background: #0F1A1C;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  max-height: 240px;
-  overflow-y: auto;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-}
-.cc-combobox-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.cc-combobox-item:hover,
-.cc-combobox-item.focused {
-  background: rgba(93,202,165,0.08);
-}
-.cc-combobox-code {
-  font-size: 13px;
-  font-weight: 600;
-  color: #5DCAA5;
-  min-width: 44px;
-}
-.cc-combobox-name {
-  font-size: 13px;
-  color: rgba(255,255,255,0.55);
-}
-.cc-combobox-item.focused .cc-combobox-name {
-  color: rgba(255,255,255,0.75);
-}
+
 
 /* ── Toggle switch ── */
 .toggle {
