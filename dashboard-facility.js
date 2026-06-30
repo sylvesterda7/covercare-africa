@@ -133,23 +133,30 @@ async function loadShifts(email) {
   // ── Filled shifts ──
   const filledContainer = document.getElementById("filledShiftsContainer");
   if (filledShifts.length > 0) {
-    filledContainer.innerHTML = filledShifts.map(shift => `
+    const workerIds = [...new Set(filledShifts.map(s => s.worker_id).filter(Boolean))];
+    const { data: workers } = workerIds.length > 0 ? await _supabase.from("workers").select("id, full_name, role, phone, email, city, experience, bio, profile_photo_url, license_verified, identity_verified").in("id", workerIds) : { data: [] };
+    const workerMap = Object.fromEntries((workers || []).map(w => [w.id, w]));
+
+    filledContainer.innerHTML = filledShifts.map(shift => {
+      const w = shift.worker_id ? workerMap[shift.worker_id] : null;
+      return `
       <div class="profile-card" style="margin-bottom:12px;">
-        <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
-          ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
+        <div class="profile-avatar" style="${w?.profile_photo_url ? 'background:none;border:none;' : 'background:rgba(17,24,39,0.1);'} font-size:14px;">
+          ${w?.profile_photo_url ? `<img src="${escapeHtml(w.profile_photo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` : (shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH")}
         </div>
         <div class="profile-info" style="flex:1;">
-          <h3>${escapeHtml(shift.role_needed) || "—"}</h3>
+          <h3>${w ? escapeHtml(w.full_name) : escapeHtml(shift.role_needed) || "—"}</h3>
           <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(shift.total_pay) || "—"}</p>
-          <div style="margin-top:8px;">
+          <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <span class="badge badge-accent">
               ${shift.status === "in_progress" ? "⏱ In progress" : shift.status === "completed" ? "✓ Completed" : "✓ Filled"}
             </span>
+            ${w ? `<button data-worker-id="${escapeHtml(w.id)}" onclick="showWorkerDetailsById(this.dataset.workerId)" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--fg-muted);cursor:pointer;font-family:inherit;">View worker</button>` : ""}
           </div>
         </div>
-      </div>
-    `).join("");
+      </div>`;
+    }).join("");
   } else {
     filledContainer.innerHTML = `
       <div class="empty-state">
@@ -272,7 +279,8 @@ async function acceptApplication(applicationId) {
 
     if (result.success) {
       ccToast("Worker accepted! Shift is now filled.", "success");
-  try { await loadShifts(facilityEmail); } catch (e) { console.error("loadShifts error:", e); }
+      if (result.worker) showWorkerDetails(result.worker);
+      await loadShifts(facilityEmail);
       await loadApplications(facilityEmail);
     } else {
       ccToast(result.message || "Could not accept. Please try again.", "error");
@@ -579,6 +587,48 @@ async function loadRecommendedWorkers() {
       </div>
     `;
   }).join("");
+}
+
+// ── Worker details modal ──
+function showWorkerDetails(worker) {
+  const container = document.getElementById("workerDetailsContent");
+  if (!container || !worker) return;
+  const avatarHtml = worker.profile_photo_url
+    ? `<img src="${escapeHtml(worker.profile_photo_url)}" alt="" style="width:72px;height:72px;object-fit:cover;border-radius:50%;margin:0 auto 12px;display:block;" />`
+    : `<div style="width:72px;height:72px;border-radius:50%;background:rgba(17,24,39,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;margin:0 auto 12px;">${worker.full_name ? escapeHtml(worker.full_name).split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2) : "?"}</div>`;
+  container.innerHTML = `
+    ${avatarHtml}
+    <h3 style="text-align:center;margin-bottom:4px;">${escapeHtml(worker.full_name) || "Unknown"}</h3>
+    <p style="text-align:center;color:var(--fg-muted);font-size:13px;margin-bottom:16px;">${escapeHtml(worker.role) || "—"}</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${worker.phone ? `<div><span style="font-size:12px;color:var(--fg-muted);display:block;">Phone</span><span style="font-size:14px;color:#111827;">${escapeHtml(worker.phone)}</span></div>` : ""}
+      ${worker.email ? `<div><span style="font-size:12px;color:var(--fg-muted);display:block;">Email</span><span style="font-size:14px;color:#111827;">${escapeHtml(worker.email)}</span></div>` : ""}
+      ${worker.city ? `<div><span style="font-size:12px;color:var(--fg-muted);display:block;">City</span><span style="font-size:14px;color:#111827;">${escapeHtml(worker.city)}</span></div>` : ""}
+      ${worker.experience ? `<div><span style="font-size:12px;color:var(--fg-muted);display:block;">Experience</span><span style="font-size:14px;color:#111827;">${escapeHtml(worker.experience)}</span></div>` : ""}
+      ${worker.bio ? `<div><span style="font-size:12px;color:var(--fg-muted);display:block;">About</span><span style="font-size:14px;color:#111827;line-height:1.5;">${escapeHtml(worker.bio)}</span></div>` : ""}
+    </div>
+    <div style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+      ${worker.license_verified ? '<span class="badge badge-accent">✓ License verified</span>' : '<span class="badge badge-yellow">License pending</span>'}
+      ${worker.identity_verified ? '<span class="badge badge-accent">✓ Identity verified</span>' : '<span class="badge badge-yellow">Identity pending</span>'}
+    </div>
+    <button onclick="closeWorkerDetails()" class="btn-auth" style="margin-top:20px;width:100%;">Close</button>
+  `;
+  document.getElementById("workerDetailsModal").style.display = "flex";
+}
+
+async function showWorkerDetailsById(workerId) {
+  if (!workerId) return;
+  const { data, error } = await _supabase
+    .from("workers")
+    .select("id, full_name, role, phone, email, city, experience, bio, profile_photo_url, license_verified, identity_verified")
+    .eq("id", workerId)
+    .single();
+  if (error || !data) { ccToast("Could not load worker details.", "error"); return; }
+  showWorkerDetails(data);
+}
+
+function closeWorkerDetails() {
+  document.getElementById("workerDetailsModal").style.display = "none";
 }
 
 // ── Payroll ──
