@@ -184,23 +184,14 @@ function saveNotifPrefs() {
 
 // ── Currency preference ──
 function loadCurrencyPref() {
-  const el = document.getElementById("settingsCurrency");
-  const dl = document.getElementById("currencyList");
-  if (dl) {
-    dl.innerHTML = CC_CONFIG.SUPPORTED_CURRENCIES.map(c =>
-      `<option value="${escapeHtml(c.code)}">${escapeHtml(c.name)}</option>`
-    ).join("");
-  }
-  if (el) el.value = getPreferredCurrency();
+  ccCurrencyCombobox("settingsCurrencyContainer", getPreferredCurrency(), () => {});
 }
 
 function saveCurrencyPref() {
-  const el = document.getElementById("settingsCurrency");
-  if (!el) return;
-  const code = el.value.trim().toUpperCase();
-  if (!CC_CONFIG.SUPPORTED_CURRENCIES.find(c => c.code === code)) {
+  const code = ccGetCurrencyComboboxValue("settingsCurrencyContainer");
+  if (!code || !CC_CONFIG.SUPPORTED_CURRENCIES.find(c => c.code === code)) {
     const msg = document.getElementById("settingsCurrencyMsg");
-    msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Type a valid currency code from the list.";
+    msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Select a valid currency from the list.";
     return;
   }
   localStorage.setItem("cc_currency", JSON.stringify(code));

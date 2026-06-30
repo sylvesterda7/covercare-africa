@@ -183,4 +183,106 @@ async function ccFetch(path, options = {}) {
   return { response, data };
 }
 
+/* ── Currency combobox ──
+   Portals dropdown to body to avoid stacking-context clipping.
+   Usage: ccCurrencyCombobox("containerId", "GHS", (code) => { ... })
+*/
+function ccCurrencyCombobox(containerId, selectedCode, onChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="cc-combobox-wrap">
+      <input class="glass-input cc-combobox-input" type="text" placeholder="Type currency code or name..." autocomplete="off" value="${escapeHtml(selectedCode || "")}" />
+      <svg class="cc-combobox-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>`;
+
+  const input = container.querySelector(".cc-combobox-input");
+  let open = false, focusedIdx = -1, filtered = [...CC_CONFIG.SUPPORTED_CURRENCIES];
+  let dropdownEl = null;
+
+  function close() {
+    open = false; focusedIdx = -1;
+    if (dropdownEl) { dropdownEl.remove(); dropdownEl = null; }
+  }
+
+  function openDropdown() {
+    if (!input.value && !open) { open = true; render(); return; }
+    if (!open) { open = true; render(); }
+  }
+
+  function position() {
+    if (!dropdownEl || !open) return;
+    const rect = input.getBoundingClientRect();
+    dropdownEl.style.top = (rect.bottom + 4) + "px";
+    dropdownEl.style.left = rect.left + "px";
+    dropdownEl.style.width = rect.width + "px";
+  }
+
+  function render() {
+    const val = input.value.toLowerCase();
+    filtered = CC_CONFIG.SUPPORTED_CURRENCIES.filter(c =>
+      c.code.toLowerCase().includes(val) ||
+      c.name.toLowerCase().includes(val)
+    );
+
+    if (!open || filtered.length === 0) {
+      if (dropdownEl) { dropdownEl.remove(); dropdownEl = null; }
+      return;
+    }
+
+    if (!dropdownEl) {
+      dropdownEl = document.createElement("div");
+      dropdownEl.className = "cc-combobox-dropdown";
+      document.body.appendChild(dropdownEl);
+    }
+
+    position();
+    dropdownEl.innerHTML = filtered.map((c, i) =>
+      `<div class="cc-combobox-item${i === focusedIdx ? " focused" : ""}" data-index="${i}">
+        <span class="cc-combobox-code">${escapeHtml(c.code)}</span>
+        <span class="cc-combobox-name">${escapeHtml(c.name)}</span>
+      </div>`
+    ).join("");
+  }
+
+  function select(idx) {
+    if (idx < 0 || idx >= filtered.length) return;
+    const c = filtered[idx];
+    input.value = c.code;
+    close();
+    if (onChange) onChange(c.code);
+  }
+
+  input.addEventListener("input", () => { focusedIdx = -1; open = true; render(); });
+  input.addEventListener("focus", () => { if (input.value) { open = true; render(); } });
+  input.addEventListener("click", () => { open = true; render(); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); if (!open) { open = true; render(); } else { focusedIdx = Math.min(focusedIdx + 1, filtered.length - 1); render(); } }
+    if (e.key === "ArrowUp") { e.preventDefault(); focusedIdx = Math.max(focusedIdx - 1, 0); render(); }
+    if (e.key === "Enter") { e.preventDefault(); select(focusedIdx >= 0 ? focusedIdx : 0); }
+    if (e.key === "Escape") { e.preventDefault(); close(); input.blur(); }
+  });
+
+  document.addEventListener("scroll", position, true);
+  window.addEventListener("resize", position);
+
+  document.addEventListener("mousedown", function ccClick(e) {
+    if (dropdownEl && !dropdownEl.contains(e.target) && !input.contains(e.target)) { close(); }
+  });
+
+  document.addEventListener("mousedown", function ccSelect(e) {
+    if (!dropdownEl) return;
+    const item = e.target.closest(".cc-combobox-item");
+    if (item && dropdownEl.contains(item)) select(parseInt(item.dataset.index));
+  });
+
+  return { close, open: openDropdown };
+}
+
+function ccGetCurrencyComboboxValue(containerId) {
+  const input = document.querySelector("#" + containerId + " .cc-combobox-input");
+  return input ? input.value.trim().toUpperCase() : "";
+}
+
 
