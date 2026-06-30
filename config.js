@@ -7,11 +7,49 @@ const CC_CONFIG = {
   ADMIN_EMAILS: ["sdenyoh-abayateye@st.ug.edu.gh"],
   ARRIVE_BASE_URL: "https://covercare-africa.vercel.app/arrive",
   SUPPORTED_CURRENCIES: [
-    { code: "GHS", symbol: "GHS", name: "Ghana Cedi", locale: "en-GH" },
-    { code: "NGN", symbol: "NGN", name: "Nigerian Naira", locale: "en-NG" },
+    { code: "GHS", symbol: "GH\u00a2", name: "Ghana Cedi", locale: "en-GH" },
+    { code: "NGN", symbol: "\u20a6", name: "Nigerian Naira", locale: "en-NG" },
+    { code: "ZAR", symbol: "R", name: "South African Rand", locale: "en-ZA" },
+    { code: "KES", symbol: "KSh", name: "Kenyan Shilling", locale: "en-KE" },
+    { code: "UGX", symbol: "USh", name: "Ugandan Shilling", locale: "en-UG" },
+    { code: "TZS", symbol: "TSh", name: "Tanzanian Shilling", locale: "en-TZ" },
+    { code: "RWF", symbol: "FRw", name: "Rwandan Franc", locale: "en-RW" },
+    { code: "XAF", symbol: "FCFA", name: "Central African CFA Franc", locale: "fr-CM" },
+    { code: "XOF", symbol: "CFA", name: "West African CFA Franc", locale: "fr-SN" },
+    { code: "EGP", symbol: "E\u00a3", name: "Egyptian Pound", locale: "ar-EG" },
+    { code: "MAD", symbol: "DH", name: "Moroccan Dirham", locale: "ar-MA" },
+    { code: "DZD", symbol: "DA", name: "Algerian Dinar", locale: "ar-DZ" },
+    { code: "TND", symbol: "DT", name: "Tunisian Dinar", locale: "ar-TN" },
+    { code: "SDG", symbol: "SDG", name: "Sudanese Pound", locale: "ar-SD" },
+    { code: "ETB", symbol: "Br", name: "Ethiopian Birr", locale: "am-ET" },
+    { code: "GNF", symbol: "GFr", name: "Guinean Franc", locale: "fr-GN" },
+    { code: "MZN", symbol: "MT", name: "Mozambican Metical", locale: "pt-MZ" },
+    { code: "AOA", symbol: "Kz", name: "Angolan Kwanza", locale: "pt-AO" },
+    { code: "ZMW", symbol: "ZK", name: "Zambian Kwacha", locale: "en-ZM" },
+    { code: "BWP", symbol: "P", name: "Botswana Pula", locale: "en-BW" },
+    { code: "MWK", symbol: "MK", name: "Malawian Kwacha", locale: "en-MW" },
+    { code: "NAD", symbol: "N$", name: "Namibian Dollar", locale: "en-NA" },
+    { code: "ZWL", symbol: "ZW$", name: "Zimbabwean Dollar", locale: "en-ZW" },
+    { code: "MUR", symbol: "Rs", name: "Mauritian Rupee", locale: "en-MU" },
+    { code: "SCR", symbol: "SR", name: "Seychellois Rupee", locale: "en-SC" },
+    { code: "CDF", symbol: "FC", name: "Congolese Franc", locale: "fr-CD" },
+    { code: "BIF", symbol: "FBu", name: "Burundian Franc", locale: "fr-BI" },
+    { code: "DJF", symbol: "FDj", name: "Djiboutian Franc", locale: "fr-DJ" },
+    { code: "ERN", symbol: "Nkf", name: "Eritrean Nakfa", locale: "ti-ER" },
+    { code: "SOS", symbol: "SOSh", name: "Somali Shilling", locale: "so-SO" },
+    { code: "SLL", symbol: "Le", name: "Sierra Leonean Leone", locale: "en-SL" },
+    { code: "LRD", symbol: "L$", name: "Liberian Dollar", locale: "en-LR" },
+    { code: "GMD", symbol: "D", name: "Gambian Dalasi", locale: "en-GM" },
+    { code: "MRU", symbol: "UM", name: "Mauritanian Ouguiya", locale: "ar-MR" },
+    { code: "SSP", symbol: "SS\u00a3", name: "South Sudanese Pound", locale: "en-SS" },
+    { code: "KMF", symbol: "CF", name: "Comorian Franc", locale: "fr-KM" },
+    { code: "MGA", symbol: "Ar", name: "Malagasy Ariary", locale: "mg-MG" },
+    { code: "CVE", symbol: "Esc", name: "Cape Verdean Escudo", locale: "pt-CV" },
+    { code: "LSL", symbol: "L", name: "Lesotho Loti", locale: "en-LS" },
+    { code: "SZL", symbol: "E", name: "Eswatini Lilangeni", locale: "en-SZ" },
     { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US" },
-    { code: "EUR", symbol: "€", name: "Euro", locale: "en-EU" },
-    { code: "GBP", symbol: "£", name: "British Pound", locale: "en-GB" }
+    { code: "EUR", symbol: "\u20ac", name: "Euro", locale: "en-EU" },
+    { code: "GBP", symbol: "\u00a3", name: "British Pound", locale: "en-GB" }
   ]
 };
 
@@ -143,4 +181,67 @@ async function ccFetch(path, options = {}) {
     data.message = `Request failed (${response.status})`;
   }
   return { response, data };
+}
+
+/* ── Currency search combobox ──
+   Usage: ccCurrencyCombobox("containerId", "GHS", (code) => { ... })
+   Renders a typeable input + dropdown into the container element.
+*/
+function ccCurrencyCombobox(containerId, selectedCode, onChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = `
+    <div class="cc-combobox">
+      <input class="glass-input cc-combobox-input" type="text" placeholder="Type currency code or name..." autocomplete="off" value="${escapeHtml(selectedCode || "")}" />
+      <div class="cc-combobox-dropdown"></div>
+    </div>`;
+  const input = container.querySelector(".cc-combobox-input");
+  const dropdown = container.querySelector(".cc-combobox-dropdown");
+  let open = false, focusedIdx = -1, filtered = CC_CONFIG.SUPPORTED_CURRENCIES;
+
+  function render() {
+    const val = input.value.toLowerCase();
+    filtered = CC_CONFIG.SUPPORTED_CURRENCIES.filter(c =>
+      c.code.toLowerCase().includes(val) ||
+      c.name.toLowerCase().includes(val)
+    );
+    if (filtered.length === 0 || !open) { dropdown.innerHTML = ""; dropdown.style.display = "none"; return; }
+    dropdown.style.display = "block";
+    dropdown.innerHTML = filtered.map((c, i) =>
+      `<div class="cc-combobox-item${i === focusedIdx ? " focused" : ""}" data-index="${i}">
+        <span class="cc-combobox-code">${escapeHtml(c.code)}</span>
+        <span class="cc-combobox-name">${escapeHtml(c.name)}</span>
+      </div>`
+    ).join("");
+  }
+
+  function select(idx) {
+    if (idx < 0 || idx >= filtered.length) return;
+    const c = filtered[idx];
+    input.value = c.code;
+    open = false; dropdown.style.display = "none";
+    if (onChange) onChange(c.code);
+    render();
+  }
+
+  input.addEventListener("input", () => { focusedIdx = -1; open = true; render(); });
+  input.addEventListener("focus", () => { open = true; render(); });
+  input.addEventListener("blur", () => setTimeout(() => { open = false; dropdown.style.display = "none"; }, 150));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); focusedIdx = Math.min(focusedIdx + 1, filtered.length - 1); render(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); focusedIdx = Math.max(focusedIdx - 1, 0); render(); }
+    if (e.key === "Enter") { e.preventDefault(); select(focusedIdx >= 0 ? focusedIdx : 0); }
+    if (e.key === "Escape") { open = false; dropdown.style.display = "none"; input.blur(); }
+  });
+  dropdown.addEventListener("mousedown", (e) => {
+    const item = e.target.closest(".cc-combobox-item");
+    if (item) select(parseInt(item.dataset.index));
+  });
+
+  render();
+}
+
+function ccGetCurrencyComboboxValue(containerId) {
+  const input = document.querySelector("#" + containerId + " .cc-combobox-input");
+  return input ? input.value : "";
 }

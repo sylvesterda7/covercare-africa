@@ -178,13 +178,7 @@
         <div style="max-width:480px;">
           <div class="notif-pref-row">
             <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Preferred currency</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">Display amounts in your currency of choice</p></div>
-            <select id="settingsCurrency" class="glass-input" style="width:auto; min-width:120px;">
-              <option value="GHS">GHS – Ghana Cedi</option>
-              <option value="NGN">NGN – Nigerian Naira</option>
-              <option value="USD">$ – US Dollar</option>
-              <option value="EUR">€ – Euro</option>
-              <option value="GBP">£ – British Pound</option>
-            </select>
+            <div id="settingsCurrencyContainer" style="width:220px;"></div>
           </div>
           <button onclick="saveCurrencyPref()" class="btn-auth" style="align-self:flex-start; margin-top:12px;">Save</button>
           <div id="settingsCurrencyMsg" style="font-size:13px; display:none;"></div>
