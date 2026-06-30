@@ -212,10 +212,10 @@
 
 .dashboard-nav .nav-logo {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent);
   text-decoration: none;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 .dashboard-nav .nav-right {

@@ -1,5 +1,5 @@
 /* ── CoverCare Africa — Clean Light Design System ── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
   --bg-deep: #F9FAFB;
@@ -72,9 +72,9 @@ body {
 
 .nav-logo {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   text-decoration: none;
 }
 
@@ -424,10 +424,10 @@ footer {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  font-weight: 500;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-border);
+  font-weight: 600;
+  color: var(--fg-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   padding: 6px 16px;
   border-radius: 999px;
   margin-bottom: 2rem;
@@ -436,12 +436,12 @@ footer {
 
 .hero-title {
   font-family: var(--font-heading);
-  font-size: 52px;
-  font-weight: 800;
+  font-size: 54px;
+  font-weight: 900;
   line-height: 1.05;
   color: var(--fg-primary);
   margin-bottom: 1.25rem;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
 }
 
 .hero-sub {
