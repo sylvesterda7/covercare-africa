@@ -47,16 +47,17 @@ async function loadShifts(email) {
   const inProgress = data.filter(s => s.status === "in_progress");
   const filledShifts = data.filter(s => s.status === "accepted" || s.status === "in_progress" || s.status === "completed");
 
-  // ── Stats ──
-  document.getElementById("totalShifts").textContent = data.length;
-  document.getElementById("openShifts").textContent = openShifts.length;
-  document.getElementById("onSiteNow").textContent = inProgress.length;
-  document.getElementById("filledShifts").textContent = filledShifts.length;
+  // ── Stats (null-safe for elements that may not exist in HTML) ──
+  const _s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  _s("totalShifts", data.length);
+  _s("openShifts", openShifts.length);
+  _s("onSiteNow", inProgress.length);
+  _s("filledShifts", filledShifts.length);
 
   const totalSpend = filledShifts.reduce((sum, shift) => {
     return sum + (parseFloat((shift.total_pay || "0").replace(/[^0-9.]/g, "")) || 0);
   }, 0);
-  document.getElementById("totalSpend").textContent = "GHS " + totalSpend.toLocaleString();
+  _s("totalSpend", "GHS " + totalSpend.toLocaleString());
 
   // ── Open shifts ──
   const openContainer = document.getElementById("openShiftsContainer");
@@ -268,7 +269,7 @@ async function acceptApplication(applicationId) {
 
     if (result.success) {
       ccToast("Worker accepted! Shift is now filled.", "success");
-      await loadShifts(facilityEmail);
+  try { await loadShifts(facilityEmail); } catch (e) { console.error("loadShifts error:", e); }
       await loadApplications(facilityEmail);
     } else {
       ccToast(result.message || "Could not accept. Please try again.", "error");
