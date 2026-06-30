@@ -266,6 +266,7 @@
   max-width: 1140px;
   margin: 0 auto;
   padding: 2rem;
+  position: relative;
 }
 
 .dashboard-sidebar {
@@ -274,6 +275,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .dashboard-main {
@@ -369,19 +371,19 @@
 }
 
 /* ── Sidebar drawer behavior ── */
-.dashboard-sidebar {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
 .dashboard-sidebar.closed {
   transform: translateX(-100%);
   opacity: 0;
   pointer-events: none;
   position: absolute;
+  visibility: hidden;
 }
 .dashboard-sidebar.open {
   transform: translateX(0);
   opacity: 1;
   pointer-events: auto;
+  position: relative;
+  visibility: visible;
 }
 
 @media (max-width: 900px) {
