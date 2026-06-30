@@ -197,6 +197,7 @@ async function loadApplications(email) {
     .order("created_at", { ascending: false });
 
   if (appError || !applications || applications.length === 0) {
+    console.error("[applications] Error or empty result", { appError, applications, shiftIds });
     container.innerHTML = `
       <div class="empty-state">
         <p>No pending applications yet.</p>
@@ -528,24 +529,28 @@ async function loadRecommendedWorkers() {
   if (!container) return;
   const { data: result } = await ccFetch("/matches/facility", { method: "GET" });
   const badge = document.getElementById("recommendedCount");
-  if (!result?.data || result.data.length === 0) {
+  const matches = result?.matches;
+  if (!matches || Object.keys(matches).length === 0) {
     container.innerHTML = '<div class="empty-state"><p>No recommendations yet.</p><p style="font-size:13px;">Recommendations will appear based on your open shifts.</p></div>';
     if (badge) badge.textContent = "0";
     return;
   }
-  const totalMatches = result.data.reduce((sum, s) => sum + (s.workers ? s.workers.length : 0), 0);
+  const allWorkers = Object.values(matches).flat();
+  const totalMatches = allWorkers.length;
   if (badge) badge.textContent = totalMatches;
-  container.innerHTML = result.data.map(shift => {
-    const workers = shift.workers || [];
-    if (workers.length === 0) return "";
+  container.innerHTML = Object.entries(matches).map(([shiftId, workers]) => {
+    if (!workers || workers.length === 0) return "";
+    const shiftRole = workers[0]?.role_needed || "";
+    const shiftDate = workers[0]?.shift_date || "";
     return `
       <div style="margin-bottom:16px;">
         <p style="font-size:13px; color:var(--fg-muted); margin-bottom:8px; padding-left:4px;">
-          ${escapeHtml(shift.role_needed) || "Shift"} — ${escapeHtml(shift.shift_date) || ""}
+          ${escapeHtml(shiftRole) || "Shift"} — ${escapeHtml(shiftDate) || ""}
         </p>
         ${workers.map(w => {
           const score = w.score || 0;
           const barColor = score >= 80 ? "#111827" : score >= 50 ? "#F0B429" : "#E24B4A";
+          const worker = w.worker || w;
           return `
             <div class="profile-card" style="flex-direction:column; margin-bottom:8px;">
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
@@ -556,11 +561,11 @@ async function loadRecommendedWorkers() {
               </div>
               <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
                 <div class="profile-avatar" style="font-size:14px;">
-                  ${w.full_name ? escapeHtml(w.full_name).split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2) : "?"}
+                  ${worker.full_name ? escapeHtml(worker.full_name).split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2) : "?"}
                 </div>
                 <div class="profile-info" style="flex:1;">
-                  <h3>${escapeHtml(w.full_name) || "Unknown"}</h3>
-                  <p>${escapeHtml(w.role) || "—"} · ${escapeHtml(w.city) || "—"} · ${escapeHtml(w.experience) || "—"} exp</p>
+                  <h3>${escapeHtml(worker.full_name) || "Unknown"}</h3>
+                  <p>${escapeHtml(worker.role) || "—"} · ${escapeHtml(worker.city) || "—"} · ${escapeHtml(worker.experience) || "—"} exp</p>
                   ${w.breakdown ? `<p style="font-size:11px; color:var(--fg-muted); margin-top:4px;">${escapeHtml(w.breakdown)}</p>` : ""}
                 </div>
               </div>
