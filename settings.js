@@ -25,7 +25,7 @@ async function init() {
   document.getElementById("settingsEmail").textContent = session.user.email;
   const emailVerified = session.user.email_confirmed_at || session.user.identities?.[0]?.identity_data?.email_verified;
   document.getElementById("emailVerifiedBadge").textContent = emailVerified ? "Verified" : "Unverified";
-  document.getElementById("emailVerifiedBadge").className = emailVerified ? "badge badge-green" : "badge badge-yellow";
+  document.getElementById("emailVerifiedBadge").className = emailVerified ? "badge badge-accent" : "badge badge-yellow";
   await loadWorkerProfile(session.user.email);
   loadNotifPrefs();
   loadCurrencyPref();
@@ -49,8 +49,8 @@ async function loadWorkerProfile(email) {
   document.getElementById("profileRole").textContent = data.role;
   document.getElementById("profileCity").textContent = data.city;
   let badges = "";
-  badges += data.license_verified ? '<span class="badge badge-green" style="margin-right:6px;">License verified</span>' : '<span class="badge badge-yellow" style="margin-right:6px;">License pending</span>';
-  badges += data.identity_verified ? '<span class="badge badge-green">Identity verified</span>' : '<span class="badge badge-yellow">Identity pending</span>';
+  badges += data.license_verified ? '<span class="badge badge-accent" style="margin-right:6px;">License verified</span>' : '<span class="badge badge-yellow" style="margin-right:6px;">License pending</span>';
+  badges += data.identity_verified ? '<span class="badge badge-accent">Identity verified</span>' : '<span class="badge badge-yellow">Identity pending</span>';
   document.getElementById("profileBadges").innerHTML = badges;
 
   // Fill form

@@ -95,10 +95,10 @@ function showArriveConfirm() {
 
   let badges = "";
   if (workerData.license_verified) {
-    badges += `<span class="badge badge-green">✓ License verified</span>`;
+    badges += `<span class="badge badge-accent">✓ License verified</span>`;
   }
   if (workerData.identity_verified) {
-    badges += `<span class="badge badge-green">✓ Identity verified</span>`;
+    badges += `<span class="badge badge-accent">✓ Identity verified</span>`;
   }
   document.getElementById("verifyBadges").innerHTML = badges;
 

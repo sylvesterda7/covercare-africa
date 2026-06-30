@@ -17,7 +17,7 @@ function toggleSidebar() {
 /* ── Tabs ── */
 function switchFinTab(tab) {
   ["wallet","methods","transactions"].forEach(t => {
-    document.getElementById("finTab" + t.charAt(0).toUpperCase() + t.slice(1)).style.color = t === tab ? "#111827" : "rgba(255,255,255,0.4)";
+    document.getElementById("finTab" + t.charAt(0).toUpperCase() + t.slice(1)).style.color = t === tab ? "var(--fg-primary)" : "var(--fg-muted)";
     document.getElementById("fin" + t.charAt(0).toUpperCase() + t.slice(1) + "Tab").style.display = t === tab ? "block" : "none";
   });
   if (tab === "wallet") loadWallet();
@@ -80,16 +80,16 @@ async function loadPayoutHistory() {
       return;
     }
     container.innerHTML = result.data.map(p => {
-      const statusColor = p.status === "completed" ? "#111827" : p.status === "failed" ? "#E24B4A" : p.status === "processing" ? "#F0B429" : "rgba(255,255,255,0.3)";
+      const statusColor = p.status === "completed" ? "#111827" : p.status === "failed" ? "#E24B4A" : p.status === "processing" ? "#F0B429" : "var(--fg-muted)";
       const methodLabel = p.method === "bank" ? "Bank" : "Mobile Money";
       const methodDetail = p.method === "bank" ? p.bank_name + " · " + p.bank_account_number : p.momo_provider + " · " + p.momo_number;
-      return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+      return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border);">
         <div style="flex:1;">
-          <p style="font-size:14px; font-weight:500; color:#fff; margin:0;">${methodLabel} withdrawal</p>
-          <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">${methodDetail} · ${new Date(p.created_at).toLocaleDateString()}</p>
+          <p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">${methodLabel} withdrawal</p>
+          <p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">${methodDetail} · ${new Date(p.created_at).toLocaleDateString()}</p>
         </div>
         <div style="text-align:right;">
-          <p style="font-size:15px; font-weight:600; color:#fff; margin:0;">${formatCurrency(p.amount)}</p>
+          <p style="font-size:15px; font-weight:600; color:var(--fg-primary); margin:0;">${formatCurrency(p.amount)}</p>
           <span style="font-size:11px; color:${statusColor};">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
         </div>
       </div>`;
@@ -218,9 +218,9 @@ async function loadFinanceTransactions() {
       const pct = Math.max((val / maxVal) * 100, 4);
       const label = new Date(key + "-01").toLocaleDateString("en", { month: "short", year: "numeric" });
       return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
-        <span style="font-size:10px; color:rgba(255,255,255,0.35); font-weight:500;">${val ? formatCurrency(val) : ""}</span>
+        <span style="font-size:10px; color:var(--fg-muted); font-weight:500;">${val ? formatCurrency(val) : ""}</span>
         <div style="width:100%; max-width:56px; height:${pct}%; background:linear-gradient(180deg,#111827,rgba(17,24,39,0.15)); border-radius:6px 6px 0 0; transition:height 0.5s; box-shadow:0 0 12px rgba(17,24,39,0.15);"></div>
-        <span style="font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap;">${label}</span>
+        <span style="font-size:10px; color:var(--fg-muted); white-space:nowrap;">${label}</span>
       </div>`;
     }).join("");
     if (d.transactions.length === 0) {
@@ -230,10 +230,10 @@ async function loadFinanceTransactions() {
     container.innerHTML = d.transactions.map(t => {
       const statusColor = t.payout_status === "paid" ? "#111827" : t.payout_status === "failed" ? "#E24B4A" : "#F0B429";
       const statusLabel = t.payout_status === "paid" ? "Paid" : t.payout_status === "failed" ? "Failed" : "Pending";
-      return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+      return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border);">
         <div style="flex:1;">
-          <p style="font-size:14px; font-weight:500; color:#fff; margin:0;">${escapeHtml(t.facility_name)}</p>
-          <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">${escapeHtml(t.role_needed)} · ${t.shift_date || "—"}</p>
+          <p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">${escapeHtml(t.facility_name)}</p>
+          <p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">${escapeHtml(t.role_needed)} · ${t.shift_date || "—"}</p>
         </div>
         <div style="text-align:right;">
           <p style="font-size:15px; font-weight:600; color:#111827; margin:0;">${formatCurrency(t.amount)}</p>

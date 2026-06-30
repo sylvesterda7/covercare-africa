@@ -11,8 +11,8 @@ function setType(t) {
     facilityBtn.style.color = '#111827';
     facilityBtn.style.fontWeight = '500';
     workerBtn.style.background = 'transparent';
-    workerBtn.style.borderColor = 'rgba(255,255,255,0.1)';
-    workerBtn.style.color = 'rgba(255,255,255,0.4)';
+    workerBtn.style.borderColor = 'rgba(17,24,39,0.08)';
+    workerBtn.style.color = 'rgba(17,24,39,0.35)';
     workerBtn.style.fontWeight = 'normal';
   } else {
     workerBtn.style.background = 'rgba(17,24,39,0.15)';
@@ -20,8 +20,8 @@ function setType(t) {
     workerBtn.style.color = '#111827';
     workerBtn.style.fontWeight = '500';
     facilityBtn.style.background = 'transparent';
-    facilityBtn.style.borderColor = 'rgba(255,255,255,0.1)';
-    facilityBtn.style.color = 'rgba(255,255,255,0.4)';
+    facilityBtn.style.borderColor = 'rgba(17,24,39,0.08)';
+    facilityBtn.style.color = 'rgba(17,24,39,0.35)';
     facilityBtn.style.fontWeight = 'normal';
   }
 }

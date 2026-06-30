@@ -6,9 +6,9 @@
   --border: #E5E7EB;
   --fg-primary: #0A0A0B;
   --fg-muted: rgba(10,10,11,0.45);
-  --accent: #5DCAA5;
-  --accent-dim: rgba(93,202,165,0.1);
-  --accent-border: rgba(93,202,165,0.25);
+  --accent: #111827;
+  --accent-dim: rgba(17,24,39,0.08);
+  --accent-border: rgba(17,24,39,0.15);
   --glass-opacity: 1;
   --glass-border: #E5E7EB;
   --glass-bg: #FFFFFF;
@@ -44,7 +44,7 @@
 
 .mobbin-theme .nav-btn {
   background: var(--accent);
-  color: #04342C;
+  color: #fff;
   box-shadow: none;
 }
 
@@ -57,14 +57,14 @@
 }
 
 .mobbin-theme .hero-badge {
-  background: rgba(93,202,165,0.08);
+  background: var(--accent-dim);
   border-color: var(--accent-border);
   color: var(--accent);
 }
 
-.mobbin-theme .badge-green {
-  background: rgba(93,202,165,0.08);
-  color: #059669;
+.mobbin-theme .badge-accent {
+  background: var(--accent-dim);
+  color: var(--accent);
   border-color: var(--accent-border);
 }
 
@@ -126,7 +126,7 @@
 }
 
 .mobbin-theme .testimonial-stars {
-  color: #F59E0B;
+  color: var(--accent);
 }
 
 .mobbin-theme .testimonial-avatar {
@@ -254,7 +254,7 @@
 
 .mobbin-theme .pricing-col.featured {
   border-color: var(--accent-border);
-  background: rgba(93,202,165,0.04);
+  background: var(--accent-dim);
 }
 
 .mobbin-theme .pricing-price {

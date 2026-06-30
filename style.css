@@ -315,7 +315,7 @@ textarea.glass-input {
   white-space: nowrap;
 }
 
-.badge-green {
+.badge-accent {
   background: var(--accent-dim);
   color: var(--accent);
   border: 1px solid var(--accent-border);

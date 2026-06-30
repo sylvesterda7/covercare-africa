@@ -142,7 +142,7 @@ async function loadShifts(email) {
           <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(shift.total_pay) || "—"}</p>
           <div style="margin-top:8px;">
-            <span class="badge badge-green">
+            <span class="badge badge-accent">
               ${shift.status === "in_progress" ? "⏱ In progress" : shift.status === "completed" ? "✓ Completed" : "✓ Filled"}
             </span>
           </div>
@@ -220,16 +220,16 @@ async function loadApplications(email) {
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(worker.full_name) || "Unknown"}</h3>
           <p>${escapeHtml(worker.role) || "—"} · ${escapeHtml(worker.city) || "—"} · ${escapeHtml(worker.experience) || "—"} exp</p>
-          <p style="font-size:12px; color:rgba(255,255,255,0.3);">
+          <p style="font-size:12px; color:var(--fg-muted);">
             Applied for: ${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.shift_date) || "—"}
           </p>
           <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
             ${worker.license_verified
-              ? '<span class="badge badge-green">✓ License</span>'
+              ? '<span class="badge badge-accent">✓ License</span>'
               : '<span class="badge badge-yellow">License pending</span>'
             }
             ${worker.identity_verified
-              ? '<span class="badge badge-green">✓ Identity</span>'
+              ? '<span class="badge badge-accent">✓ Identity</span>'
               : '<span class="badge badge-yellow">Identity pending</span>'
             }
           </div>
@@ -342,7 +342,7 @@ async function loadCompletedShifts() {
   }, 0);
 
   container.innerHTML = `
-    <p style="font-size:13px; color:rgba(255,255,255,0.3); margin-bottom:12px;">
+    <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">
       ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total spent: <strong style="color:#111827;">GHS ${totalSpent.toLocaleString()}</strong>
     </p>
     ${result.data.map(s => `
@@ -391,8 +391,8 @@ function renderDocumentStatus(profile) {
     return `
       <div class="profile-card" style="margin-bottom:8px; align-items:center;">
         <div class="profile-info" style="flex:1;">
-          <p style="font-size:13px; color:rgba(255,255,255,0.7);">${d.label}</p>
-          <p style="font-size:12px; color:${hasDoc ? '#111827' : 'rgba(255,255,255,0.3)'};">
+          <p style="font-size:13px; color:var(--fg-muted);">${d.label}</p>
+          <p style="font-size:12px; color:${hasDoc ? '#111827' : 'var(--fg-muted)'};">
             ${hasDoc ? '✓ Uploaded' : 'Not uploaded'}
           </p>
         </div>
@@ -540,7 +540,7 @@ async function loadRecommendedWorkers() {
     if (workers.length === 0) return "";
     return `
       <div style="margin-bottom:16px;">
-        <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:8px; padding-left:4px;">
+        <p style="font-size:13px; color:var(--fg-muted); margin-bottom:8px; padding-left:4px;">
           ${escapeHtml(shift.role_needed) || "Shift"} — ${escapeHtml(shift.shift_date) || ""}
         </p>
         ${workers.map(w => {
@@ -549,7 +549,7 @@ async function loadRecommendedWorkers() {
           return `
             <div class="profile-card" style="flex-direction:column; margin-bottom:8px;">
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                <div style="flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+                <div style="flex:1; height:6px; background:var(--bg-elevated); border-radius:3px; overflow:hidden;">
                   <div style="width:${score}%; height:100%; background:${barColor}; border-radius:3px; transition:width 0.4s ease;"></div>
                 </div>
                 <span style="font-size:11px; color:${barColor}; font-weight:500; min-width:32px; text-align:right;">${score}%</span>
@@ -561,7 +561,7 @@ async function loadRecommendedWorkers() {
                 <div class="profile-info" style="flex:1;">
                   <h3>${escapeHtml(w.full_name) || "Unknown"}</h3>
                   <p>${escapeHtml(w.role) || "—"} · ${escapeHtml(w.city) || "—"} · ${escapeHtml(w.experience) || "—"} exp</p>
-                  ${w.breakdown ? `<p style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:4px;">${escapeHtml(w.breakdown)}</p>` : ""}
+                  ${w.breakdown ? `<p style="font-size:11px; color:var(--fg-muted); margin-top:4px;">${escapeHtml(w.breakdown)}</p>` : ""}
                 </div>
               </div>
             </div>
@@ -608,7 +608,7 @@ async function toggleTransactions() {
           <h3>${escapeHtml(s.role_needed) || "—"}</h3>
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.worker_name) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
-          <div style="margin-top:4px;"><span class="badge ${s.paid ? 'badge-green' : 'badge-yellow'}">${s.paid ? "Paid" : "Pending"}</span></div>
+          <div style="margin-top:4px;"><span class="badge ${s.paid ? 'badge-accent' : 'badge-yellow'}">${s.paid ? "Paid" : "Pending"}</span></div>
         </div>
       </div>
     `).join("");
@@ -630,9 +630,9 @@ async function loadRatings() {
   container.innerHTML = result.data.map(r => `
     <div class="profile-card" style="margin-bottom:8px;">
       <div class="profile-info" style="flex:1;">
-        <p style="color:#111827;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:rgba(255,255,255,0.4);">${r.rating || 0}/5</span></p>
-        ${r.review ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.review)}"</p>` : ""}
-        <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.rater_name ? escapeHtml(r.rater_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
+        <p style="color:#111827;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:var(--fg-muted);">${r.rating || 0}/5</span></p>
+        ${r.review ? `<p style="font-size:13px; color:var(--fg-muted); margin-top:4px;">"${escapeHtml(r.review)}"</p>` : ""}
+        <p style="font-size:11px; color:var(--fg-muted); margin-top:4px;">${r.rater_name ? escapeHtml(r.rater_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
       </div>
     </div>
   `).join("");
@@ -653,13 +653,13 @@ async function loadNotifications() {
     badge.style.display = "none";
   }
   if (!data.data || data.data.length === 0) {
-    list.innerHTML = '<div style="padding:16px; text-align:center; color:rgba(255,255,255,0.3); font-size:13px;">No notifications</div>';
+    list.innerHTML = '<div style="padding:16px; text-align:center; color:var(--fg-muted); font-size:13px;">No notifications</div>';
     return;
   }
   list.innerHTML = data.data.map(n => `
     <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markRead('${escapeHtml(n.id)}')" data-id="${escapeHtml(n.id)}">
-      <div style="color:rgba(255,255,255,0.8);">${escapeHtml(n.title)}</div>
-      <div style="color:rgba(255,255,255,0.4); font-size:12px; margin-top:2px;">${escapeHtml(n.message)}</div>
+      <div style="color:var(--fg-muted);">${escapeHtml(n.title)}</div>
+      <div style="color:var(--fg-muted); font-size:12px; margin-top:2px;">${escapeHtml(n.message)}</div>
       <div class="notif-time">${n.created_at ? new Date(n.created_at).toLocaleDateString() : ""}</div>
     </div>
   `).join("");
@@ -700,7 +700,7 @@ async function openFacilityRatingModal(shiftId, workerId) {
   document.getElementById("submitFacilityRatingBtn").textContent = "Submit rating";
   document.getElementById("submitFacilityRatingBtn").disabled = false;
   for (let i = 1; i <= 5; i++) {
-    document.getElementById("fStar" + i).style.color = "rgba(255,255,255,0.15)";
+    document.getElementById("fStar" + i).style.color = "var(--border)";
   }
   document.getElementById("ratingModal").style.display = "flex";
 }
@@ -712,7 +712,7 @@ function closeFacilityRatingModal() {
 function setFacilityRating(val) {
   facilitySelectedRating = val;
   for (let i = 1; i <= 5; i++) {
-    document.getElementById("fStar" + i).style.color = i <= val ? "#F0B429" : "rgba(255,255,255,0.15)";
+    document.getElementById("fStar" + i).style.color = i <= val ? "#F0B429" : "var(--border)";
   }
 }
 

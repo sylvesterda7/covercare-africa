@@ -23,17 +23,17 @@
     </div>
     <div class="nav-right" style="position:relative;">
       <span class="nav-user" id="navUser">Loading...</span>
-      <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" aria-label="Toggle notifications" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:rgba(255,255,255,0.5);">
+      <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" aria-label="Toggle notifications" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:var(--fg-muted);">
         <span role="img" aria-label="Notifications">🔔</span>
-        <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:#fff; font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
+        <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:var(--fg-primary); font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
       </button>
-      <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:#0F172A; border:1px solid rgba(255,255,255,0.08); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-        <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:13px; font-weight:500; color:rgba(255,255,255,0.7);">Notifications</span>
+      <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:var(--shadow-lg);">
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:500; color:var(--fg-muted);">Notifications</span>
           <button onclick="markAllRead()" style="font-size:11px; color:#111827; background:none; border:none; cursor:pointer; font-family:inherit;">Mark all read</button>
         </div>
         <div id="notifList" style="padding:8px 0;">
-          <div style="padding:16px; text-align:center; color:rgba(255,255,255,0.3); font-size:13px;">No notifications</div>
+          <div style="padding:16px; text-align:center; color:var(--fg-muted); font-size:13px;">No notifications</div>
         </div>
       </div>
       <button class="btn-logout" onclick="logout()">Sign out</button>
@@ -110,7 +110,7 @@
       <div class="section-title" style="margin-top: 2rem;">
         <span style="display:flex; align-items:center; gap:8px;">
           Best matches for you
-          <span class="badge badge-green" id="matchCount" style="font-size:11px;">0</span>
+          <span class="badge badge-accent" id="matchCount" style="font-size:11px;">0</span>
         </span>
       </div>
       <div id="matchedShiftsContainer">
@@ -195,9 +195,9 @@
       <h2 style="margin-bottom:1.5rem;">Edit profile</h2>
       <form id="profileForm" style="display:flex; flex-direction:column; gap:12px;">
         <div>
-          <label style="font-size:12px; color:rgba(255,255,255,0.4); margin-bottom:6px; display:block;">Profile photo</label>
+          <label style="font-size:12px; color:var(--fg-muted); margin-bottom:6px; display:block;">Profile photo</label>
           <div style="display:flex; align-items:center; gap:12px;">
-            <img id="profilePhotoPreview" src="" alt="Preview" style="width:56px; height:56px; border-radius:50%; object-fit:cover; display:none; background:rgba(255,255,255,0.05); border:2px solid rgba(17,24,39,0.15);" />
+            <img id="profilePhotoPreview" src="" alt="Preview" style="width:56px; height:56px; border-radius:50%; object-fit:cover; display:none; background:var(--bg-elevated); border:2px solid rgba(17,24,39,0.15);" />
             <input id="editPhoto" class="glass-input" type="file" accept=".jpg,.jpeg,.png" style="flex:1;" />
           </div>
         </div>
@@ -232,7 +232,7 @@
         </select>
         <div style="display:flex; gap:12px; margin-top:8px;">
           <button type="submit" class="btn-auth" style="flex:1;">Save changes</button>
-          <button type="button" onclick="closeProfileSettings()" class="btn-auth" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6);">Cancel</button>
+          <button type="button" onclick="closeProfileSettings()" class="btn-auth" style="flex:1; background:transparent; border:1px solid var(--border); color:var(--fg-muted);">Cancel</button>
         </div>
       </form>
     </div>
@@ -243,14 +243,14 @@
     <div class="scan-modal" style="max-width:420px;">
       <button class="scan-modal-close" onclick="closeRatingModal()" aria-label="Close">✕</button>
       <h2 style="margin-bottom:0.5rem;">Rate this facility</h2>
-      <p id="ratingFacilityName" style="font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:1.5rem;">—</p>
+      <p id="ratingFacilityName" style="font-size:14px; color:var(--fg-muted); margin-bottom:1.5rem;">—</p>
       <div style="display:flex; gap:6px; justify-content:center; margin-bottom:1.5rem; font-size:32px;">
-        ${[1,2,3,4,5].map(i => `<span onclick="setRating(${i})" id="star${i}" style="cursor:pointer; color:rgba(255,255,255,0.15); transition:color 0.2s;">★</span>`).join("")}
+        ${[1,2,3,4,5].map(i => `<span onclick="setRating(${i})" id="star${i}" style="cursor:pointer; color:var(--fg-muted); transition:color 0.2s;">★</span>`).join("")}
       </div>
-      <textarea id="ratingReview" class="glass-input" placeholder="Write a review (optional)..." rows="3" style="resize:vertical; padding:11px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:14px; color:#f0efe8; font-family:inherit; width:100%; box-sizing:border-box;"></textarea>
+      <textarea id="ratingReview" class="glass-input" placeholder="Write a review (optional)..." rows="3" style="resize:vertical; padding:11px 14px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:10px; font-size:14px; color:var(--fg-primary); font-family:inherit; width:100%; box-sizing:border-box;"></textarea>
       <div style="display:flex; gap:12px; margin-top:1rem;">
         <button onclick="submitRating()" class="btn-auth" style="flex:1;" id="submitRatingBtn">Submit rating</button>
-        <button onclick="closeRatingModal()" class="btn-auth" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6);">Cancel</button>
+        <button onclick="closeRatingModal()" class="btn-auth" style="flex:1; background:transparent; border:1px solid var(--border); color:var(--fg-muted);">Cancel</button>
       </div>
     </div>
   </div>
@@ -273,7 +273,7 @@
           <option value="technical">Technical</option>
         </select>
         <input id="supportSubject" class="glass-input" type="text" placeholder="Subject" required />
-        <textarea id="supportMessage" class="glass-input" placeholder="Describe your issue..." rows="4" required style="resize:vertical; padding:11px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:14px; color:#f0efe8; font-family:inherit;"></textarea>
+        <textarea id="supportMessage" class="glass-input" placeholder="Describe your issue..." rows="4" required style="resize:vertical; padding:11px 14px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:10px; font-size:14px; color:var(--fg-primary); font-family:inherit;"></textarea>
         <button type="submit" class="btn-auth">Send</button>
       </form>
     </div>

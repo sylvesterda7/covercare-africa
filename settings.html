@@ -63,22 +63,22 @@
       </div>
 
       <!-- Section nav -->
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:2rem; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:14px;">
-        <button onclick="scrollToSection('profile')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Profile</button>
-        <button onclick="scrollToSection('security')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Security</button>
-        <button onclick="scrollToSection('notifications')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Notifications</button>
-        <button onclick="scrollToSection('availability')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Availability</button>
-        <button onclick="scrollToSection('preferences')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Preferences</button>
-        <button onclick="scrollToSection('payout')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Payout</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:2rem; border-bottom:1px solid var(--border); padding-bottom:14px;">
+        <button onclick="scrollToSection('profile')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:var(--fg-muted);">Profile</button>
+        <button onclick="scrollToSection('security')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:var(--fg-muted);">Security</button>
+        <button onclick="scrollToSection('notifications')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:var(--fg-muted);">Notifications</button>
+        <button onclick="scrollToSection('availability')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:var(--fg-muted);">Availability</button>
+        <button onclick="scrollToSection('preferences')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:var(--fg-muted);">Preferences</button>
+        <button onclick="scrollToSection('payout')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:var(--fg-muted);">Payout</button>
         <button onclick="scrollToSection('danger')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:#E24B4A;">Danger zone</button>
       </div>
 
       <!-- ─── PROFILE ─── -->
       <section id="sec-profile" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
-        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Profile</p>
+        <p style="font-size:11px; font-weight:600; color:var(--fg-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Profile</p>
         <form id="settingsProfileForm" style="display:flex; flex-direction:column; gap:12px; max-width:480px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
-            <img id="settingsPhotoPreview" src="" alt="" style="width:60px; height:60px; border-radius:50%; object-fit:cover; display:none; background:rgba(255,255,255,0.05); border:2px solid rgba(17,24,39,0.15);" />
+            <img id="settingsPhotoPreview" src="" alt="" style="width:60px; height:60px; border-radius:50%; object-fit:cover; display:none; background:var(--bg-elevated); border:2px solid rgba(17,24,39,0.15);" />
             <input id="settingsPhoto" class="glass-input" type="file" accept=".jpg,.jpeg,.png" style="flex:1;" />
           </div>
           <input id="settingsFullname" class="glass-input" type="text" placeholder="Full name" required />
@@ -117,17 +117,17 @@
 
       <!-- ─── SECURITY ─── -->
       <section id="sec-security" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
-        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Security</p>
+        <p style="font-size:11px; font-weight:600; color:var(--fg-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Security</p>
         <div style="max-width:480px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
             <div>
-              <p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Email address</p>
-              <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;" id="settingsEmail">—</p>
+              <p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">Email address</p>
+              <p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;" id="settingsEmail">—</p>
             </div>
-            <span class="badge badge-green" id="emailVerifiedBadge">Verified</span>
+            <span class="badge badge-accent" id="emailVerifiedBadge">Verified</span>
           </div>
           <form id="settingsPasswordForm" style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
-            <p style="font-size:13px; font-weight:500; color:rgba(255,255,255,0.5);">Change password</p>
+            <p style="font-size:13px; font-weight:500; color:var(--fg-muted);">Change password</p>
             <input id="settingsNewPassword" class="glass-input" type="password" placeholder="New password (min 8 characters)" />
             <input id="settingsConfirmPassword" class="glass-input" type="password" placeholder="Confirm new password" />
             <button type="submit" class="btn-auth" style="align-self:flex-start;">Update password</button>
@@ -138,22 +138,22 @@
 
       <!-- ─── NOTIFICATIONS ─── -->
       <section id="sec-notifications" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
-        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Notifications</p>
+        <p style="font-size:11px; font-weight:600; color:var(--fg-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Notifications</p>
         <div style="max-width:480px; display:flex; flex-direction:column; gap:4px;">
           <div class="notif-pref-row">
-            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">New shift alerts</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">When new shifts match your profile</p></div>
+            <div><p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">New shift alerts</p><p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">When new shifts match your profile</p></div>
             <label class="toggle"><input type="checkbox" id="notifShifts" checked /><span class="toggle-slider"></span></label>
           </div>
           <div class="notif-pref-row">
-            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Application updates</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">When a facility accepts or declines</p></div>
+            <div><p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">Application updates</p><p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">When a facility accepts or declines</p></div>
             <label class="toggle"><input type="checkbox" id="notifApplications" checked /><span class="toggle-slider"></span></label>
           </div>
           <div class="notif-pref-row">
-            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Payment notifications</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">When you receive a payout</p></div>
+            <div><p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">Payment notifications</p><p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">When you receive a payout</p></div>
             <label class="toggle"><input type="checkbox" id="notifPayments" checked /><span class="toggle-slider"></span></label>
           </div>
           <div class="notif-pref-row">
-            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Marketing emails</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">Tips, resources, and platform updates</p></div>
+            <div><p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">Marketing emails</p><p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">Tips, resources, and platform updates</p></div>
             <label class="toggle"><input type="checkbox" id="notifMarketing" /><span class="toggle-slider"></span></label>
           </div>
           <button onclick="saveNotifPrefs()" class="btn-auth" style="align-self:flex-start; margin-top:12px;">Save preferences</button>
@@ -163,10 +163,10 @@
 
       <!-- ─── AVAILABILITY ─── -->
       <section id="sec-availability" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
-        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Availability</p>
+        <p style="font-size:11px; font-weight:600; color:var(--fg-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Availability</p>
         <div style="max-width:480px;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;">
-            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Available for shifts</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">Let facilities know you're open to work</p></div>
+            <div><p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">Available for shifts</p><p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">Let facilities know you're open to work</p></div>
             <label class="toggle"><input type="checkbox" id="settingsAvailBtn" checked /><span class="toggle-slider"></span></label>
           </div>
           <button onclick="saveAvailability()" class="btn-auth" style="align-self:flex-start; margin-top:12px;">Save availability</button>
@@ -176,10 +176,10 @@
 
       <!-- ─── PREFERENCES ─── -->
       <section id="sec-preferences" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
-        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Preferences</p>
+        <p style="font-size:11px; font-weight:600; color:var(--fg-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Preferences</p>
         <div style="max-width:480px;">
           <div class="notif-pref-row">
-            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Preferred currency</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">Display amounts in your currency of choice</p></div>
+            <div><p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">Preferred currency</p><p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">Display amounts in your currency of choice</p></div>
             <div id="settingsCurrencyContainer" style="width:220px;"></div>
           </div>
           <button onclick="saveCurrencyPref()" class="btn-auth" style="align-self:flex-start; margin-top:12px;">Save</button>
@@ -189,9 +189,9 @@
 
       <!-- ─── PAYOUT ─── -->
       <section id="sec-payout" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
-        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Payout settings</p>
+        <p style="font-size:11px; font-weight:600; color:var(--fg-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Payout settings</p>
         <div style="max-width:480px;">
-          <p style="font-size:14px; color:rgba(255,255,255,0.5); line-height:1.6; margin-bottom:12px;">Manage your bank account and Mobile Money details for receiving payments after completed shifts.</p>
+          <p style="font-size:14px; color:var(--fg-muted); line-height:1.6; margin-bottom:12px;">Manage your bank account and Mobile Money details for receiving payments after completed shifts.</p>
           <a href="finance.html" class="btn-auth" style="display:inline-block; text-decoration:none; text-align:center;">Go to Finance</a>
         </div>
       </section>
@@ -200,7 +200,7 @@
       <section id="sec-danger" class="dashboard-sidebar-card" style="margin-bottom:1.5rem; border-color:rgba(226,75,74,0.15);">
         <p style="font-size:11px; font-weight:600; color:#E24B4A; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Danger zone</p>
         <div style="max-width:480px;">
-          <p style="font-size:14px; color:rgba(255,255,255,0.5); line-height:1.6; margin-bottom:12px;">Permanently delete your account and all associated data. This action cannot be undone.</p>
+          <p style="font-size:14px; color:var(--fg-muted); line-height:1.6; margin-bottom:12px;">Permanently delete your account and all associated data. This action cannot be undone.</p>
           <button onclick="confirmDeleteAccount()" class="btn-auth" style="background:rgba(226,75,74,0.1); border:1px solid rgba(226,75,74,0.3); color:#E24B4A;">Delete my account</button>
         </div>
       </section>

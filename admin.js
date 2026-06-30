@@ -26,8 +26,8 @@ async function init() {
       <div style="display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif;">
         <div style="text-align:center; color:#E24B4A;">
           <div style="font-size:48px; margin-bottom:1rem;">🚫</div>
-          <h2 style="color:#fff; margin-bottom:0.5rem;">Access denied</h2>
-          <p style="color:rgba(255,255,255,0.4);">You don't have admin access.</p>
+          <h2 style="color:var(--fg-primary); margin-bottom:0.5rem;">Access denied</h2>
+          <p style="color:var(--fg-muted);">You don't have admin access.</p>
           <a href="index.html" style="color:#111827; margin-top:1rem; display:block;">Go to homepage</a>
         </div>
       </div>
@@ -91,29 +91,29 @@ function renderWorkers(workers) {
         <tbody>
           ${workers.map(w => `
             <tr>
-              <td style="color:#fff; font-weight:500;">${w.full_name || "—"}</td>
+              <td style="color:var(--fg-primary); font-weight:500;">${w.full_name || "—"}</td>
               <td>${w.email || "—"}</td>
               <td>${w.role || "—"}</td>
               <td>${w.city || "—"}</td>
               <td>
                 ${w.license_verified
-                  ? '<span class="badge badge-green">✓ Verified</span>'
+                  ? '<span class="badge badge-accent">✓ Verified</span>'
                   : '<span class="badge badge-yellow">Pending</span>'
                 }
               </td>
               <td>
                 ${w.identity_verified
-                  ? '<span class="badge badge-green">✓ Verified</span>'
+                  ? '<span class="badge badge-accent">✓ Verified</span>'
                   : '<span class="badge badge-yellow">Pending</span>'
                 }
               </td>
-              <td style="color:rgba(255,255,255,0.35);">
+              <td style="color:var(--fg-muted);">
                 ${w.created_at ? new Date(w.created_at).toLocaleDateString() : "—"}
               </td>
               <td>
                 <button
                   onclick="toggleLicenseVerified('${w.id}', ${w.license_verified})"
-                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.4); cursor:pointer; font-family:inherit;">
+                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--fg-muted); cursor:pointer; font-family:inherit;">
                   ${w.license_verified ? "Unverify" : "Verify"}
                 </button>
               </td>
@@ -190,13 +190,13 @@ async function loadFacilities() {
         <tbody>
           ${data.map(f => `
             <tr>
-              <td style="color:#fff; font-weight:500;">${f.facility_name || "—"}</td>
+              <td style="color:var(--fg-primary); font-weight:500;">${f.facility_name || "—"}</td>
               <td>${f.facility_type || "—"}</td>
               <td>${f.city || "—"}</td>
               <td>${f.contact_name || "—"}</td>
               <td>${f.email || "—"}</td>
               <td>${f.staff_needs || "—"}</td>
-              <td style="color:rgba(255,255,255,0.35);">
+              <td style="color:var(--fg-muted);">
                 ${f.created_at ? new Date(f.created_at).toLocaleDateString() : "—"}
               </td>
             </tr>
@@ -262,7 +262,7 @@ async function loadShifts() {
         <tbody>
           ${data.map(s => `
             <tr>
-              <td style="color:#fff; font-weight:500;">${s.facility_name || "—"}</td>
+              <td style="color:var(--fg-primary); font-weight:500;">${s.facility_name || "—"}</td>
               <td>${s.role_needed || "—"}</td>
               <td>${s.city || "—"}</td>
               <td>${s.shift_date || "—"}</td>
@@ -271,21 +271,21 @@ async function loadShifts() {
               <td style="color:#111827;">${s.total_pay || "—"}</td>
               <td>
                 ${s.payment_status === "paid"
-                  ? '<span class="badge badge-green">✓ Paid</span>'
+                  ? '<span class="badge badge-accent">✓ Paid</span>'
                   : '<span class="badge badge-yellow">Unpaid</span>'
                 }
               </td>
               <td>
                 ${s.status === "open"
-                  ? '<span class="badge badge-green">Open</span>'
+                  ? '<span class="badge badge-accent">Open</span>'
                   : s.status === "accepted"
-                  ? '<span class="badge badge-green">Accepted</span>'
+                  ? '<span class="badge badge-accent">Accepted</span>'
                   : s.status === "cancelled"
                   ? '<span class="badge badge-red">Cancelled</span>'
                   : '<span class="badge badge-grey">' + (s.status || "—") + '</span>'
                 }
               </td>
-              <td style="color:rgba(255,255,255,0.35);">
+              <td style="color:var(--fg-muted);">
                 ${s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}
               </td>
             </tr>
@@ -315,7 +315,7 @@ async function loadAnalytics() {
 function renderBarChart(containerId, data, color) {
   const container = document.getElementById(containerId);
   if (!container || !data || data.length === 0) {
-    container.innerHTML = '<div style="color:rgba(255,255,255,0.2); font-size:13px;">No data</div>';
+    container.innerHTML = '<div style="color:var(--fg-muted); font-size:13px;">No data</div>';
     return;
   }
   const maxVal = Math.max(...data.map(d => d.count || 0), 1);
