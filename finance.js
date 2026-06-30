@@ -17,7 +17,7 @@ function toggleSidebar() {
 /* ── Tabs ── */
 function switchFinTab(tab) {
   ["wallet","methods","transactions"].forEach(t => {
-    document.getElementById("finTab" + t.charAt(0).toUpperCase() + t.slice(1)).style.color = t === tab ? "#5DCAA5" : "rgba(255,255,255,0.4)";
+    document.getElementById("finTab" + t.charAt(0).toUpperCase() + t.slice(1)).style.color = t === tab ? "#111827" : "rgba(255,255,255,0.4)";
     document.getElementById("fin" + t.charAt(0).toUpperCase() + t.slice(1) + "Tab").style.display = t === tab ? "block" : "none";
   });
   if (tab === "wallet") loadWallet();
@@ -80,7 +80,7 @@ async function loadPayoutHistory() {
       return;
     }
     container.innerHTML = result.data.map(p => {
-      const statusColor = p.status === "completed" ? "#5DCAA5" : p.status === "failed" ? "#E24B4A" : p.status === "processing" ? "#F0B429" : "rgba(255,255,255,0.3)";
+      const statusColor = p.status === "completed" ? "#111827" : p.status === "failed" ? "#E24B4A" : p.status === "processing" ? "#F0B429" : "rgba(255,255,255,0.3)";
       const methodLabel = p.method === "bank" ? "Bank" : "Mobile Money";
       const methodDetail = p.method === "bank" ? p.bank_name + " · " + p.bank_account_number : p.momo_provider + " · " + p.momo_number;
       return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
@@ -142,7 +142,7 @@ async function submitPayoutRequest() {
     });
     msg.style.display = "block";
     if (result.success) {
-      msg.style.color = "#5DCAA5"; msg.textContent = result.message || "Payout request submitted!";
+      msg.style.color = "#111827"; msg.textContent = result.message || "Payout request submitted!";
       closePayoutModal();
       loadWallet();
     } else {
@@ -186,7 +186,7 @@ document.getElementById("financeForm")?.addEventListener("submit", async functio
       })
     });
     msg.style.display = "block";
-    if (result.success) { msg.style.color = "#5DCAA5"; msg.textContent = "Payment methods saved!"; }
+    if (result.success) { msg.style.color = "#111827"; msg.textContent = "Payment methods saved!"; }
     else { msg.style.color = "#E24B4A"; msg.textContent = result.message || "Failed to save."; }
   } catch (e) {
     msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Something went wrong.";
@@ -206,7 +206,7 @@ async function loadFinanceTransactions() {
     const d = result.data;
     const total = d.total || 0;
     document.getElementById("finStatsRow").innerHTML = `
-      <div class="stat-box"><div class="num" style="color:#5DCAA5;">${formatCurrency(total)}</div><div class="label">Total earned</div></div>
+      <div class="stat-box"><div class="num" style="color:#111827;">${formatCurrency(total)}</div><div class="label">Total earned</div></div>
       <div class="stat-box"><div class="num">${d.transactions.length}</div><div class="label">Completed shifts</div></div>
     `;
     const chartEl = document.getElementById("finChart");
@@ -219,7 +219,7 @@ async function loadFinanceTransactions() {
       const label = new Date(key + "-01").toLocaleDateString("en", { month: "short", year: "numeric" });
       return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
         <span style="font-size:10px; color:rgba(255,255,255,0.35); font-weight:500;">${val ? formatCurrency(val) : ""}</span>
-        <div style="width:100%; max-width:56px; height:${pct}%; background:linear-gradient(180deg,#5DCAA5,rgba(93,202,165,0.15)); border-radius:6px 6px 0 0; transition:height 0.5s; box-shadow:0 0 12px rgba(93,202,165,0.15);"></div>
+        <div style="width:100%; max-width:56px; height:${pct}%; background:linear-gradient(180deg,#111827,rgba(17,24,39,0.15)); border-radius:6px 6px 0 0; transition:height 0.5s; box-shadow:0 0 12px rgba(17,24,39,0.15);"></div>
         <span style="font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap;">${label}</span>
       </div>`;
     }).join("");
@@ -228,7 +228,7 @@ async function loadFinanceTransactions() {
       return;
     }
     container.innerHTML = d.transactions.map(t => {
-      const statusColor = t.payout_status === "paid" ? "#5DCAA5" : t.payout_status === "failed" ? "#E24B4A" : "#F0B429";
+      const statusColor = t.payout_status === "paid" ? "#111827" : t.payout_status === "failed" ? "#E24B4A" : "#F0B429";
       const statusLabel = t.payout_status === "paid" ? "Paid" : t.payout_status === "failed" ? "Failed" : "Pending";
       return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
         <div style="flex:1;">
@@ -236,7 +236,7 @@ async function loadFinanceTransactions() {
           <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">${escapeHtml(t.role_needed)} · ${t.shift_date || "—"}</p>
         </div>
         <div style="text-align:right;">
-          <p style="font-size:15px; font-weight:600; color:#5DCAA5; margin:0;">${formatCurrency(t.amount)}</p>
+          <p style="font-size:15px; font-weight:600; color:#111827; margin:0;">${formatCurrency(t.amount)}</p>
           <span style="font-size:11px; color:${statusColor};">${statusLabel}</span>
         </div>
       </div>`;

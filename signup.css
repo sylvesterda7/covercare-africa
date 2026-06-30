@@ -110,7 +110,7 @@ input[type="file"]:hover {
 
 .btn-submit {
   background: var(--accent);
-  color: #04342C;
+  color: var(--accent);
   border: none;
   padding: 14px;
   border-radius: var(--radius-sm);
@@ -146,9 +146,9 @@ input[type="file"]:hover {
 }
 
 .btn-verify {
-  background: rgba(93,202,165,0.12);
+  background: rgba(17,24,39,0.12);
   color: var(--accent);
-  border: 1px solid rgba(93,202,165,0.25);
+  border: 1px solid rgba(17,24,39,0.25);
   padding: 12px 18px;
   border-radius: var(--radius-sm);
   font-size: 14px;
@@ -160,8 +160,8 @@ input[type="file"]:hover {
 }
 
 .btn-verify:hover {
-  background: rgba(93,202,165,0.18);
-  border-color: rgba(93,202,165,0.35);
+  background: rgba(17,24,39,0.18);
+  border-color: rgba(17,24,39,0.35);
 }
 
 .btn-verify:disabled {
@@ -179,8 +179,8 @@ input[type="file"]:hover {
 }
 
 .verify-result.success {
-  background: rgba(93,202,165,0.08);
-  border: 1px solid rgba(93,202,165,0.15);
+  background: rgba(17,24,39,0.08);
+  border: 1px solid rgba(17,24,39,0.15);
   color: var(--accent);
 }
 
@@ -213,8 +213,8 @@ input[type="file"]:hover {
   display: none;
   text-align: center;
   padding: 3rem 2rem;
-  background: rgba(93,202,165,0.04);
-  border: 1px solid rgba(93,202,165,0.12);
+  background: rgba(17,24,39,0.04);
+  border: 1px solid rgba(17,24,39,0.12);
   border-radius: var(--radius-card);
 }
 
@@ -223,7 +223,7 @@ input[type="file"]:hover {
   height: 60px;
   border-radius: 50%;
   background: var(--accent);
-  color: #04342C;
+  color: var(--accent);
   font-size: 26px;
   font-weight: 600;
   display: flex;
@@ -250,7 +250,7 @@ input[type="file"]:hover {
 .btn-home {
   display: inline-block;
   background: var(--accent);
-  color: #04342C;
+  color: var(--accent);
   padding: 12px 28px;
   border-radius: var(--radius-sm);
   font-size: 14px;
@@ -294,14 +294,14 @@ input[type="file"]:hover {
 }
 
 .progress-step.active {
-  background: rgba(93,202,165,0.12);
-  border-color: rgba(93,202,165,0.3);
+  background: rgba(17,24,39,0.12);
+  border-color: rgba(17,24,39,0.3);
   color: var(--accent);
 }
 
 .progress-step.done {
-  background: rgba(93,202,165,0.08);
-  border-color: rgba(93,202,165,0.2);
+  background: rgba(17,24,39,0.08);
+  border-color: rgba(17,24,39,0.2);
   color: var(--accent);
 }
 
@@ -313,7 +313,7 @@ input[type="file"]:hover {
 }
 
 .progress-line.done {
-  background: rgba(93,202,165,0.25);
+  background: rgba(17,24,39,0.25);
 }
 
 .progress-labels {

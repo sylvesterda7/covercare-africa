@@ -101,14 +101,14 @@ function renderShifts(shifts) {
   }
   container.innerHTML = shifts.map(shift => `
     <div class="profile-card" style="margin-bottom:12px;">
-      <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
+      <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
         ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
       </div>
       <div class="profile-info" style="flex:1;">
         <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
         <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
         <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
-        <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
+        <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
         <div style="margin-top:8px;">
           <span class="badge badge-green">
             ${shift.urgency === "today" ? "🔴 Urgent" : "Open"}
@@ -223,14 +223,14 @@ async function loadMyShifts() {
     return `
       <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
         <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
-          <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
+          <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
             ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
           </div>
           <div class="profile-info" style="flex:1;">
             <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
             <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
             <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"}</p>
-            <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
+            <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
             <div style="margin-top:6px;">
               <span class="badge ${shift.status === "in_progress" ? "badge-green" : "badge-yellow"}">
                 ${shift.status === "in_progress" ? "In progress" : "Accepted — show QR on arrival"}
@@ -385,7 +385,7 @@ async function loadCompletedShifts() {
 
   container.innerHTML = `
     <p style="font-size:13px; color:rgba(255,255,255,0.3); margin-bottom:12px;">
-      ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total earned: <strong style="color:#5DCAA5;">GHS ${totalEarned.toLocaleString()}</strong>
+      ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total earned: <strong style="color:#111827;">GHS ${totalEarned.toLocaleString()}</strong>
     </p>
     ${result.data.map(s => `
       <div class="profile-card" style="margin-bottom:10px;">
@@ -393,7 +393,7 @@ async function loadCompletedShifts() {
           <h3>${escapeHtml(s.facility_name) || "—"}</h3>
           <p>${escapeHtml(s.role_needed) || "—"} · ${escapeHtml(s.city) || "—"}</p>
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+          <p style="color:#111827; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
         </div>
         <button onclick="openRatingModal('${escapeHtml(s.id)}', '${escapeHtml(s.contact_email)}', '${escapeHtml(s.facility_name)}')" class="btn-primary-sm" style="font-size:12px; padding:7px 14px; flex-shrink:0;">Rate</button>
       </div>
@@ -549,7 +549,7 @@ async function loadMatchedShifts() {
   if (badge) badge.textContent = sorted.length;
   container.innerHTML = sorted.map(m => {
     const score = m.score || 0;
-    const barColor = score >= 80 ? "#5DCAA5" : score >= 50 ? "#F0B429" : "#E24B4A";
+    const barColor = score >= 80 ? "#111827" : score >= 50 ? "#F0B429" : "#E24B4A";
     return `
       <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
@@ -559,14 +559,14 @@ async function loadMatchedShifts() {
           <span style="font-size:11px; color:${barColor}; font-weight:500; min-width:32px; text-align:right;">${score}%</span>
         </div>
         <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
-          <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
+          <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
             ${escapeHtml(m.role_needed || "").substring(0, 2).toUpperCase() || "SH"}
           </div>
           <div class="profile-info" style="flex:1;">
             <h3>${escapeHtml(m.facility_name) || "—"}</h3>
             <p>${escapeHtml(m.role_needed) || "—"} · ${escapeHtml(m.city) || "—"}</p>
             <p>${escapeHtml(m.shift_date) || "—"} · ${escapeHtml(m.start_time) || "—"} · ${escapeHtml(m.duration) || "—"}</p>
-            <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(m.pay_rate) || "—"}</p>
+            <p style="color:#111827; font-weight:500;">${escapeHtml(m.pay_rate) || "—"}</p>
             ${m.breakdown ? `<p style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:4px;">${escapeHtml(m.breakdown)}</p>` : ""}
           </div>
           <div>
@@ -594,7 +594,7 @@ function updateAvailBtn(available) {
   const btn = document.getElementById("availBtn");
   if (!btn) return;
   btn.textContent = available ? "Set unavailable" : "Set available";
-  btn.style.borderColor = available ? "rgba(93,202,165,0.3)" : "rgba(226,75,74,0.3)";
+  btn.style.borderColor = available ? "rgba(17,24,39,0.3)" : "rgba(226,75,74,0.3)";
 }
 
 // ── Payroll ──
@@ -633,7 +633,7 @@ async function togglePayslips() {
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(s.facility_name) || "—"}</h3>
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.role_needed) || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+          <p style="color:#111827; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
           <div style="margin-top:4px;"><span class="badge ${s.paid ? 'badge-green' : 'badge-yellow'}">${s.paid ? "Paid" : "Pending"}</span></div>
         </div>
       </div>
@@ -661,7 +661,7 @@ async function loadRatings() {
   container.innerHTML = result.data.map(r => `
     <div class="profile-card" style="margin-bottom:8px;">
       <div class="profile-info" style="flex:1;">
-        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:rgba(255,255,255,0.4);">${r.rating || 0}/5</span></p>
+        <p style="color:#111827;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:rgba(255,255,255,0.4);">${r.rating || 0}/5</span></p>
         ${r.review ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.review)}"</p>` : ""}
         <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.rater_name ? escapeHtml(r.rater_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
       </div>

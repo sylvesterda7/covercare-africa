@@ -28,7 +28,7 @@ async function init() {
           <div style="font-size:48px; margin-bottom:1rem;">🚫</div>
           <h2 style="color:#fff; margin-bottom:0.5rem;">Access denied</h2>
           <p style="color:rgba(255,255,255,0.4);">You don't have admin access.</p>
-          <a href="index.html" style="color:#5DCAA5; margin-top:1rem; display:block;">Go to homepage</a>
+          <a href="index.html" style="color:#111827; margin-top:1rem; display:block;">Go to homepage</a>
         </div>
       </div>
     `;
@@ -268,7 +268,7 @@ async function loadShifts() {
               <td>${s.shift_date || "—"}</td>
               <td>${s.duration || "—"}</td>
               <td>${s.pay_rate || "—"}</td>
-              <td style="color:#5DCAA5;">${s.total_pay || "—"}</td>
+              <td style="color:#111827;">${s.total_pay || "—"}</td>
               <td>
                 ${s.payment_status === "paid"
                   ? '<span class="badge badge-green">✓ Paid</span>'
@@ -307,8 +307,8 @@ async function loadAnalytics() {
   document.getElementById("analOpenTickets").textContent = result.openSupportTickets || 0;
   document.getElementById("analIdVerified").textContent = result.identityVerifiedCount || 0;
 
-  renderBarChart("workersChart", result.workersByMonth || [], "#5DCAA5");
-  renderBarChart("shiftsChart", result.shiftsByMonth || [], "#5DCAA5");
+  renderBarChart("workersChart", result.workersByMonth || [], "#111827");
+  renderBarChart("shiftsChart", result.shiftsByMonth || [], "#111827");
   renderBarChart("revenueChart", (result.revenueByMonth || []).map(r => ({ ...r, count: r.amount })), "#F0B429");
 }
 

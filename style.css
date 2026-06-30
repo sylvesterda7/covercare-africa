@@ -8,11 +8,11 @@
   --border: #E5E7EB;
   --fg-primary: #111827;
   --fg-muted: #6B7280;
-  --accent: #059669;
-  --accent-hover: #047857;
-  --accent-dim: rgba(5,150,105,0.06);
-  --accent-border: rgba(5,150,105,0.15);
-  --accent-glow: rgba(5,150,105,0.08);
+  --accent: #111827;
+  --accent-hover: #000000;
+  --accent-dim: rgba(17,24,39,0.06);
+  --accent-border: rgba(17,24,39,0.12);
+  --accent-glow: rgba(17,24,39,0.06);
   --radius-card: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
@@ -47,7 +47,7 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(5,150,105,0.04) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
@@ -389,7 +389,7 @@ footer {
 }
 
 /* ── Utility ── */
-.text-green { color: #5DCAA5; }
+.text-green { color: var(--accent); }
 .text-muted { color: var(--fg-muted); }
 .text-white { color: #fff; }
 .text-accent { color: var(--accent); }
@@ -971,8 +971,8 @@ footer {
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb { background: rgba(93,202,165,0.2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(93,202,165,0.35); }
+::-webkit-scrollbar-thumb { background: rgba(17,24,39,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(17,24,39,0.35); }
 
 /* ── Bullet chart ── */
 .bullet-chart {

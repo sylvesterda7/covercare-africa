@@ -123,7 +123,7 @@ document.getElementById("settingsProfileForm").addEventListener("submit", async 
     });
     msg.style.display = "block";
     if (result.success) {
-      msg.style.color = "#5DCAA5"; msg.textContent = "Profile saved!";
+      msg.style.color = "#111827"; msg.textContent = "Profile saved!";
       const { data: { session } } = await _supabase.auth.getSession();
       if (session) await loadWorkerProfile(session.user.email);
     } else {
@@ -151,7 +151,7 @@ document.getElementById("settingsPasswordForm").addEventListener("submit", async
     const { error } = await _supabase.auth.updateUser({ password: newPass });
     msg.style.display = "block";
     if (error) { msg.style.color = "#E24B4A"; msg.textContent = error.message; }
-    else { msg.style.color = "#5DCAA5"; msg.textContent = "Password updated!"; document.getElementById("settingsNewPassword").value = ""; document.getElementById("settingsConfirmPassword").value = ""; }
+    else { msg.style.color = "#111827"; msg.textContent = "Password updated!"; document.getElementById("settingsNewPassword").value = ""; document.getElementById("settingsConfirmPassword").value = ""; }
   } catch (e) {
     msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Something went wrong.";
   }
@@ -178,7 +178,7 @@ function saveNotifPrefs() {
   };
   localStorage.setItem("cc_notif_prefs", JSON.stringify(prefs));
   const msg = document.getElementById("settingsNotifMsg");
-  msg.style.display = "block"; msg.style.color = "#5DCAA5"; msg.textContent = "Notification preferences saved!";
+  msg.style.display = "block"; msg.style.color = "#111827"; msg.textContent = "Notification preferences saved!";
   setTimeout(() => msg.style.display = "none", 3000);
 }
 
@@ -196,7 +196,7 @@ function saveCurrencyPref() {
   }
   localStorage.setItem("cc_currency", JSON.stringify(code));
   const msg = document.getElementById("settingsCurrencyMsg");
-  msg.style.display = "block"; msg.style.color = "#5DCAA5"; msg.textContent = "Currency preference saved!";
+  msg.style.display = "block"; msg.style.color = "#111827"; msg.textContent = "Currency preference saved!";
   setTimeout(() => msg.style.display = "none", 3000);
 }
 
@@ -209,7 +209,7 @@ async function saveAvailability() {
       method: "POST",
       body: JSON.stringify({ available })
     });
-    msg.style.display = "block"; msg.style.color = "#5DCAA5"; msg.textContent = available ? "You're now available for shifts." : "You've been set as unavailable.";
+    msg.style.display = "block"; msg.style.color = "#111827"; msg.textContent = available ? "You're now available for shifts." : "You've been set as unavailable.";
     setTimeout(() => msg.style.display = "none", 3000);
   } catch (e) {
     msg.style.display = "block"; msg.style.color = "#E24B4A"; msg.textContent = "Failed to update.";

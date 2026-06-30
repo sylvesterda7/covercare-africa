@@ -63,13 +63,13 @@ async function loadShifts(email) {
   if (openShifts.length > 0) {
     openContainer.innerHTML = openShifts.map(shift => `
       <div class="profile-card" style="margin-bottom:12px;">
-        <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
+        <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
           ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
         </div>
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(shift.role_needed) || "—"}</h3>
           <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
+          <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
           <div style="margin-top:8px;">
             <span class="badge badge-yellow">Awaiting applicants</span>
           </div>
@@ -101,7 +101,7 @@ async function loadShifts(email) {
       liveContainer.innerHTML = inProgress.map(s => `
         <div class="profile-card" style="margin-bottom:10px;">
           <div class="profile-info" style="flex:1;">
-            <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(workerMap[s.worker_id]?.full_name || "Worker")}</p>
+            <p style="color:#111827; font-weight:500;">${escapeHtml(workerMap[s.worker_id]?.full_name || "Worker")}</p>
             <p>${escapeHtml(s.role_needed) || "—"} · since ${escapeHtml(s.arrival_time ? new Date(s.arrival_time).toLocaleTimeString() : "—")}</p>
           </div>
         </div>
@@ -134,13 +134,13 @@ async function loadShifts(email) {
   if (filledShifts.length > 0) {
     filledContainer.innerHTML = filledShifts.map(shift => `
       <div class="profile-card" style="margin-bottom:12px;">
-        <div class="profile-avatar" style="background:rgba(93,202,165,0.1); font-size:14px;">
+        <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
           ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
         </div>
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(shift.role_needed) || "—"}</h3>
           <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(shift.total_pay) || "—"}</p>
+          <p style="color:#111827; font-weight:500;">${escapeHtml(shift.total_pay) || "—"}</p>
           <div style="margin-top:8px;">
             <span class="badge badge-green">
               ${shift.status === "in_progress" ? "⏱ In progress" : shift.status === "completed" ? "✓ Completed" : "✓ Filled"}
@@ -343,7 +343,7 @@ async function loadCompletedShifts() {
 
   container.innerHTML = `
     <p style="font-size:13px; color:rgba(255,255,255,0.3); margin-bottom:12px;">
-      ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total spent: <strong style="color:#5DCAA5;">GHS ${totalSpent.toLocaleString()}</strong>
+      ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total spent: <strong style="color:#111827;">GHS ${totalSpent.toLocaleString()}</strong>
     </p>
     ${result.data.map(s => `
       <div class="profile-card" style="margin-bottom:10px;">
@@ -351,7 +351,7 @@ async function loadCompletedShifts() {
           <h3>${escapeHtml(s.role_needed) || "—"}</h3>
           <p>${escapeHtml(s.facility_name) || "—"} · ${escapeHtml(s.city) || "—"}</p>
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+          <p style="color:#111827; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
         </div>
         <button onclick="openFacilityRatingModal('${escapeHtml(s.id)}', '${escapeHtml(s.worker_id || "")}')" class="btn-primary-sm" style="font-size:12px; padding:7px 14px; flex-shrink:0;">Rate</button>
       </div>
@@ -392,7 +392,7 @@ function renderDocumentStatus(profile) {
       <div class="profile-card" style="margin-bottom:8px; align-items:center;">
         <div class="profile-info" style="flex:1;">
           <p style="font-size:13px; color:rgba(255,255,255,0.7);">${d.label}</p>
-          <p style="font-size:12px; color:${hasDoc ? '#5DCAA5' : 'rgba(255,255,255,0.3)'};">
+          <p style="font-size:12px; color:${hasDoc ? '#111827' : 'rgba(255,255,255,0.3)'};">
             ${hasDoc ? '✓ Uploaded' : 'Not uploaded'}
           </p>
         </div>
@@ -421,7 +421,7 @@ async function uploadFacilityDoc(fileInputId, targetField) {
     if (uploadResult?.success) {
       facilityProfile[targetField] = uploadResult.url;
       statusEl.textContent = "✓ Uploaded";
-      statusEl.style.color = "#5DCAA5";
+      statusEl.style.color = "#111827";
       const { data: saveResult } = await ccFetch("/facility", {
         method: "PUT",
         body: JSON.stringify({ [targetField]: uploadResult.url })
@@ -545,7 +545,7 @@ async function loadRecommendedWorkers() {
         </p>
         ${workers.map(w => {
           const score = w.score || 0;
-          const barColor = score >= 80 ? "#5DCAA5" : score >= 50 ? "#F0B429" : "#E24B4A";
+          const barColor = score >= 80 ? "#111827" : score >= 50 ? "#F0B429" : "#E24B4A";
           return `
             <div class="profile-card" style="flex-direction:column; margin-bottom:8px;">
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
@@ -607,7 +607,7 @@ async function toggleTransactions() {
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(s.role_needed) || "—"}</h3>
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.worker_name) || "—"}</p>
-          <p style="color:#5DCAA5; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+          <p style="color:#111827; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
           <div style="margin-top:4px;"><span class="badge ${s.paid ? 'badge-green' : 'badge-yellow'}">${s.paid ? "Paid" : "Pending"}</span></div>
         </div>
       </div>
@@ -630,7 +630,7 @@ async function loadRatings() {
   container.innerHTML = result.data.map(r => `
     <div class="profile-card" style="margin-bottom:8px;">
       <div class="profile-info" style="flex:1;">
-        <p style="color:#5DCAA5;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:rgba(255,255,255,0.4);">${r.rating || 0}/5</span></p>
+        <p style="color:#111827;">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))} <span style="color:rgba(255,255,255,0.4);">${r.rating || 0}/5</span></p>
         ${r.review ? `<p style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px;">"${escapeHtml(r.review)}"</p>` : ""}
         <p style="font-size:11px; color:rgba(255,255,255,0.2); margin-top:4px;">${r.rater_name ? escapeHtml(r.rater_name) : ""}${r.created_at ? " · " + new Date(r.created_at).toLocaleDateString() : ""}</p>
       </div>
