@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings – CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="dashboard-nav">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button onclick="toggleSidebar()" class="sidebar-toggle" aria-label="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <a href="dashboard-worker.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser">Loading...</span>
+      <button class="btn-logout" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="dashboard-sidebar">
+      <div class="dashboard-sidebar-card">
+        <div class="sidebar-card-title">Your profile</div>
+        <div class="profile-card" style="background:none; border:none; padding:0;">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <div class="profile-info">
+            <h3 id="profileName">Loading...</h3>
+            <p id="profileRole">—</p>
+            <p id="profileCity">—</p>
+            <div id="profileBadges"></div>
+          </div>
+        </div>
+      </div>
+      <div class="dashboard-sidebar-card">
+        <div class="sidebar-card-title">Quick actions</div>
+        <div class="sidebar-actions">
+          <a href="dashboard-worker.html" class="btn-sidebar">Dashboard</a>
+          <a href="finance.html" class="btn-sidebar">Finance</a>
+          <a href="settings.html" class="btn-sidebar" style="color:#5DCAA5; font-weight:600;">Settings</a>
+          <a href="index.html" class="btn-sidebar">View homepage</a>
+        </div>
+      </div>
+    </aside>
+
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- MAIN -->
+    <main class="dashboard-main">
+
+      <div class="dashboard-header">
+        <h1>Settings</h1>
+        <p>Manage your profile, security, and preferences.</p>
+      </div>
+
+      <!-- Section nav -->
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:2rem; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:14px;">
+        <button onclick="scrollToSection('profile')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Profile</button>
+        <button onclick="scrollToSection('security')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Security</button>
+        <button onclick="scrollToSection('notifications')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Notifications</button>
+        <button onclick="scrollToSection('availability')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Availability</button>
+        <button onclick="scrollToSection('payout')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:rgba(255,255,255,0.5);">Payout</button>
+        <button onclick="scrollToSection('danger')" class="btn-sidebar" style="width:auto; padding:8px 14px; text-align:center; color:#E24B4A;">Danger zone</button>
+      </div>
+
+      <!-- ─── PROFILE ─── -->
+      <section id="sec-profile" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
+        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Profile</p>
+        <form id="settingsProfileForm" style="display:flex; flex-direction:column; gap:12px; max-width:480px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+            <img id="settingsPhotoPreview" src="" alt="" style="width:60px; height:60px; border-radius:50%; object-fit:cover; display:none; background:rgba(255,255,255,0.05); border:2px solid rgba(93,202,165,0.15);" />
+            <input id="settingsPhoto" class="glass-input" type="file" accept=".jpg,.jpeg,.png" style="flex:1;" />
+          </div>
+          <input id="settingsFullname" class="glass-input" type="text" placeholder="Full name" required />
+          <input id="settingsPhone" class="glass-input" type="tel" placeholder="Phone number" required />
+          <select id="settingsRole" class="glass-input" required>
+            <option value="">Select role</option>
+            <option value="pharmacist">Pharmacist</option>
+            <option value="pharmacy-tech">Pharmacy Technician</option>
+            <option value="nurse">Nurse</option>
+            <option value="doctor">Doctor</option>
+            <option value="lab-tech">Lab Technician</option>
+            <option value="caregiver">Caregiver</option>
+            <option value="other">Other</option>
+          </select>
+          <input id="settingsLicense" class="glass-input" type="text" placeholder="License / registration number" />
+          <select id="settingsCity" class="glass-input" required>
+            <option value="">Select city</option>
+            <option value="Accra">Accra</option>
+            <option value="Kumasi">Kumasi</option>
+            <option value="Tamale">Tamale</option>
+            <option value="Cape Coast">Cape Coast</option>
+            <option value="Takoradi">Takoradi</option>
+          </select>
+          <select id="settingsExperience" class="glass-input">
+            <option value="">Experience level</option>
+            <option value="0-1">0–1 years</option>
+            <option value="1-3">1–3 years</option>
+            <option value="3-5">3–5 years</option>
+            <option value="5-10">5–10 years</option>
+            <option value="10+">10+ years</option>
+          </select>
+          <button type="submit" class="btn-auth" style="align-self:flex-start;">Save profile</button>
+          <div id="settingsProfileMsg" style="font-size:13px; display:none;"></div>
+        </form>
+      </section>
+
+      <!-- ─── SECURITY ─── -->
+      <section id="sec-security" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
+        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Security</p>
+        <div style="max-width:480px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div>
+              <p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Email address</p>
+              <p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;" id="settingsEmail">—</p>
+            </div>
+            <span class="badge badge-green" id="emailVerifiedBadge">Verified</span>
+          </div>
+          <form id="settingsPasswordForm" style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
+            <p style="font-size:13px; font-weight:500; color:rgba(255,255,255,0.5);">Change password</p>
+            <input id="settingsNewPassword" class="glass-input" type="password" placeholder="New password (min 8 characters)" />
+            <input id="settingsConfirmPassword" class="glass-input" type="password" placeholder="Confirm new password" />
+            <button type="submit" class="btn-auth" style="align-self:flex-start;">Update password</button>
+            <div id="settingsPasswordMsg" style="font-size:13px; display:none;"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ─── NOTIFICATIONS ─── -->
+      <section id="sec-notifications" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
+        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Notifications</p>
+        <div style="max-width:480px; display:flex; flex-direction:column; gap:4px;">
+          <div class="notif-pref-row">
+            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">New shift alerts</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">When new shifts match your profile</p></div>
+            <label class="toggle"><input type="checkbox" id="notifShifts" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="notif-pref-row">
+            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Application updates</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">When a facility accepts or declines</p></div>
+            <label class="toggle"><input type="checkbox" id="notifApplications" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="notif-pref-row">
+            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Payment notifications</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">When you receive a payout</p></div>
+            <label class="toggle"><input type="checkbox" id="notifPayments" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="notif-pref-row">
+            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Marketing emails</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">Tips, resources, and platform updates</p></div>
+            <label class="toggle"><input type="checkbox" id="notifMarketing" /><span class="toggle-slider"></span></label>
+          </div>
+          <button onclick="saveNotifPrefs()" class="btn-auth" style="align-self:flex-start; margin-top:12px;">Save preferences</button>
+          <div id="settingsNotifMsg" style="font-size:13px; display:none;"></div>
+        </div>
+      </section>
+
+      <!-- ─── AVAILABILITY ─── -->
+      <section id="sec-availability" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
+        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Availability</p>
+        <div style="max-width:480px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;">
+            <div><p style="font-size:14px; font-weight:500; color:#fff; margin:0;">Available for shifts</p><p style="font-size:12px; color:rgba(255,255,255,0.3); margin:2px 0 0;">Let facilities know you're open to work</p></div>
+            <label class="toggle"><input type="checkbox" id="settingsAvailBtn" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <button onclick="saveAvailability()" class="btn-auth" style="align-self:flex-start; margin-top:12px;">Save availability</button>
+          <div id="settingsAvailMsg" style="font-size:13px; display:none;"></div>
+        </div>
+      </section>
+
+      <!-- ─── PAYOUT ─── -->
+      <section id="sec-payout" class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
+        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Payout settings</p>
+        <div style="max-width:480px;">
+          <p style="font-size:14px; color:rgba(255,255,255,0.5); line-height:1.6; margin-bottom:12px;">Manage your bank account and Mobile Money details for receiving payments after completed shifts.</p>
+          <a href="finance.html" class="btn-auth" style="display:inline-block; text-decoration:none; text-align:center;">Go to Finance</a>
+        </div>
+      </section>
+
+      <!-- ─── DANGER ZONE ─── -->
+      <section id="sec-danger" class="dashboard-sidebar-card" style="margin-bottom:1.5rem; border-color:rgba(226,75,74,0.15);">
+        <p style="font-size:11px; font-weight:600; color:#E24B4A; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Danger zone</p>
+        <div style="max-width:480px;">
+          <p style="font-size:14px; color:rgba(255,255,255,0.5); line-height:1.6; margin-bottom:12px;">Permanently delete your account and all associated data. This action cannot be undone.</p>
+          <button onclick="confirmDeleteAccount()" class="btn-auth" style="background:rgba(226,75,74,0.1); border:1px solid rgba(226,75,74,0.3); color:#E24B4A;">Delete my account</button>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <footer>
+    <p>© 2025 CoverCare Africa · Accra, Ghana</p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="settings.js"></script>
+
+</body>
+</html>
