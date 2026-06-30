@@ -188,7 +188,17 @@ async function loadShifts() {
     return;
   }
 
-  _allShifts = data;
+  // Exclude shifts the worker has already applied to
+  const appliedIds = new Set();
+  if (currentWorker) {
+    const { data: apps } = await _supabase
+      .from("applications")
+      .select("shift_id")
+      .eq("worker_id", currentWorker.id);
+    if (apps) apps.forEach(a => appliedIds.add(a.shift_id));
+  }
+
+  _allShifts = (data || []).filter(s => !appliedIds.has(s.id));
   applyFilters();
 }
 
@@ -293,6 +303,8 @@ async function applyToShift(shiftId, btn) {
 
     if (result.success) {
       if (btn) { btn.disabled = true; btn.textContent = "Applied ✓"; }
+      const card = btn?.closest(".profile-card");
+      if (card) card.remove();
       ccToast("Application submitted! The facility will review and respond.", "success");
     } else {
       ccToast(result.message || "Could not apply. Please try again.", "error");
