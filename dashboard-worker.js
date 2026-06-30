@@ -202,6 +202,35 @@ async function loadShifts() {
   applyFilters();
 }
 
+let _countdownTimers = {};
+function calcShiftEndTime(shift) {
+  if (!shift.shift_date || !shift.start_time) return null;
+  const start = new Date(`${shift.shift_date}T${shift.start_time}:00`);
+  if (isNaN(start.getTime())) return null;
+  const hours = parseFloat((shift.duration || "").replace(/[^0-9.]/g, "")) || 0;
+  return new Date(start.getTime() + hours * 60 * 60 * 1000);
+}
+
+setInterval(() => {
+  const now = Date.now();
+  Object.keys(_countdownTimers).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) { delete _countdownTimers[id]; return; }
+    const end = _countdownTimers[id];
+    const diff = end - now;
+    if (diff <= 0) {
+      el.textContent = "Shift ended";
+      el.style.color = "#E24B4A";
+      delete _countdownTimers[id];
+      return;
+    }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = `${h}h ${m}m ${s}s`;
+  });
+}, 1000);
+
 // ── Load my accepted/active shifts ──
 async function loadMyShifts() {
   if (!currentWorker) return;
@@ -242,14 +271,44 @@ async function loadMyShifts() {
   container.innerHTML = data.map(shift => {
     const safeId = escapeHtml(shift.id);
     const safeWorkerId = escapeHtml(currentWorker.id);
-    const qrUrl = shift.qr_token
+    const endTime = calcShiftEndTime(shift);
+    const expired = endTime && Date.now() > endTime.getTime();
+
+    if (expired && shift.status === "accepted") {
+      return `
+        <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
+          <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
+            <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
+              ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
+            </div>
+            <div class="profile-info" style="flex:1;">
+              <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
+              <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
+              <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"}</p>
+              <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
+              <div style="margin-top:6px;">
+                <span class="badge" style="background:rgba(226,75,74,0.1); color:#E24B4A; border:1px solid rgba(226,75,74,0.2);">Expired — check-in no longer available</span>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    const qrUrl = (shift.qr_token && !expired)
       ? `${window.location.origin}/qr-arrive.html?shift_id=${safeId}&worker_id=${safeWorkerId}&token=${escapeHtml(shift.qr_token)}`
       : null;
 
-    const qrImg = qrUrl
+    const countdownId = `cd-${safeId}`;
+
+    const qrImg = qrUrl && shift.status === "accepted"
       ? `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}"
            alt="QR Code" style="width:180px; height:180px; border-radius:8px; margin:1rem auto; display:block;" />`
-      : `<p style="color:var(--fg-muted); font-size:13px; text-align:center;">QR code loading...</p>`;
+      : "";
+
+    // Set up countdown for in-progress shifts
+    if (shift.status === "in_progress" && endTime) {
+      _countdownTimers[countdownId] = endTime.getTime();
+    }
 
     return `
       <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
@@ -263,19 +322,24 @@ async function loadMyShifts() {
             <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"}</p>
             <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
             <div style="margin-top:6px;">
-              <span class="badge ${shift.status === "in_progress" ? "badge-accent" : "badge-yellow"}">
-                ${shift.status === "in_progress" ? "In progress" : "Accepted — show QR on arrival"}
-              </span>
+              ${shift.status === "in_progress"
+                ? expired
+                  ? `<span class="badge" style="background:rgba(226,75,74,0.1); color:#E24B4A; border:1px solid rgba(226,75,74,0.2);">Shift ended</span>`
+                  : `<span class="badge badge-accent">In progress · <strong id="${countdownId}">${endTime && endTime > new Date() ? "—" : "Ended"}</strong></span>`
+                : `<span class="badge badge-yellow">Accepted — show QR on arrival</span>`
+              }
             </div>
           </div>
         </div>
         ${qrImg}
-        <p style="font-size:12px; color:var(--fg-muted); text-align:center; margin-top:4px;">
-          Show this QR code when you arrive at the facility
-        </p>
-        ${shift.status === "in_progress" && qrUrl ? `
+        ${shift.status === "accepted" && !expired ? `
+          <p style="font-size:12px; color:var(--fg-muted); text-align:center; margin-top:4px;">
+            Show this QR code when you arrive at the facility
+          </p>
+        ` : ""}
+        ${shift.status === "in_progress" && !expired ? `
           <div style="text-align:center; margin-top:12px;">
-            <a href="${qrUrl}" class="btn-primary-sm">Complete shift & check out</a>
+            <a href="${qrUrl || '#'}" class="btn-primary-sm">Complete shift & check out</a>
           </div>
         ` : ""}
       </div>
