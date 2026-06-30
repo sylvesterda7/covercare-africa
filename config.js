@@ -96,6 +96,30 @@ function getDashboardUrl(userType, email) {
   return "dashboard-facility.html";
 }
 
+let _ccToastTimeout = null;
+
+function ccToast(message, type = "info", duration = 4000) {
+  if (_ccToastTimeout) { clearTimeout(_ccToastTimeout); _ccToastTimeout = null; }
+  const existing = document.getElementById("cc-toast");
+  if (existing) existing.remove();
+
+  const bg = type === "error" ? "#DC2626" : type === "success" ? "#059669" : "#111827";
+
+  const el = document.createElement("div");
+  el.id = "cc-toast";
+  el.textContent = message;
+  Object.assign(el.style, {
+    position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+    background: bg, color: "#fff", padding: "12px 24px", borderRadius: "10px",
+    fontSize: "14px", fontWeight: "500", zIndex: "999999",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.15)", maxWidth: "440px", width: "90%",
+    textAlign: "center", lineHeight: "1.5", fontFamily: "'Inter', system-ui, sans-serif",
+    transition: "opacity 0.2s"
+  });
+  document.body.appendChild(el);
+  _ccToastTimeout = setTimeout(() => { el.remove(); _ccToastTimeout = null; }, duration);
+}
+
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
 const INACTIVITY_WARNING = 30 * 1000;
 let _inactivityTimer = null;
