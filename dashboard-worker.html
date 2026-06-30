@@ -64,9 +64,9 @@
         <div class="sidebar-actions">
           <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
           <button onclick="openProfileSettings()" class="btn-sidebar">Edit profile</button>
-          <button onclick="openFinanceModal()" class="btn-sidebar" style="color:#5DCAA5; font-weight:600;">
+          <a href="finance.html" class="btn-sidebar" style="color:#5DCAA5; font-weight:600;">
             <span style="margin-right:6px;">💰</span> Finance
-          </button>
+          </a>
           <button onclick="confirmDeleteAccount()" class="btn-sidebar btn-sidebar-danger">Delete account</button>
           <button onclick="toggleAvailability()" class="btn-sidebar" id="availBtn">Set unavailable</button>
           <button onclick="openSupportModal()" class="btn-sidebar">Contact support</button>
@@ -238,59 +238,6 @@
 
   <!-- SIDEBAR OVERLAY (mobile) -->
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-  <!-- FINANCE MODAL -->
-  <div id="financeModal" class="scan-modal-overlay" style="display:none;">
-    <div class="scan-modal" style="max-width:600px; max-height:90vh; overflow-y:auto;">
-      <button class="scan-modal-close" onclick="closeFinanceModal()" aria-label="Close">✕</button>
-      <h2 style="margin-bottom:0.25rem;">Finance</h2>
-      <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:1.5rem;">Manage your payout methods and view your earnings.</p>
-
-      <!-- Tabs -->
-      <div style="display:flex; gap:8px; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:12px;">
-        <button onclick="switchFinanceTab('methods')" id="finTabMethods" class="btn-sidebar" style="text-align:center; color:#5DCAA5; font-weight:600;">Payment methods</button>
-        <button onclick="switchFinanceTab('transactions')" id="finTabTransactions" class="btn-sidebar" style="text-align:center;">Transactions</button>
-      </div>
-
-      <!-- Payment methods tab -->
-      <div id="finMethodsTab">
-        <form id="financeForm" style="display:flex; flex-direction:column; gap:14px;">
-          <div>
-            <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Bank account</p>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-              <input id="finBankName" class="glass-input" type="text" placeholder="Bank name (e.g. GC Bank)" />
-              <input id="finBankAccount" class="glass-input" type="text" placeholder="Account number" />
-              <input id="finBankAccountName" class="glass-input" type="text" placeholder="Account holder name" />
-            </div>
-          </div>
-          <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:14px;">
-            <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Mobile Money</p>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-              <select id="finMomoProvider" class="glass-input">
-                <option value="">Select provider</option>
-                <option value="mtn">MTN Mobile Money</option>
-                <option value="vodafone">Vodafone Cash</option>
-                <option value="airteltigo">AirtelTigo Money</option>
-              </select>
-              <input id="finMomoNumber" class="glass-input" type="tel" placeholder="Mobile Money number (e.g. 0244000000)" />
-            </div>
-          </div>
-          <button type="submit" id="finSaveBtn" class="btn-auth" style="margin-top:4px;">Save payout details</button>
-        </form>
-      </div>
-
-      <!-- Transactions tab -->
-      <div id="finTransactionsTab" style="display:none;">
-        <div class="stats-row" style="margin-bottom:1rem;" id="finStatsRow"></div>
-        <div style="margin-bottom:1.5rem;">
-          <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Monthly earnings</p>
-          <div id="finChart" style="display:flex; align-items:flex-end; gap:6px; height:120px; padding:10px 0;"></div>
-        </div>
-        <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Transaction history</p>
-        <div id="finTransactionsList"></div>
-      </div>
-    </div>
-  </div>
 
   <!-- SUPPORT MODAL -->
   <div id="supportModal" class="scan-modal-overlay" style="display:none;">

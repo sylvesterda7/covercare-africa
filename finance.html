@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance – CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="dashboard-nav">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="dashboard-worker.html" class="nav-logo" style="font-family:var(--font-heading);">← Back to dashboard</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser">Loading...</span>
+      <button class="btn-logout" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="dashboard-body">
+
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:0.25rem;">
+      <h1 style="font-size:28px; font-weight:600; color:#fff; font-family:var(--font-heading);">Finance</h1>
+    </div>
+    <p style="font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:2rem;">Manage your payout methods and view your earnings.</p>
+
+    <!-- Tabs -->
+    <div style="display:flex; gap:12px; margin-bottom:2rem; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:14px;">
+      <button onclick="switchFinTab('methods')" id="finTabMethods" style="background:none; border:none; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; color:#5DCAA5; font-family:inherit;">Payment methods</button>
+      <button onclick="switchFinTab('transactions')" id="finTabTransactions" style="background:none; border:none; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; color:rgba(255,255,255,0.4); font-family:inherit;">Transactions</button>
+    </div>
+
+    <!-- Payment methods tab -->
+    <div id="finMethodsTab" style="max-width:520px;">
+      <form id="financeForm" style="display:flex; flex-direction:column; gap:16px;">
+        <div class="dashboard-sidebar-card">
+          <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Bank account</p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <input id="finBankName" class="glass-input" type="text" placeholder="Bank name (e.g. GC Bank)" />
+            <input id="finBankAccount" class="glass-input" type="text" placeholder="Account number" />
+            <input id="finBankAccountName" class="glass-input" type="text" placeholder="Account holder name" />
+          </div>
+        </div>
+        <div class="dashboard-sidebar-card">
+          <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Mobile Money</p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <select id="finMomoProvider" class="glass-input">
+              <option value="">Select provider</option>
+              <option value="mtn">MTN Mobile Money</option>
+              <option value="vodafone">Vodafone Cash</option>
+              <option value="airteltigo">AirtelTigo Money</option>
+            </select>
+            <input id="finMomoNumber" class="glass-input" type="tel" placeholder="Mobile Money number (e.g. 0244000000)" />
+          </div>
+        </div>
+        <button type="submit" id="finSaveBtn" class="btn-auth" style="align-self:flex-start;">Save payout details</button>
+        <div id="finSaveMsg" style="font-size:13px; display:none;"></div>
+      </form>
+    </div>
+
+    <!-- Transactions tab -->
+    <div id="finTransactionsTab" style="display:none;">
+      <div class="stats-row" style="margin-bottom:1.5rem;" id="finStatsRow"></div>
+      <div class="dashboard-sidebar-card" style="margin-bottom:1.5rem;">
+        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Monthly earnings</p>
+        <div id="finChart" style="display:flex; align-items:flex-end; gap:8px; height:140px; padding:10px 0;"></div>
+      </div>
+      <div class="dashboard-sidebar-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:1px;">Transaction history</p>
+        </div>
+        <div id="finTransactionsList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>© 2025 CoverCare Africa · Accra, Ghana</p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="finance.js"></script>
+
+</body>
+</html>
