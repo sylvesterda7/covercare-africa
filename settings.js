@@ -72,6 +72,7 @@ async function loadWorkerProfile(email) {
   }
   document.getElementById("settingsCity").value = data.city || "";
   document.getElementById("settingsExperience").value = data.experience || "";
+  document.getElementById("settingsBio").value = data.bio || "";
   const preview = document.getElementById("settingsPhotoPreview");
   if (data.profile_photo_url) {
     preview.src = data.profile_photo_url;
@@ -130,6 +131,7 @@ document.getElementById("settingsProfileForm").addEventListener("submit", async 
         license_number: document.getElementById("settingsLicense").value.trim(),
         city: document.getElementById("settingsCity").value,
         experience: document.getElementById("settingsExperience").value,
+        bio: document.getElementById("settingsBio").value.trim(),
         profile_photo_url: profilePhotoUrl
       })
     });

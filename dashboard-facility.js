@@ -190,7 +190,7 @@ async function loadApplications(email) {
       *,
       workers (
         id, full_name, role, city, experience,
-        license_verified, identity_verified
+        license_verified, identity_verified, profile_photo_url, bio
       )
     `)
     .in("shift_id", shiftIds)
@@ -212,17 +212,20 @@ async function loadApplications(email) {
     const shift = shiftMap[app.shift_id];
     if (!worker || !shift) return "";
 
-    const initials = worker.full_name
-      ? worker.full_name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)
-      : "?";
+    const avatarHtml = worker.profile_photo_url
+      ? `<img src="${escapeHtml(worker.profile_photo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+      : (worker.full_name
+        ? worker.full_name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)
+        : "?");
 
     return `
       <div class="profile-card" style="margin-bottom:12px;">
-        <div class="profile-avatar">${initials}</div>
+        <div class="profile-avatar" style="${worker.profile_photo_url ? 'background:none;border:none;' : ''}">${avatarHtml}</div>
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(worker.full_name) || "Unknown"}</h3>
           <p>${escapeHtml(worker.role) || "—"} · ${escapeHtml(worker.city) || "—"} · ${escapeHtml(worker.experience) || "—"} exp</p>
-          <p style="font-size:12px; color:var(--fg-muted);">
+          ${worker.bio ? `<p style="font-size:13px; color:var(--fg-muted); margin-top:4px; line-height:1.5;">"${escapeHtml(worker.bio)}"</p>` : ""}
+          <p style="font-size:12px; color:var(--fg-muted); margin-top:4px;">
             Applied for: ${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.shift_date) || "—"}
           </p>
           <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">

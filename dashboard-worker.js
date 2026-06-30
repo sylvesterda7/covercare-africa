@@ -455,6 +455,7 @@ function openProfileSettings() {
   }
   document.getElementById("editCity").value = currentWorker.city || "";
   document.getElementById("editExperience").value = currentWorker.experience || "";
+  document.getElementById("editBio").value = currentWorker.bio || "";
   const previewEl = document.getElementById("profilePhotoPreview");
   if (previewEl) {
     previewEl.src = currentWorker.profile_photo_url || "";
@@ -516,6 +517,7 @@ document.getElementById("profileForm").addEventListener("submit", async function
         license_number: document.getElementById("editLicense").value.trim(),
         city: document.getElementById("editCity").value,
         experience: document.getElementById("editExperience").value,
+        bio: document.getElementById("editBio").value.trim(),
         profile_photo_url: profilePhotoUrl
       })
     });
