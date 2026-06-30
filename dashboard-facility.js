@@ -802,6 +802,159 @@ async function submitFacilityRating() {
   }
 }
 
+// ── QR Scanner ──
+let _scannerInstance = null;
+
+function openScanner() {
+  document.getElementById("scannerPlaceholder").style.display = "none";
+  document.getElementById("scannerWrap").style.display = "block";
+
+  if (typeof Html5Qrcode === "undefined") {
+    ccToast("QR scanner library not loaded. Check your internet connection.", "error");
+    return;
+  }
+
+  _scannerInstance = new Html5Qrcode("qrReader");
+  _scannerInstance.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    onScanSuccess,
+    () => {}
+  ).catch(() => {
+    ccToast("Could not access camera. Please allow camera permission.", "error");
+    closeScanner();
+  });
+}
+
+function closeScanner() {
+  if (_scannerInstance) {
+    try { _scannerInstance.stop(); } catch (e) {}
+    _scannerInstance = null;
+  }
+  document.getElementById("scannerWrap").style.display = "none";
+  document.getElementById("scannerPlaceholder").style.display = "block";
+}
+
+function onScanSuccess(decodedText) {
+  if (_scannerInstance) {
+    try { _scannerInstance.pause(); } catch (e) {}
+  }
+
+  let params;
+  try {
+    const url = new URL(decodedText);
+    params = Object.fromEntries(url.searchParams.entries());
+  } catch {
+    try {
+      params = Object.fromEntries(new URLSearchParams(decodedText.split("?").pop() || decodedText));
+    } catch {
+      showScanError("Could not parse QR code. Please scan a valid check-in QR.");
+      if (_scannerInstance) try { _scannerInstance.resume(); } catch (e) {}
+      return;
+    }
+  }
+
+  const { shift_id, worker_id, token } = params;
+  if (!shift_id || !worker_id || !token) {
+    showScanError("Invalid QR code. Missing check-in data.");
+    if (_scannerInstance) try { _scannerInstance.resume(); } catch (e) {}
+    return;
+  }
+
+  showScanLoading();
+  ccFetch(`/qr/validate?shift_id=${encodeURIComponent(shift_id)}&worker_id=${encodeURIComponent(worker_id)}&token=${encodeURIComponent(token)}`, { method: "GET" })
+    .then(({ data }) => {
+      if (data?.success) {
+        showScanConfirm(shift_id, worker_id, token, data.worker, data.shift);
+      } else {
+        showScanError(data?.message || "Invalid QR code.");
+        if (_scannerInstance) try { _scannerInstance.resume(); } catch (e) {}
+      }
+    })
+    .catch(() => {
+      showScanError("Network error. Please try again.");
+      if (_scannerInstance) try { _scannerInstance.resume(); } catch (e) {}
+    });
+}
+
+function showScanLoading() {
+  document.querySelectorAll(".scan-modal-state").forEach(el => el.style.display = "none");
+  document.getElementById("scanModalLoading").style.display = "block";
+  document.getElementById("scanModal").style.display = "flex";
+}
+
+function showScanConfirm(shiftId, workerId, token, worker, shift) {
+  document.querySelectorAll(".scan-modal-state").forEach(el => el.style.display = "none");
+  document.getElementById("scanModalConfirm").style.display = "block";
+
+  document.getElementById("scanWorkerName").textContent = worker?.full_name || "Unknown";
+  document.getElementById("scanWorkerRole").textContent = worker?.role || "—";
+  document.getElementById("scanShiftRole").textContent = shift?.role_needed || "—";
+  document.getElementById("scanShiftDate").textContent = shift?.shift_date || "—";
+  document.getElementById("scanShiftTime").textContent = shift?.start_time || "—";
+
+  const badges = document.getElementById("scanWorkerBadges");
+  badges.innerHTML = "";
+  if (worker?.license_verified) badges.innerHTML += '<span class="badge badge-accent" style="margin-right:6px;">✓ License</span>';
+  else badges.innerHTML += '<span class="badge badge-yellow" style="margin-right:6px;">License pending</span>';
+  if (worker?.identity_verified) badges.innerHTML += '<span class="badge badge-accent">✓ Identity</span>';
+  else badges.innerHTML += '<span class="badge badge-yellow">Identity pending</span>';
+
+  document.getElementById("scanConfirmBtn").dataset.shiftId = shiftId;
+  document.getElementById("scanConfirmBtn").dataset.workerId = workerId;
+  document.getElementById("scanConfirmBtn").dataset.token = token;
+}
+
+function showScanError(msg) {
+  document.querySelectorAll(".scan-modal-state").forEach(el => el.style.display = "none");
+  document.getElementById("scanModalError").style.display = "block";
+  document.getElementById("scanErrorMsg").textContent = msg;
+}
+
+function closeScanModal() {
+  document.getElementById("scanModal").style.display = "none";
+  if (_scannerInstance) try { _scannerInstance.resume(); } catch (e) {}
+}
+
+async function confirmScannedArrival() {
+  const btn = document.getElementById("scanConfirmBtn");
+  const shiftId = btn.dataset.shiftId;
+  const workerId = btn.dataset.workerId;
+  const token = btn.dataset.token;
+
+  if (!shiftId || !workerId || !token) return;
+  btn.disabled = true;
+  btn.textContent = "Confirming...";
+
+  try {
+    const { data } = await ccFetch("/shift/arrive", {
+      method: "POST",
+      body: JSON.stringify({ shift_id: shiftId, worker_id: workerId, token, facility_email: facilityEmail })
+    });
+
+    if (data?.success) {
+      document.querySelectorAll(".scan-modal-state").forEach(el => el.style.display = "none");
+      document.getElementById("scanModalSuccess").style.display = "block";
+      document.getElementById("scanSuccessMsg").textContent = data.already_arrived ? "Worker was already checked in." : "Arrival confirmed. Shift is now in progress.";
+      document.getElementById("scanSuccessWorker").textContent = document.getElementById("scanWorkerName").textContent;
+      document.getElementById("scanSuccessTime").textContent = new Date().toLocaleTimeString();
+      document.getElementById("scanConfirmBtn").disabled = false;
+      document.getElementById("scanConfirmBtn").textContent = "Confirm arrival";
+      closeScanner();
+      await loadShifts(facilityEmail);
+    } else {
+      ccToast(data?.message || "Could not confirm arrival.", "error");
+      document.getElementById("scanConfirmBtn").disabled = false;
+      document.getElementById("scanConfirmBtn").textContent = "Confirm arrival";
+    }
+  } catch (err) {
+    console.error("Arrival confirm error:", err);
+    ccToast("Something went wrong. Please try again.", "error");
+    document.getElementById("scanConfirmBtn").disabled = false;
+    document.getElementById("scanConfirmBtn").textContent = "Confirm arrival";
+  }
+}
+
 // ── Support ──
 function openSupportModal() { document.getElementById("supportModal").style.display = "flex"; }
 function closeSupportModal() { document.getElementById("supportModal").style.display = "none"; }
