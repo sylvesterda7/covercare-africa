@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="auth.css" />
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#111827">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 </head>
 
 <body>
@@ -24,8 +25,8 @@
     <div class="nav-right" style="position:relative;">
       <span class="nav-user" id="navUser">Loading...</span>
       <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" aria-label="Toggle notifications" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:var(--fg-muted);">
-        <span role="img" aria-label="Notifications">🔔</span>
-        <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:var(--fg-primary); font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
+          <i class="ti ti-bell" style="font-size:18px; color:#111827;"></i>
+        <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:#fff; font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
       </button>
       <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:var(--shadow-lg);">
         <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
@@ -64,9 +65,7 @@
         <a href="identity-verify.html" class="btn-sidebar" id="verifyIdentityLink">Verify my identity</a>
         <button onclick="openProfileSettings()" class="btn-sidebar">Edit profile</button>
         <a href="settings.html" class="btn-sidebar">Settings</a>
-        <a href="finance.html" class="btn-sidebar" style="color:#111827; font-weight:600;">
-          <span style="margin-right:6px;">💰</span> Finance
-        </a>
+          <a href="finance.html" class="btn-sidebar" style="color:#111827; font-weight:600;">Finance</a>
         <button onclick="toggleAvailability()" class="btn-sidebar" id="availBtn">Set unavailable</button>
         <button onclick="openSupportModal()" class="btn-sidebar">Contact support</button>
         <a href="index.html" class="btn-sidebar">View homepage</a>
@@ -107,37 +106,16 @@
       </div>
 
       <!-- MATCHED SHIFTS -->
-      <div class="section-title" style="margin-top: 2rem;">
-        <span style="display:flex; align-items:center; gap:8px;">
-          Best matches for you
-          <span class="badge badge-accent" id="matchCount" style="font-size:11px;">0</span>
-        </span>
-      </div>
-      <div id="matchedShiftsContainer">
-        <div class="empty-state">
-          <p>Loading your best matches...</p>
-        </div>
-      </div>
-
       <!-- AVAILABLE SHIFTS -->
       <div class="section-title" style="margin-top: 2rem;">Available shifts near you</div>
       <div class="shift-filter-bar">
-        <input type="text" id="filterSearch" placeholder="Search by facility, role, or city..." oninput="applyFilters()">
-        <select id="filterRole" onchange="applyFilters()">
-          <option value="">All roles</option>
-          <option value="Nurse">Nurse</option>
-          <option value="Midwife">Midwife</option>
-          <option value="Pharmacist">Pharmacist</option>
-          <option value="Doctor">Doctor</option>
-          <option value="Lab Tech">Lab Tech</option>
-          <option value="Community Health Worker">Community Health Worker</option>
-        </select>
+        <input type="text" id="filterSearch" placeholder="Search by facility or city..." oninput="applyFilters()">
         <select id="filterUrgency" onchange="applyFilters()">
           <option value="">All urgency</option>
           <option value="today">Urgent (today)</option>
           <option value="">Standard</option>
         </select>
-        <button class="filter-btn" onclick="document.getElementById('filterSearch').value='';document.getElementById('filterRole').value='';document.getElementById('filterUrgency').value='';applyFilters();">Reset</button>
+        <button class="filter-btn" onclick="document.getElementById('filterSearch').value='';document.getElementById('filterUrgency').value='';applyFilters();">Reset</button>
       </div>
       <div id="shiftsContainer">
         <div class="empty-state">

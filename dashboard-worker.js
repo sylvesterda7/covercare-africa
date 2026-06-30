@@ -27,7 +27,6 @@ async function init() {
   await loadMyShifts();
   await loadMyApplications();
   await loadCompletedShifts();
-  await loadMatchedShifts();
   await loadPayroll();
   await loadRatings();
 }
@@ -129,7 +128,6 @@ function renderShifts(shifts) {
 
 function applyFilters() {
   const search = (document.getElementById("filterSearch").value || "").toLowerCase();
-  const role = document.getElementById("filterRole").value;
   const urgency = document.getElementById("filterUrgency").value;
 
   let filtered = _allShifts;
@@ -142,10 +140,6 @@ function applyFilters() {
     );
   }
 
-  if (role) {
-    filtered = filtered.filter(s => s.role_needed === role);
-  }
-
   if (urgency === "today") {
     filtered = filtered.filter(s => s.urgency === "today");
   }
@@ -153,11 +147,38 @@ function applyFilters() {
   renderShifts(filtered);
 }
 
+function normalizeRole(role) {
+  const map = {
+    "medical-doctor": "Doctor",
+    "lab-technician": "Lab Tech",
+    "pharmacist": "Pharmacist",
+    "pharmacy-tech": "Pharmacy Technician",
+    "nurse": "Nurse",
+    "doctor": "Doctor",
+    "lab-tech": "Lab Tech",
+    "caregiver": "Caregiver",
+    "midwife": "Midwife",
+    "community health worker": "Community Health Worker",
+    "other": null
+  };
+  if (!role) return null;
+  const key = role.toLowerCase();
+  return map[key] || null;
+}
+
 async function loadShifts() {
-  const { data, error } = await _supabase
+  const workerRole = currentWorker ? normalizeRole(currentWorker.role) : null;
+
+  let query = _supabase
     .from("shifts")
     .select("*")
-    .eq("status", "open")
+    .eq("status", "open");
+
+  if (workerRole) {
+    query = query.eq("role_needed", workerRole);
+  }
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -532,50 +553,6 @@ async function confirmDeleteAccount() {
 async function logout() {
   await _supabase.auth.signOut();
   window.location.href = "login.html";
-}
-
-// ── Matched shifts ──
-async function loadMatchedShifts() {
-  const container = document.getElementById("matchedShiftsContainer");
-  if (!container) return;
-  const { data: result } = await ccFetch("/matches/worker", { method: "GET" });
-  const badge = document.getElementById("matchCount");
-  if (!result?.data || result.data.length === 0) {
-    container.innerHTML = '<div class="empty-state"><p>No matched shifts right now.</p><p style="font-size:13px;">We\'ll match you with shifts based on your profile and preferences.</p></div>';
-    if (badge) badge.textContent = "0";
-    return;
-  }
-  const sorted = [...result.data].sort((a, b) => (b.score || 0) - (a.score || 0));
-  if (badge) badge.textContent = sorted.length;
-  container.innerHTML = sorted.map(m => {
-    const score = m.score || 0;
-    const barColor = score >= 80 ? "#111827" : score >= 50 ? "#F0B429" : "#E24B4A";
-    return `
-      <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <div style="flex:1; height:6px; background:var(--bg-elevated); border-radius:3px; overflow:hidden;">
-            <div style="width:${score}%; height:100%; background:${barColor}; border-radius:3px; transition:width 0.4s ease;"></div>
-          </div>
-          <span style="font-size:11px; color:${barColor}; font-weight:500; min-width:32px; text-align:right;">${score}%</span>
-        </div>
-        <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
-          <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
-            ${escapeHtml(m.role_needed || "").substring(0, 2).toUpperCase() || "SH"}
-          </div>
-          <div class="profile-info" style="flex:1;">
-            <h3>${escapeHtml(m.facility_name) || "—"}</h3>
-            <p>${escapeHtml(m.role_needed) || "—"} · ${escapeHtml(m.city) || "—"}</p>
-            <p>${escapeHtml(m.shift_date) || "—"} · ${escapeHtml(m.start_time) || "—"} · ${escapeHtml(m.duration) || "—"}</p>
-            <p style="color:#111827; font-weight:500;">${escapeHtml(m.pay_rate) || "—"}</p>
-            ${m.breakdown ? `<p style="font-size:11px; color:var(--fg-muted); margin-top:4px;">${escapeHtml(m.breakdown)}</p>` : ""}
-          </div>
-          <div>
-            <button onclick="applyToShift('${escapeHtml(m.shift_id || m.id)}', this)" class="btn-primary-sm" style="font-size:13px; padding:8px 16px;">Apply</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
 }
 
 // ── Availability toggle ──

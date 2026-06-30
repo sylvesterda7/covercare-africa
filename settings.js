@@ -57,7 +57,19 @@ async function loadWorkerProfile(email) {
   document.getElementById("settingsFullname").value = data.full_name || "";
   document.getElementById("settingsPhone").value = data.phone || "";
   document.getElementById("settingsRole").value = data.role || "";
-  document.getElementById("settingsLicense").value = data.license_number || "";
+  const licField = document.getElementById("settingsLicense");
+  licField.value = data.license_number || "";
+  if (data.license_verified) {
+    licField.disabled = true;
+    licField.title = "Verified — cannot be changed";
+    licField.style.opacity = "0.5";
+    licField.style.cursor = "not-allowed";
+  } else {
+    licField.disabled = false;
+    licField.title = "";
+    licField.style.opacity = "1";
+    licField.style.cursor = "";
+  }
   document.getElementById("settingsCity").value = data.city || "";
   document.getElementById("settingsExperience").value = data.experience || "";
   const preview = document.getElementById("settingsPhotoPreview");
