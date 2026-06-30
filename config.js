@@ -199,6 +199,14 @@ function ccCurrencyCombobox(containerId, selectedCode, onChange) {
   const dropdown = container.querySelector(".cc-combobox-dropdown");
   let open = false, focusedIdx = -1, filtered = CC_CONFIG.SUPPORTED_CURRENCIES;
 
+  function positionDropdown() {
+    const rect = input.getBoundingClientRect();
+    dropdown.style.position = "fixed";
+    dropdown.style.top = (rect.bottom + 4) + "px";
+    dropdown.style.left = rect.left + "px";
+    dropdown.style.width = rect.width + "px";
+  }
+
   function render() {
     const val = input.value.toLowerCase();
     filtered = CC_CONFIG.SUPPORTED_CURRENCIES.filter(c =>
@@ -207,6 +215,7 @@ function ccCurrencyCombobox(containerId, selectedCode, onChange) {
     );
     if (filtered.length === 0 || !open) { dropdown.innerHTML = ""; dropdown.style.display = "none"; return; }
     dropdown.style.display = "block";
+    positionDropdown();
     dropdown.innerHTML = filtered.map((c, i) =>
       `<div class="cc-combobox-item${i === focusedIdx ? " focused" : ""}" data-index="${i}">
         <span class="cc-combobox-code">${escapeHtml(c.code)}</span>

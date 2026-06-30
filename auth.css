@@ -1207,17 +1207,12 @@
 }
 .cc-combobox-dropdown {
   display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 50;
+  z-index: 99999;
   background: #0F1A1C;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 8px;
   max-height: 240px;
   overflow-y: auto;
-  margin-top: 4px;
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
 .cc-combobox-item {
