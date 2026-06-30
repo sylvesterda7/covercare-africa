@@ -37,6 +37,66 @@ function getDashboardUrl(userType, email) {
   return "dashboard-facility.html";
 }
 
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
+const INACTIVITY_WARNING = 30 * 1000;
+let _inactivityTimer = null;
+let _warningTimer = null;
+let _supabaseClient = null;
+
+function ccInitInactivityLogout(supabaseClient) {
+  _supabaseClient = supabaseClient;
+  const events = ["mousemove", "click", "keydown", "scroll", "touchstart"];
+  function resetTimer() {
+    clearTimeout(_inactivityTimer);
+    clearTimeout(_warningTimer);
+    ccHideInactivityWarning();
+    _inactivityTimer = setTimeout(ccShowInactivityWarning, INACTIVITY_TIMEOUT - INACTIVITY_WARNING);
+    _warningTimer = setTimeout(ccForceLogout, INACTIVITY_TIMEOUT);
+  }
+  events.forEach(ev => document.addEventListener(ev, resetTimer, { passive: true }));
+  resetTimer();
+  window.addEventListener("beforeunload", function() {
+    events.forEach(ev => document.removeEventListener(ev, resetTimer));
+  });
+}
+
+function ccShowInactivityWarning() {
+  const existing = document.getElementById("cc-inactivity-overlay");
+  if (existing) existing.remove();
+  const overlay = document.createElement("div");
+  overlay.id = "cc-inactivity-overlay";
+  overlay.innerHTML = `
+    <div style="position:fixed; inset:0; z-index:99999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+      <div style="background:#0C1B1D; border:1px solid rgba(93,202,165,0.2); border-radius:16px; padding:2.5rem; max-width:400px; width:90%; text-align:center;">
+        <h3 style="color:#fff; font-size:18px; margin-bottom:0.75rem;">Session expiring</h3>
+        <p style="color:rgba(255,255,255,0.5); font-size:14px; line-height:1.6; margin-bottom:1.5rem;">You've been inactive for a while. You'll be logged out in 30 seconds to protect your account.</p>
+        <button onclick="ccStayLoggedIn()" style="background:#5DCAA5; color:#04342C; border:none; padding:11px 24px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;">Stay logged in</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function ccHideInactivityWarning() {
+  const el = document.getElementById("cc-inactivity-overlay");
+  if (el) el.remove();
+}
+
+function ccStayLoggedIn() {
+  clearTimeout(_inactivityTimer);
+  clearTimeout(_warningTimer);
+  ccHideInactivityWarning();
+  _inactivityTimer = setTimeout(ccShowInactivityWarning, INACTIVITY_TIMEOUT - INACTIVITY_WARNING);
+  _warningTimer = setTimeout(ccForceLogout, INACTIVITY_TIMEOUT);
+}
+
+async function ccForceLogout() {
+  ccHideInactivityWarning();
+  try {
+    if (_supabaseClient) await _supabaseClient.auth.signOut();
+  } catch (e) {}
+  window.location.href = "login.html?expired=1";
+}
+
 async function ccFetch(path, options = {}) {
   const headers = {
     "Content-Type": "application/json",

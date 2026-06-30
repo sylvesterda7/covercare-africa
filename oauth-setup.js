@@ -1,4 +1,5 @@
 const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+ccInitInactivityLogout(_supabase);
 
 async function init() {
   const { data: { session } } = await _supabase.auth.getSession();

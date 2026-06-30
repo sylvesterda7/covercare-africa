@@ -1,7 +1,8 @@
 // ── Initialize Supabase ──
 window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
-const _supabase = window._supabase;
 
+const _supabase = window._supabase;
+ccInitInactivityLogout(_supabase);
 // ── Cloudinary config (uploaded via backend proxy) ──
 
 // ── State ──

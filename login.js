@@ -32,6 +32,13 @@ async function signInWithGoogle() {
   }
 }
 
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("expired") === "1") {
+  const msg = document.getElementById("errorMsg");
+  msg.textContent = "You were logged out due to inactivity. Please sign in again.";
+  msg.style.display = "block";
+}
+
 checkSession();
 
 _supabase.auth.onAuthStateChange((event, session) => {

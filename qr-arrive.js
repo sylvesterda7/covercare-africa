@@ -1,6 +1,7 @@
 window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
-const _supabase = window._supabase;
 
+const _supabase = window._supabase;
+ccInitInactivityLogout(_supabase);
 const params = new URLSearchParams(window.location.search);
 const shiftId = params.get("shift_id");
 const workerId = params.get("worker_id");
