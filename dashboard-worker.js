@@ -149,16 +149,16 @@ function applyFilters() {
 
 function normalizeRole(role) {
   const map = {
-    "medical-doctor": "Doctor",
-    "lab-technician": "Lab Tech",
-    "pharmacist": "Pharmacist",
-    "pharmacy-tech": "Pharmacy Technician",
-    "nurse": "Nurse",
-    "doctor": "Doctor",
-    "lab-tech": "Lab Tech",
-    "caregiver": "Caregiver",
-    "midwife": "Midwife",
-    "community health worker": "Community Health Worker",
+    "medical-doctor": "medical-doctor",
+    "lab-technician": "lab-technician",
+    "pharmacist": "pharmacist",
+    "pharmacy-tech": "pharmacy-tech",
+    "nurse": "nurse",
+    "doctor": "medical-doctor",
+    "lab-tech": "lab-technician",
+    "caregiver": "caregiver",
+    "midwife": "midwife",
+    "community health worker": "community health worker",
     "other": null
   };
   if (!role) return null;
