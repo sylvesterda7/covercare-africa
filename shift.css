@@ -12,18 +12,18 @@
 .step-title {
   font-size: 18px;
   font-weight: 500;
-  color: #fff;
+  color: var(--fg-primary);
   margin-bottom: 0.25rem;
 }
 
 /* ── Pay estimate ── */
 .pay-estimate {
-  background: rgba(17,24,39,0.06);
-  border: 1px solid rgba(17,24,39,0.15);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px 16px;
   font-size: 14px;
-  color: rgba(255,255,255,0.4);
+  color: var(--fg-muted);
 }
 
 .pay-estimate strong {
@@ -38,9 +38,9 @@
 }
 
 .btn-back {
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.5);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--bg-card);
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
   padding: 13px 20px;
   border-radius: 10px;
   font-size: 14px;
@@ -50,18 +50,18 @@
 }
 
 .btn-back:hover {
-  border-color: rgba(17,24,39,0.3);
+  border-color: var(--accent-border);
   color: var(--accent);
 }
 
 /* ── Shift summary ── */
 .shift-summary {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1rem 1.25rem;
   font-size: 14px;
-  color: rgba(255,255,255,0.5);
+  color: var(--fg-muted);
   line-height: 2;
 }
 
@@ -117,6 +117,6 @@
 
 .next-item p {
   font-size: 13px;
-  color: rgba(255,255,255,0.4);
+  color: var(--fg-muted);
   margin: 0;
 }
