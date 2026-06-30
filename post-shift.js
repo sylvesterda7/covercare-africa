@@ -65,7 +65,18 @@ async function fetchSuggestedRates() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
+  const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (session) {
+    const emailField = document.getElementById("contactEmail");
+    emailField.value = session.user.email;
+    emailField.readOnly = true;
+    emailField.style.opacity = "0.7";
+    emailField.style.cursor = "not-allowed";
+    emailField.title = "Uses your account email";
+  }
+
   fetchSuggestedRates();
 
   const roleEl = document.getElementById("role");
