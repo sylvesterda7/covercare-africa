@@ -172,15 +172,29 @@ async function ccFetch(path, options = {}) {
       }
     }
   } catch (e) {}
-  const response = await fetch(`${CC_CONFIG.BACKEND_URL}${path}`, {
-    ...options,
-    headers
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok && !data.message) {
-    data.message = `Request failed (${response.status})`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+
+  try {
+    const response = await fetch(`${CC_CONFIG.BACKEND_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok && !data.message) {
+      data.message = `Request failed (${response.status})`;
+    }
+    return { response, data };
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === "AbortError") {
+      return { response: { ok: false, status: 0 }, data: { message: "Request timed out. Please check your internet connection and try again." } };
+    }
+    return { response: { ok: false, status: 0 }, data: { message: "Network error. Please check your internet connection." } };
   }
-  return { response, data };
 }
 
 /* ── Currency combobox ──
