@@ -638,6 +638,10 @@
   margin-bottom: 0.5rem;
 }
 
+.arrive-label-warning {
+  color: #b45309;
+}
+
 .arrive-sub {
   font-size: 14px;
   color: var(--fg-muted);

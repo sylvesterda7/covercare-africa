@@ -121,7 +121,8 @@ async function loadShifts(email) {
         <div class="profile-card" style="margin-bottom:10px;">
           <div class="profile-info" style="flex:1;">
             <p style="font-weight:500;">${escapeHtml(s.role_needed) || "—"}</p>
-            <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"}</p>
+            <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
+            <p style="font-size:12px;color:#6b7280;">Worker: ${s.worker_name || "Assigned"}</p>
           </div>
         </div>
       `).join("");
@@ -139,6 +140,11 @@ async function loadShifts(email) {
 
     filledContainer.innerHTML = filledShifts.map(shift => {
       const w = shift.worker_id ? workerMap[shift.worker_id] : null;
+      const lateInfo = shift.late_minutes > 0 ? `
+        <p style="font-size:12px;color:#b45309;margin-top:4px;">
+          ⏰ ${shift.late_minutes} min late · Pay: ${escapeHtml(shift.adjusted_pay || shift.total_pay)}
+          ${shift.made_up ? '· <span style="color:#059669;">Made up time</span>' : ''}
+        </p>` : "";
       return `
       <div class="profile-card" style="margin-bottom:12px;">
         <div class="profile-avatar" style="${w?.profile_photo_url ? 'background:none;border:none;' : 'background:rgba(17,24,39,0.1);'} font-size:14px;">
@@ -148,6 +154,7 @@ async function loadShifts(email) {
           <h3>${w ? escapeHtml(w.full_name) : escapeHtml(shift.role_needed) || "—"}</h3>
           <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(shift.total_pay) || "—"}</p>
+          ${lateInfo}
           <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <span class="badge badge-accent">
               ${shift.status === "in_progress" ? "⏱ In progress" : shift.status === "completed" ? "✓ Completed" : "✓ Filled"}

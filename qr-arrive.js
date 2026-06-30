@@ -114,7 +114,37 @@ function showCompleteConfirm() {
   document.getElementById("shiftPay").textContent =
     escapeHtml(shiftData.total_pay) || "—";
 
+  // Show late arrival info
+  const lateMinutes = shiftData.late_minutes || 0;
+  const lateInfoRow = document.getElementById("completeLateInfo");
+  const makeUpRow = document.getElementById("makeUpOption");
+  if (lateMinutes > 0) {
+    document.getElementById("completeLateMinutes").textContent = `${lateMinutes} min late`;
+    document.getElementById("completeOriginalPay").textContent = shiftData.total_pay || "—";
+    document.getElementById("completeAdjustedPay").textContent = shiftData.adjusted_pay || shiftData.total_pay;
+    lateInfoRow.style.display = "flex";
+    makeUpRow.style.display = "flex";
+    document.getElementById("makeUpCheckbox").checked = false;
+    document.getElementById("makeUpMinutesNeeded").textContent = lateMinutes;
+    document.getElementById("makeUpFullPay").textContent = shiftData.total_pay || "—";
+    document.getElementById("completePayDisplay").textContent = shiftData.adjusted_pay || shiftData.total_pay;
+  } else {
+    lateInfoRow.style.display = "none";
+    makeUpRow.style.display = "none";
+    document.getElementById("completePayDisplay").textContent = shiftData.total_pay || "—";
+  }
+
   showState("completeConfirm");
+}
+
+function toggleMakeUp(checked) {
+  if (checked) {
+    document.getElementById("completePayDisplay").textContent = shiftData.total_pay || "—";
+    document.getElementById("makeUpHint").style.display = "block";
+  } else {
+    document.getElementById("completePayDisplay").textContent = shiftData.adjusted_pay || shiftData.total_pay;
+    document.getElementById("makeUpHint").style.display = "none";
+  }
 }
 
 async function confirmArrival() {
@@ -133,11 +163,25 @@ async function confirmArrival() {
       return;
     }
 
+      shiftData = result.shift || { ...shiftData, late_minutes: result.late_minutes, adjusted_pay: result.adjusted_pay };
+
     document.getElementById("successWorkerName").textContent =
       result.worker?.full_name || workerData.full_name;
     document.getElementById("arrivalTime").textContent =
       formatTime(result.arrival_time);
     document.getElementById("arriveSuccessMsg").textContent = result.message;
+
+    // Show late arrival details if applicable
+    const lateInfo = document.getElementById("arriveLateInfo");
+    const lateMinutes = result.late_minutes || 0;
+    if (lateMinutes > 0) {
+      document.getElementById("arriveLateMinutes").textContent = `${lateMinutes} min late`;
+      document.getElementById("arriveAdjustedPay").textContent = result.adjusted_pay || shiftData.total_pay;
+      lateInfo.style.display = "block";
+    } else {
+      lateInfo.style.display = "none";
+    }
+
     showState("arriveSuccess");
   } catch (err) {
     console.error("Arrive error:", err);
@@ -154,9 +198,10 @@ async function confirmComplete() {
   btn.textContent = "Processing...";
 
   try {
+    const makeUpChecked = document.getElementById("makeUpCheckbox")?.checked || false;
     const { data: result } = await ccFetch("/shift/complete", {
       method: "POST",
-      body: JSON.stringify({ shift_id: shiftId, worker_id: workerId, token })
+      body: JSON.stringify({ shift_id: shiftId, worker_id: workerId, token, made_up: makeUpChecked })
     });
 
     if (!result.success) {
@@ -171,6 +216,25 @@ async function confirmComplete() {
         ? `GHS ${result.payout.amount.toLocaleString()} sent via MoMo`
         : "Processing — support will follow up";
     document.getElementById("completeSuccessMsg").textContent = result.message;
+
+    // Show adjusted pay details if late
+    const compLateInfo = document.getElementById("completeSuccessLate");
+    if (result.late_minutes > 0) {
+      document.getElementById("compSuccessLateMins").textContent = `${result.late_minutes} min late`;
+      document.getElementById("compSuccessFinalPay").textContent = result.adjusted_pay || "—";
+      const payStatus = document.getElementById("compSuccessPayStatus");
+      if (result.made_up) {
+        payStatus.textContent = "Made up time — full pay retained";
+        payStatus.className = "arrive-label";
+      } else {
+        payStatus.textContent = "Pay adjusted for late arrival";
+        payStatus.className = "arrive-label arrive-label-warning";
+      }
+      compLateInfo.style.display = "block";
+    } else {
+      compLateInfo.style.display = "none";
+    }
+
     showState("completeSuccess");
   } catch (err) {
     console.error("Complete error:", err);

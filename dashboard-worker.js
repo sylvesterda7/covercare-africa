@@ -310,6 +310,11 @@ async function loadMyShifts() {
       _countdownTimers[countdownId] = endTime.getTime();
     }
 
+    const lateInfo = shift.late_minutes > 0 ? `
+      <p style="font-size:12px;color:#b45309;margin-top:6px;">
+        ⏰ ${shift.late_minutes} min late · Pay adjusted to ${escapeHtml(shift.adjusted_pay || shift.pay_rate)}
+      </p>` : "";
+
     return `
       <div class="profile-card" style="flex-direction:column; margin-bottom:12px;">
         <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
@@ -321,6 +326,7 @@ async function loadMyShifts() {
             <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
             <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"}</p>
             <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
+            ${lateInfo}
             <div style="margin-top:6px;">
               ${shift.status === "in_progress"
                 ? expired
@@ -477,24 +483,31 @@ async function loadCompletedShifts() {
   }
 
   const totalEarned = result.data.reduce((sum, s) => {
-    return sum + (parseFloat((s.total_pay || "").replace(/[^0-9.]/g, "")) || 0);
+    const pay = s.adjusted_pay || s.total_pay;
+    return sum + (parseFloat((pay || "").replace(/[^0-9.]/g, "")) || 0);
   }, 0);
 
   container.innerHTML = `
     <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">
       ${result.data.length} shift${result.data.length > 1 ? "s" : ""} · Total earned: <strong style="color:#111827;">GHS ${totalEarned.toLocaleString()}</strong>
     </p>
-    ${result.data.map(s => `
+    ${result.data.map(s => {
+      const lateInfo = s.late_minutes > 0 ? `
+        <p style="font-size:12px;color:#b45309;margin-top:4px;">
+          ⏰ ${s.late_minutes} min late${s.adjusted_pay ? ` · Paid: ${escapeHtml(s.adjusted_pay)}` : ''}${s.made_up ? ' · <span style="color:#059669;">Made up time</span>' : ''}
+        </p>` : "";
+      return `
       <div class="profile-card" style="margin-bottom:10px;">
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(s.facility_name) || "—"}</h3>
           <p>${escapeHtml(s.role_needed) || "—"} · ${escapeHtml(s.city) || "—"}</p>
           <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
+          ${lateInfo}
         </div>
         <button onclick="openRatingModal('${escapeHtml(s.id)}', '${escapeHtml(s.contact_email)}', '${escapeHtml(s.facility_name)}')" class="btn-primary-sm" style="font-size:12px; padding:7px 14px; flex-shrink:0;">Rate</button>
-      </div>
-    `).join("")}
+      </div>`;
+    }).join("")}
   `;
 }
 

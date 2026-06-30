@@ -87,7 +87,14 @@
               <span>Arrival time</span>
               <strong id="arrivalTime">—</strong>
             </div>
+            <div class="arrive-detail-row" id="arriveLateInfo" style="display:none;">
+              <span>Late arrival</span>
+              <strong><span id="arriveLateMinutes"></span> — pay adjusted to <span id="arriveAdjustedPay"></span></strong>
+            </div>
           </div>
+          <button class="btn-auth" onclick="window.location.reload()" style="margin-top:1rem;">
+            Continue to check out
+          </button>
         </div>
 
         <!-- Complete shift (worker checkout) -->
@@ -102,10 +109,24 @@
               <span>Checked in at</span>
               <strong id="checkedInTime">—</strong>
             </div>
-            <div class="arrive-detail-row">
-              <span>Worker pay</span>
-              <strong id="shiftPay">—</strong>
+            <div class="arrive-detail-row" id="completeLateInfo" style="display:none;">
+              <span>Late arrival</span>
+              <strong id="completeLateMinutes">—</strong>
             </div>
+            <div class="arrive-detail-row">
+              <span>Total pay</span>
+              <strong id="completePayDisplay">—</strong>
+            </div>
+          </div>
+
+          <div id="makeUpOption" style="display:none;margin-top:0.75rem;padding:0.75rem;background:#f9fafb;border-radius:8px;">
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem;color:#111827;">
+              <input type="checkbox" id="makeUpCheckbox" onchange="toggleMakeUp(this.checked)" />
+              Stay late to make up for lost time (retain full pay)
+            </label>
+            <p id="makeUpHint" style="display:none;margin:0.5rem 0 0;font-size:0.75rem;color:#6b7280;">
+              Stay an extra <span id="makeUpMinutesNeeded">0</span> min to receive full pay of <span id="makeUpFullPay">—</span>.
+            </p>
           </div>
 
           <button class="btn-auth" id="confirmCompleteBtn" onclick="confirmComplete()">
@@ -123,6 +144,18 @@
             <div class="arrive-detail-row">
               <span>Completed at</span>
               <strong id="completionTime">—</strong>
+            </div>
+            <div class="arrive-detail-row" id="completeSuccessLate" style="display:none;">
+              <span>Late arrival</span>
+              <strong id="compSuccessLateMins">—</strong>
+            </div>
+            <div id="completeSuccessPayRow" class="arrive-detail-row">
+              <span>Final pay</span>
+              <strong id="compSuccessFinalPay">—</strong>
+            </div>
+            <div class="arrive-detail-row" id="compSuccessPayStatusRow" style="display:none;">
+              <span>Status</span>
+              <strong id="compSuccessPayStatus">—</strong>
             </div>
             <div class="arrive-detail-row">
               <span>Payout</span>
