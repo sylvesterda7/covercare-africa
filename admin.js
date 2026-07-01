@@ -466,7 +466,7 @@ function showTab(tab) {
     const navEl = document.getElementById("nav-" + t);
     if (navEl) navEl.classList.toggle("btn-sidebar-active", t === tab);
   });
-  if (tab === "finance") { loadAdminFinanceSummary(); loadAdminFinanceTransactions(); }
+  if (tab === "finance") { loadAdminFinanceSummary(); loadAdminFinanceTransactions(); loadAdminInvoices(); }
   if (tab === "settings") loadAdminSettings();
   closeSidebar();
 }
@@ -793,6 +793,88 @@ async function handlePaymentAction(shiftId, action) {
   } else {
     ccToast(result?.message || `Failed to ${action} payment.`, "error");
   }
+}
+
+// ── Admin Invoices ──
+let _adminInvoices = [];
+
+async function loadAdminInvoices() {
+  const container = document.getElementById("adminInvoices");
+  if (!container) return;
+  const { data: result } = await ccFetch("/finance/admin/invoices", { method: "GET" });
+  if (!result?.success) {
+    container.innerHTML = '<div class="empty-state"><p>Could not load invoices.</p></div>';
+    return;
+  }
+  const invoices = result.data || [];
+  _adminInvoices = invoices;
+  if (!invoices.length) {
+    container.innerHTML = '<div class="empty-state"><p>No invoices generated yet. Click "Generate invoices" to create them for postpaid facilities.</p></div>';
+    return;
+  }
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  container.innerHTML = `
+    <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${invoices.length} invoice${invoices.length !== 1 ? "s" : ""}</p>
+    <div style="overflow-x:auto;">
+      <table class="admin-table" style="min-width:900px;">
+        <thead>
+          <tr><th>Period</th><th>Facility</th><th>Email</th><th>Amount</th><th>Shifts</th><th>Status</th><th>Due date</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          ${invoices.map(inv => {
+            const statusColor = inv.status === "paid" ? "#059669" : inv.status === "overdue" ? "#E24B4A" : "#F0B429";
+            return `<tr>
+              <td style="font-weight:500;color:var(--fg-primary);">${monthNames[inv.month - 1] || inv.month} ${inv.year}</td>
+              <td style="color:#111827;">${escapeHtml(inv.facility_name)}</td>
+              <td style="color:var(--fg-muted);">${escapeHtml(inv.facility_email)}</td>
+              <td style="color:#111827;font-weight:500;">GHS ${Number(inv.total_amount).toLocaleString()}</td>
+              <td>${inv.shift_count}</td>
+              <td><span style="color:${statusColor};font-weight:500;">${inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
+              <td>${inv.due_date ? new Date(inv.due_date).toLocaleDateString() : "—"}</td>
+              <td>${inv.status !== "paid" ? `<button onclick="markInvoicePaid(${inv.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;white-space:nowrap;">Mark paid</button>` : '<span style="font-size:11px;color:#9ca3af;">Paid</span>'}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function markInvoicePaid(invoiceId) {
+  if (!confirm("Mark this invoice as paid?")) return;
+  const { data: result } = await ccFetch(`/finance/admin/invoice/${invoiceId}/pay`, { method: "POST" });
+  if (result?.success) {
+    ccToast("Invoice marked as paid.", "success");
+    loadAdminInvoices();
+    loadAdminFinanceSummary();
+  } else {
+    ccToast(result?.message || "Failed to mark invoice as paid.", "error");
+  }
+}
+
+async function generateInvoices() {
+  if (!confirm("Generate invoices for the previous month for all postpaid facilities?")) return;
+  const btn = document.querySelector('#panel-finance button[onclick="generateInvoices()"]');
+  if (btn) { btn.disabled = true; btn.textContent = "Generating..."; }
+  const { data: result } = await ccFetch("/admin/invoices/generate", { method: "POST" });
+  if (btn) { btn.disabled = false; btn.textContent = "Generate invoices"; }
+  if (result?.success) {
+    ccToast(result.message || "Invoices generated.", "success");
+    loadAdminInvoices();
+  } else {
+    ccToast(result?.message || "Failed to generate invoices.", "error");
+  }
+}
+
+function downloadAdminInvoices() {
+  if (!_adminInvoices.length) { ccToast("No invoices to download.", "info"); return; }
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const headers = ["Period", "Facility", "Email", "Amount", "Shifts", "Status", "Due date", "Paid at"];
+  const rows = _adminInvoices.map(inv => [
+    `${monthNames[inv.month - 1]} ${inv.year}`, inv.facility_name, inv.facility_email,
+    inv.total_amount, inv.shift_count, inv.status, inv.due_date || "", inv.paid_at || ""
+  ]);
+  downloadCSV(rows, headers, "covercare-admin-invoices.csv");
+  ccToast("Invoices downloaded.", "success");
 }
 
 // ── Admin Settings ──

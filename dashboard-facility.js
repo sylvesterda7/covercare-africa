@@ -1048,7 +1048,7 @@ function showSection(name) {
     const nav = document.getElementById("nav-" + s);
     if (nav) nav.classList.toggle("btn-sidebar-active", s === name);
   });
-  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); }
+  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFacilityInvoices(); }
   if (name === "settings") loadSettingsPage();
 }
 
@@ -1167,6 +1167,56 @@ function downloadFacilityStatement() {
   ]);
   downloadCSV(rows, headers, "covercare-facility-statement.csv");
   ccToast("Statement downloaded.", "success");
+}
+
+// ── Invoices ──
+let _facilityInvoices = [];
+
+async function loadFacilityInvoices() {
+  const container = document.getElementById("facilityInvoices");
+  if (!container) return;
+  const { data: result } = await ccFetch("/finance/facility/invoices", { method: "GET" });
+  if (!result?.success || !result.data?.length) {
+    container.innerHTML = '<div class="empty-state"><p>No invoices yet. Invoices are generated monthly for postpaid facilities.</p></div>';
+    _facilityInvoices = [];
+    return;
+  }
+  _facilityInvoices = result.data;
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  container.innerHTML = `
+    <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${_facilityInvoices.length} invoice${_facilityInvoices.length !== 1 ? "s" : ""}</p>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Period</th><th>Amount</th><th>Shifts</th><th>Status</th><th>Due date</th><th>Paid at</th></tr>
+        </thead>
+        <tbody>
+          ${_facilityInvoices.map(inv => {
+            const statusColor = inv.status === "paid" ? "#059669" : inv.status === "overdue" ? "#E24B4A" : "#F0B429";
+            return `<tr>
+              <td style="font-weight:500;color:var(--fg-primary);">${monthNames[inv.month - 1] || inv.month} ${inv.year}</td>
+              <td style="color:#111827;font-weight:500;">GHS ${Number(inv.total_amount).toLocaleString()}</td>
+              <td>${inv.shift_count}</td>
+              <td><span style="color:${statusColor};">${inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
+              <td>${inv.due_date ? new Date(inv.due_date).toLocaleDateString() : "—"}</td>
+              <td>${inv.paid_at ? new Date(inv.paid_at).toLocaleDateString() : "—"}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function downloadFacilityInvoices() {
+  if (!_facilityInvoices.length) { ccToast("No invoices to download.", "info"); return; }
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const headers = ["Period", "Amount", "Shifts", "Status", "Due date", "Paid at"];
+  const rows = _facilityInvoices.map(inv => [
+    `${monthNames[inv.month - 1]} ${inv.year}`, inv.total_amount, inv.shift_count,
+    inv.status, inv.due_date || "", inv.paid_at || ""
+  ]);
+  downloadCSV(rows, headers, "covercare-invoices.csv");
+  ccToast("Invoices downloaded.", "success");
 }
 
 // ── Settings page ──

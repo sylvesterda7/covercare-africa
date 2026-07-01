@@ -216,6 +216,16 @@
         <div id="adminFinanceTransactions">
           <div class="empty-state"><p>Loading transactions...</p></div>
         </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem;">
+          <div class="section-title" style="margin:0;">Invoices (Postpaid)</div>
+          <div style="display:flex; gap:8px;">
+            <button onclick="generateInvoices()" class="btn-auth" style="white-space:nowrap; padding:7px 16px; font-size:13px;">Generate invoices</button>
+            <button onclick="downloadAdminInvoices()" class="btn-auth" style="white-space:nowrap; padding:7px 16px; font-size:13px;">Download</button>
+          </div>
+        </div>
+        <div id="adminInvoices">
+          <div class="empty-state"><p>Loading invoices...</p></div>
+        </div>
       </div>
 
       <!-- SETTINGS -->
