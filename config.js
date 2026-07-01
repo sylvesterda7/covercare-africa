@@ -534,6 +534,17 @@ function getDashboardUrl(userType, email) {
 
 let _ccToastTimeout = null;
 
+function ccGetSupabaseClient() {
+  if (window._supabase) return window._supabase;
+  if (!window.__ccSupabaseClient && window.supabase) {
+    window.__ccSupabaseClient = window.supabase.createClient(
+      CC_CONFIG.SUPABASE_URL,
+      CC_CONFIG.SUPABASE_KEY
+    );
+  }
+  return window.__ccSupabaseClient || null;
+}
+
 function ccToast(message, type = "info", duration = 4000) {
   if (_ccToastTimeout) { clearTimeout(_ccToastTimeout); _ccToastTimeout = null; }
   const existing = document.getElementById("cc-toast");
@@ -625,9 +636,7 @@ async function ccFetch(path, options = {}) {
   const logId = Math.random().toString(36).slice(2, 8);
 
   try {
-    const client = window._supabase || (window.supabase && window.supabase.createClient(
-      CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY
-    ));
+    const client = ccGetSupabaseClient();
     if (client) {
       const { data: { session } } = await client.auth.getSession();
       if (session?.access_token) {
