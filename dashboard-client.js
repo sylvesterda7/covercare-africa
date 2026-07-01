@@ -24,6 +24,7 @@ let notifOpen = false;
   await loadClientProfile();
   await loadShifts();
   await loadWorkersHistory();
+  loadWalletBalance();
 })();
 
 // ── Sidebar ──
@@ -51,7 +52,7 @@ function showSection(name) {
     const nav = document.getElementById("nav-" + s);
     if (nav) nav.classList.toggle("btn-sidebar-active", s === name);
   });
-  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFinanceProfile(); }
+  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFinanceProfile(); loadWalletBalance(); loadWalletTransactions(); }
   if (name === "settings") loadSettingsPage();
   const sidebar = document.querySelector(".dashboard-sidebar");
   const overlay = document.getElementById("sidebarOverlay");

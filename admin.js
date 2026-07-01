@@ -460,13 +460,14 @@ async function loadPerformance() {
 
 // ── Tab switching ──
 function showTab(tab) {
-  ["workers", "facilities", "shifts", "analytics", "performance", "trusted", "finance", "settings"].forEach(t => {
+  ["workers", "facilities", "shifts", "analytics", "performance", "trusted", "finance", "wallet", "settings"].forEach(t => {
     const panel = document.getElementById("panel-" + t);
     if (panel) panel.style.display = t === tab ? "block" : "none";
     const navEl = document.getElementById("nav-" + t);
     if (navEl) navEl.classList.toggle("btn-sidebar-active", t === tab);
   });
   if (tab === "finance") { loadAdminFinanceSummary(); loadAdminFinanceTransactions(); loadAdminInvoices(); }
+  if (tab === "wallet") { loadAdminWithdrawals(); }
   if (tab === "settings") loadAdminSettings();
   closeSidebar();
 }
@@ -875,6 +876,85 @@ function downloadAdminInvoices() {
   ]);
   downloadCSV(rows, headers, "covercare-admin-invoices.csv");
   ccToast("Invoices downloaded.", "success");
+}
+
+// ── Admin Wallet ──
+async function loadAdminWithdrawals() {
+  const container = document.getElementById("adminWithdrawalRequests");
+  if (!container) return;
+  const { data: result } = await ccFetch("/admin/wallet/withdrawals", { method: "GET" });
+  if (!result?.success) {
+    container.innerHTML = '<div class="empty-state"><p>Could not load withdrawals.</p></div>';
+    return;
+  }
+  const requests = result.data || [];
+  if (!requests.length) {
+    container.innerHTML = '<div class="empty-state"><p>No pending withdrawal requests.</p></div>';
+    return;
+  }
+  container.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="admin-table" style="min-width:900px;">
+        <thead><tr><th>Date</th><th>User</th><th>Type</th><th>Amount</th><th>Bank details</th><th>MoMo details</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${requests.map(r => `<tr>
+            <td style="color:var(--fg-muted);white-space:nowrap;">${r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}</td>
+            <td style="color:var(--fg-primary);font-weight:500;">${escapeHtml(r.user_email)}</td>
+            <td>${r.user_type}</td>
+            <td style="color:#111827;font-weight:500;">GHS ${Number(r.amount).toLocaleString()}</td>
+            <td style="font-size:12px;">${r.bank_name ? escapeHtml(r.bank_name) + "<br>" + escapeHtml(r.bank_account_number || "") : "—"}</td>
+            <td style="font-size:12px;">${r.momo_provider ? escapeHtml(r.momo_provider) + "<br>" + escapeHtml(r.momo_number || "") : "—"}</td>
+            <td><span style="color:${r.status === "pending" ? "#F0B429" : r.status === "approved" ? "#059669" : "#9ca3af"};">${r.status}</span></td>
+            <td>${r.status === "pending" ? `
+              <div style="display:flex;gap:4px;">
+                <button onclick="adminApproveWithdrawal(${r.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;">Approve</button>
+                <button onclick="adminRejectWithdrawal(${r.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #E24B4A;background:transparent;color:#E24B4A;cursor:pointer;font-family:inherit;">Reject</button>
+              </div>
+            ` : '<span style="font-size:11px;color:#9ca3af;">Processed</span>'}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function adminApproveWithdrawal(id) {
+  if (!confirm("Approve this withdrawal? Amount will be deducted from user's wallet.")) return;
+  const { data: result } = await ccFetch(`/admin/wallet/withdraw/${id}/approve`, { method: "POST" });
+  if (result?.success) { ccToast("Withdrawal approved.", "success"); loadAdminWithdrawals(); }
+  else { ccToast(result?.message || "Failed.", "error"); }
+}
+
+async function adminRejectWithdrawal(id) {
+  if (!confirm("Reject this withdrawal?")) return;
+  const { data: result } = await ccFetch(`/admin/wallet/withdraw/${id}/reject`, { method: "POST" });
+  if (result?.success) { ccToast("Withdrawal rejected.", "info"); loadAdminWithdrawals(); }
+  else { ccToast(result?.message || "Failed.", "error"); }
+}
+
+async function adminWalletCredit() {
+  const email = document.getElementById("adminWalletEmail").value.trim();
+  const amount = parseFloat(document.getElementById("adminWalletAmount").value);
+  const description = document.getElementById("adminWalletDescription").value.trim();
+  if (!email || !amount || amount <= 0) { ccToast("Valid email and amount required.", "error"); return; }
+  if (!confirm(`Credit GHS ${amount.toLocaleString()} to ${email}?`)) return;
+  const { data: result } = await ccFetch("/admin/wallet/credit", {
+    method: "POST", body: JSON.stringify({ email, amount, description })
+  });
+  if (result?.success) { ccToast(`Credited GHS ${amount} to ${email}.`, "success"); }
+  else { ccToast(result?.message || "Failed.", "error"); }
+}
+
+async function adminWalletDebit() {
+  const email = document.getElementById("adminWalletEmail").value.trim();
+  const amount = parseFloat(document.getElementById("adminWalletAmount").value);
+  const description = document.getElementById("adminWalletDescription").value.trim();
+  if (!email || !amount || amount <= 0) { ccToast("Valid email and amount required.", "error"); return; }
+  if (!confirm(`Debit GHS ${amount.toLocaleString()} from ${email}?`)) return;
+  const { data: result } = await ccFetch("/admin/wallet/debit", {
+    method: "POST", body: JSON.stringify({ email, amount, description })
+  });
+  if (result?.success) { ccToast(`Debited GHS ${amount} from ${email}.`, "success"); }
+  else { ccToast(result?.message || "Failed.", "error"); }
 }
 
 // ── Admin Settings ──

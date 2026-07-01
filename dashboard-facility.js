@@ -37,6 +37,7 @@ async function init() {
   await loadRecommendedWorkers();
   await loadPayroll();
   await loadRatings();
+  loadWalletBalance();
 }
 
 // ── Load shifts ──
@@ -1048,7 +1049,7 @@ function showSection(name) {
     const nav = document.getElementById("nav-" + s);
     if (nav) nav.classList.toggle("btn-sidebar-active", s === name);
   });
-  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFacilityInvoices(); }
+  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFacilityInvoices(); loadWalletBalance(); loadWalletTransactions(); }
   if (name === "settings") loadSettingsPage();
 }
 

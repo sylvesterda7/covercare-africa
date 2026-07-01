@@ -58,6 +58,7 @@
           <button onclick="showTab('performance')" class="btn-sidebar" id="nav-performance"><i class="ti ti-trending-up" style="margin-right:6px;"></i> Performance</button>
           <button onclick="showTab('trusted')" class="btn-sidebar" id="nav-trusted"><i class="ti ti-shield-check" style="margin-right:6px;"></i> Trusted</button>
           <button onclick="showTab('finance')" class="btn-sidebar" id="nav-finance"><i class="ti ti-coin" style="margin-right:6px;"></i> Finance</button>
+          <button onclick="showTab('wallet')" class="btn-sidebar" id="nav-wallet"><i class="ti ti-wallet" style="margin-right:6px;"></i> Wallet</button>
           <button onclick="showTab('settings')" class="btn-sidebar" id="nav-settings"><i class="ti ti-settings" style="margin-right:6px;"></i> Settings</button>
         </div>
       </div>
@@ -225,6 +226,33 @@
         </div>
         <div id="adminInvoices">
           <div class="empty-state"><p>Loading invoices...</p></div>
+        </div>
+      </div>
+
+      <!-- WALLET -->
+      <div id="panel-wallet" style="display:none;">
+        <div class="section-title">Wallet Management</div>
+        <p style="font-size:13px;color:var(--fg-muted);margin-bottom:1.5rem;">Manage user wallets — view withdrawal requests, credit/debit balances manually.</p>
+        <div class="section-title" style="margin:0 0 1rem;">Withdrawal requests</div>
+        <div id="adminWithdrawalRequests">
+          <div class="empty-state"><p>Loading...</p></div>
+        </div>
+        <div class="section-title" style="margin:2rem 0 1rem;">Manual credit / debit</div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1.25rem;max-width:500px;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <input id="adminWalletEmail" class="glass-input" type="email" placeholder="User email" />
+            <select id="adminWalletType" class="glass-input">
+              <option value="">Select user type</option>
+              <option value="facility">Facility</option>
+              <option value="client">Client</option>
+            </select>
+            <input id="adminWalletAmount" class="glass-input" type="number" min="1" step="10" placeholder="Amount (GHS)" />
+            <input id="adminWalletDescription" class="glass-input" type="text" placeholder="Reason / description" />
+            <div style="display:flex;gap:8px;">
+              <button onclick="adminWalletCredit()" class="btn-auth" style="flex:1;">Credit</button>
+              <button onclick="adminWalletDebit()" class="btn-auth" style="flex:1;background:transparent;border:1px solid #E24B4A;color:#E24B4A;">Debit</button>
+            </div>
+          </div>
         </div>
       </div>
 

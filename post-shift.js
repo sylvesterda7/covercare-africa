@@ -292,6 +292,14 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
       return;
     }
 
+    // ── Wallet payment: deducted from balance, no Paystack ──
+    if (initData.wallet_paid) {
+      document.getElementById("shiftForm").style.display = "none";
+      document.getElementById("successCard").style.display = "block";
+      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
     var handler = PaystackPop.setup({
       key: CC_CONFIG.PAYSTACK_PUBLIC_KEY,
       email: shift.contact_email,
