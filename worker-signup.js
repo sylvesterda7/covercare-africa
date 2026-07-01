@@ -1,5 +1,6 @@
 // ── Supabase client ──
-const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+const _supabase = window._supabase;
 
 // ── License verification ──
 let licenseVerified = false;
@@ -218,26 +219,10 @@ async function verifyLicense() {
   try {
     const name = document.getElementById("fullname").value.trim();
 
-    const payload = {
-      registration_number: license,
-      name
-    };
-
-    let response;
-    let data;
-
-    // Try the modern body-based contract first, then fall back to the old query-string form.
-    ({ response, data } = await ccFetch("/verify", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }));
-
-    if (!data?.success && (!response.ok || response.status === 404 || response.status === 405 || response.status === 500)) {
-      ({ response, data } = await ccFetch(
-        `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`,
-        { method: "GET" }
-      ));
-    }
+    const { data } = await ccFetch(
+      `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`,
+      { method: "GET" }
+    );
 
     console.log("Verification response:", data);
 
