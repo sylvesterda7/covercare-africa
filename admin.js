@@ -348,10 +348,14 @@ function renderBarChart(containerId, data, color) {
 
 // ── Tab switching ──
 function showTab(tab) {
-  ["workers", "facilities", "shifts", "analytics", "trusted"].forEach(t => {
-    document.getElementById("panel-" + t).style.display = t === tab ? "block" : "none";
-    document.getElementById("tab-" + t).classList.toggle("active", t === tab);
+  ["workers", "facilities", "shifts", "analytics", "trusted", "finance", "settings"].forEach(t => {
+    const panel = document.getElementById("panel-" + t);
+    if (panel) panel.style.display = t === tab ? "block" : "none";
+    const tabEl = document.getElementById("tab-" + t);
+    if (tabEl) tabEl.classList.toggle("active", t === tab);
   });
+  if (tab === "finance") { loadAdminFinanceSummary(); loadAdminFinanceTransactions(); }
+  if (tab === "settings") loadAdminSettings();
 }
 
 // ── Logout ──
@@ -448,6 +452,130 @@ async function revokeFacility(email) {
   } else {
     ccToast(result?.message || "Failed to revoke facility.", "error");
   }
+}
+
+// ── Admin Finance: summary ──
+async function loadAdminFinanceSummary() {
+  const container = document.getElementById("adminFinanceSummary");
+  if (!container) return;
+  const { data: result } = await ccFetch("/finance/admin/summary", { method: "GET" });
+  if (!result?.success || !result.data) return;
+  const d = result.data;
+  const boxes = container.querySelectorAll(".stat-box .num");
+  if (boxes[0]) boxes[0].textContent = "GHS " + (d.total_revenue || 0).toLocaleString();
+  if (boxes[1]) boxes[1].textContent = "GHS " + (d.pending_postpaid || 0).toLocaleString();
+  if (boxes[2]) boxes[2].textContent = "GHS " + (d.this_month_revenue || 0).toLocaleString();
+  if (boxes[3]) boxes[3].textContent = "GHS " + (d.total_credits || 0).toLocaleString();
+}
+
+// ── Admin Finance: transactions ──
+async function loadAdminFinanceTransactions() {
+  const container = document.getElementById("adminFinanceTransactions");
+  if (!container) return;
+  const { data: result } = await ccFetch("/finance/admin/transactions?page=1&limit=50", { method: "GET" });
+  if (!result?.success || !result.data?.transactions?.length) {
+    container.innerHTML = '<div class="empty-state"><p>No transactions found.</p></div>';
+    return;
+  }
+  const txns = result.data.transactions;
+  container.innerHTML = `
+    <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${result.data.total} transactions</p>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Facility</th>
+            <th>Shift</th>
+            <th>Amount</th>
+            <th>Fee (25%)</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${txns.map(t => {
+            const amount = t.facility_total || 0;
+            const fee = amount * 0.2;
+            const statusColor = t.payment_status === "paid" ? "#059669" : t.payment_status === "postpaid" ? "#F0B429" : "#6b7280";
+            const statusLabel = t.payment_status === "paid" ? "Paid" : t.payment_status === "postpaid" ? "Postpaid" : t.payment_status || "—";
+            const markPaidBtn = t.payment_status === "postpaid" ? `<button onclick="markPostpaidPaid('${escapeHtml(t.id)}')" style="font-size:11px;padding:4px 8px;border-radius:4px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;">Mark paid</button>` : "—";
+            return `
+              <tr>
+                <td style="color:var(--fg-muted);">${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
+                <td style="color:var(--fg-primary); font-weight:500;">${escapeHtml(t.facility_name) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);font-weight:400;">${escapeHtml(t.contact_email) || ""}</span></td>
+                <td>${escapeHtml(t.role_needed) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);">${escapeHtml(t.shift_date) || ""}</span></td>
+                <td style="color:#111827; font-weight:500;">GHS ${amount.toLocaleString()}</td>
+                <td>GHS ${fee.toLocaleString()}</td>
+                <td><span style="color:${statusColor};">${statusLabel}</span></td>
+                <td>${markPaidBtn}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── Admin: mark postpaid as paid ──
+async function markPostpaidPaid(shiftId) {
+  if (!confirm("Mark this postpaid shift as paid?")) return;
+  const { data: result } = await ccFetch("/finance/admin/mark-paid", {
+    method: "POST",
+    body: JSON.stringify({ shift_id: shiftId })
+  });
+  if (result?.success) {
+    ccToast("Marked as paid.", "success");
+    loadAdminFinanceTransactions();
+    loadAdminFinanceSummary();
+  } else {
+    ccToast(result?.message || "Failed.", "error");
+  }
+}
+
+// ── Admin Settings ──
+async function loadAdminSettings() {
+  const { data: result } = await ccFetch("/settings/admin", { method: "GET" });
+  if (!result?.success || !result.data) {
+    document.getElementById("setFeePercent").value = 25;
+    return;
+  }
+  const s = result.data;
+  document.getElementById("setFeePercent").value = s.covercare_fee_percent || 25;
+
+  const rates = s.suggested_rates || {
+    pharmacist: 80, "pharmacy-tech": 40, "medical-doctor": 120,
+    nurse: 60, "lab-technician": 50
+  };
+  const ratesContainer = document.getElementById("adminSuggestedRates");
+  if (ratesContainer) {
+    ratesContainer.innerHTML = Object.entries(rates).map(([role, rate]) => `
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span style="min-width:140px; font-size:14px; color:#111827;">${escapeHtml(role.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()))}</span>
+        <input id="rate-${escapeHtml(role)}" class="glass-input" type="number" min="10" step="5" value="${rate}" style="max-width:90px;" />
+        <span style="font-size:13px; color:var(--fg-muted);">GHS/hr</span>
+      </div>
+    `).join("");
+  }
+}
+
+async function saveAdminSetting(key, value) {
+  const { data: result } = await ccFetch("/settings/admin", {
+    method: "PUT",
+    body: JSON.stringify({ key, value: isNaN(value) ? value : parseFloat(value) })
+  });
+  ccToast(result?.success ? "Setting saved." : result?.message || "Failed.", result?.success ? "success" : "error");
+}
+
+async function saveAllSuggestedRates() {
+  const rateInputs = document.querySelectorAll("#adminSuggestedRates input[id^='rate-']");
+  const rates = {};
+  rateInputs.forEach(input => {
+    const role = input.id.replace("rate-", "");
+    rates[role] = parseFloat(input.value) || 0;
+  });
+  await saveAdminSetting("suggested_rates", rates);
+  ccToast("Suggested rates saved.", "success");
 }
 
 // ── Run ──

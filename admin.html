@@ -82,6 +82,12 @@
         <button class="tab-btn" id="tab-trusted" onclick="showTab('trusted')">
           <i class="ti ti-shield-check"></i> Trusted facilities
         </button>
+        <button class="tab-btn" id="tab-finance" onclick="showTab('finance')">
+          <i class="ti ti-coin"></i> Finance
+        </button>
+        <button class="tab-btn" id="tab-settings" onclick="showTab('settings')">
+          <i class="ti ti-settings"></i> Settings
+        </button>
       </div>
 
       <!-- WORKERS TABLE -->
@@ -140,6 +146,48 @@
           Approved facilities post shifts without upfront payment. CoverCare pays workers instantly and bills the facility at end of month.
         </p>
         <div id="trustedFacilitiesTable"></div>
+      </div>
+
+      <!-- FINANCE -->
+      <div id="panel-finance" style="display:none;">
+        <div class="section-title">Finance Overview</div>
+        <div class="stats-row" id="adminFinanceSummary">
+          <div class="stat-box"><div class="num">—</div><div class="label">Total revenue</div></div>
+          <div class="stat-box"><div class="num">—</div><div class="label">Pending postpaid</div></div>
+          <div class="stat-box"><div class="num">—</div><div class="label">This month</div></div>
+          <div class="stat-box"><div class="num">—</div><div class="label">Total credits</div></div>
+        </div>
+        <div class="section-title" style="margin-top:2rem;">All Transactions</div>
+        <div id="adminFinanceTransactions">
+          <div class="empty-state"><p>Loading transactions...</p></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="panel-settings" style="display:none;">
+        <div class="section-title">Platform Settings</div>
+        <div style="display:flex; flex-direction:column; gap:1.25rem; max-width:600px;">
+
+          <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem;">
+            <h3 style="margin:0 0 4px; font-size:15px;">CoverCare fee</h3>
+            <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Percentage added to worker pay for platform fee.</p>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input id="setFeePercent" class="glass-input" type="number" min="0" max="100" step="1" style="max-width:100px;" />
+              <span style="font-size:14px; color:var(--fg-muted);">%</span>
+              <button onclick="saveAdminSetting('covercare_fee_percent', document.getElementById('setFeePercent').value)" class="btn-auth" style="padding:7px 16px; font-size:13px;">Save</button>
+            </div>
+          </div>
+
+          <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem;">
+            <h3 style="margin:0 0 4px; font-size:15px;">Default suggested rates (GHS/hr)</h3>
+            <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Suggested pay rates shown when posting a shift.</p>
+            <div id="adminSuggestedRates" style="display:flex; flex-direction:column; gap:8px;">
+              Loading...
+            </div>
+            <button onclick="saveAllSuggestedRates()" class="btn-auth" style="align-self:flex-start; margin-top:8px; padding:7px 16px; font-size:13px;">Save all rates</button>
+          </div>
+
+        </div>
       </div>
 
     </div>

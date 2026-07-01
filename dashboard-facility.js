@@ -1034,4 +1034,131 @@ function toggleSidebar() {
   if (layout) layout.classList.toggle("sidebar-open", isOpen);
 }
 
+// ── Section navigation ──
+function showSection(name) {
+  ["dashboard", "finance", "settings"].forEach(s => {
+    const sec = document.getElementById("section-" + s);
+    if (sec) sec.style.display = s === name ? "block" : "none";
+    const tab = document.getElementById("tab-" + s);
+    if (tab) {
+      tab.style.color = s === name ? "#111827" : "#6b7280";
+      tab.style.borderBottomColor = s === name ? "#111827" : "transparent";
+    }
+    const nav = document.getElementById("nav-" + s);
+    if (nav) nav.classList.toggle("btn-sidebar-active", s === name);
+  });
+  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); }
+  if (name === "settings") loadSettingsPage();
+}
+
+// ── Finance: summary ──
+async function loadFinanceSummary() {
+  const container = document.getElementById("financeSummary");
+  if (!container) return;
+  container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--fg-muted);">Loading...</div>';
+  const { data: result } = await ccFetch("/finance/facility/summary", { method: "GET" });
+  if (!result?.success || !result.data) {
+    container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p>Could not load finance summary.</p></div>';
+    return;
+  }
+  const d = result.data;
+  container.innerHTML = `
+    <div class="stat-box"><div class="num">GHS ${(d.total_spent || 0).toLocaleString()}</div><div class="label">Total spent</div></div>
+    <div class="stat-box"><div class="num">GHS ${(d.this_month || 0).toLocaleString()}</div><div class="label">This month</div></div>
+    <div class="stat-box"><div class="num">GHS ${(d.pending_postpaid || 0).toLocaleString()}</div><div class="label">Pending (postpaid)</div></div>
+    <div class="stat-box"><div class="num">GHS ${(d.credits_saved || 0).toLocaleString()}</div><div class="label">Credits saved</div></div>
+  `;
+}
+
+// ── Finance: transactions ──
+async function loadFinanceTransactions() {
+  const container = document.getElementById("financeTransactions");
+  if (!container) return;
+  container.innerHTML = '<div class="empty-state"><p>Loading transactions...</p></div>';
+  const { data: result } = await ccFetch("/finance/facility/transactions?page=1&limit=50", { method: "GET" });
+  if (!result?.success || !result.data?.transactions?.length) {
+    container.innerHTML = '<div class="empty-state"><p>No transactions yet.</p></div>';
+    return;
+  }
+  const txns = result.data.transactions;
+  const total = result.data.total;
+  container.innerHTML = `
+    <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${total} transaction${total !== 1 ? "s" : ""}</p>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Shift</th>
+            <th>Worker</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${txns.map(t => {
+            const statusLabel = t.payment_status === "paid" ? "Paid" : t.payment_status === "postpaid" ? "Postpaid" : t.payment_status === "pending" ? "Pending" : t.payment_status || "—";
+            const statusColor = t.payment_status === "paid" ? "#059669" : t.payment_status === "postpaid" ? "#F0B429" : "#6b7280";
+            const workerName = t.worker_name || "—";
+            return `
+              <tr>
+                <td style="color:var(--fg-muted);">${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
+                <td style="color:var(--fg-primary); font-weight:500;">${escapeHtml(t.role_needed) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);font-weight:400;">${escapeHtml(t.shift_date) || ""}</span></td>
+                <td>${escapeHtml(workerName)}</td>
+                <td style="color:#111827; font-weight:500;">GHS ${(t.facility_total || 0).toLocaleString()}</td>
+                <td><span style="color:${statusColor};">${statusLabel}</span></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── Settings page ──
+async function loadSettingsPage() {
+  const { data: result } = await ccFetch("/settings/facility", { method: "GET" });
+  if (result?.success && result.data) {
+    const p = result.data;
+    document.getElementById("setFacilityName").value = p.facility_name || "";
+    document.getElementById("setFacilityType").value = p.facility_type || "";
+    document.getElementById("setFacilityCity").value = p.city || "";
+    document.getElementById("setContactName").value = p.contact_name || "";
+    document.getElementById("setContactPhone").value = p.contact_phone || "";
+    const billingEl = document.getElementById("settingsBillingInfo");
+    if (billingEl) {
+      const model = p.billing_model === "postpaid" ? "Postpaid (billed monthly)" : "Prepaid (pay per shift)";
+      billingEl.innerHTML = `
+        <p><strong>Billing model:</strong> ${model}</p>
+        ${p.trusted_by ? `<p style="font-size:13px;color:var(--fg-muted);">Approved by: ${escapeHtml(p.trusted_by)}</p>` : ""}
+      `;
+    }
+  }
+}
+
+async function saveSettings() {
+  const body = {
+    facility_name: document.getElementById("setFacilityName").value.trim(),
+    facility_type: document.getElementById("setFacilityType").value,
+    city: document.getElementById("setFacilityCity").value,
+    contact_name: document.getElementById("setContactName").value.trim(),
+    contact_phone: document.getElementById("setContactPhone").value.trim()
+  };
+  const btn = document.querySelector("#section-settings .btn-auth");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving..."; }
+  try {
+    const { data: result } = await ccFetch("/settings/facility", { method: "PUT", body: JSON.stringify(body) });
+    if (result?.success) {
+      ccToast("Settings saved!", "success");
+      loadFacilityProfile();
+    } else {
+      ccToast(result?.message || "Failed to save settings.", "error");
+    }
+  } catch (err) {
+    ccToast("Network error.", "error");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "Save changes"; }
+  }
+}
+
 init();
