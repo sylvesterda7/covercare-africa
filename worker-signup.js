@@ -4,6 +4,7 @@ const _supabase = window._supabase;
 
 // ── License verification ──
 let licenseVerified = false;
+let licenseManualReview = false;
 let googleProfile = null;
 
 // ── Populate country dropdown ──
@@ -46,6 +47,7 @@ document.getElementById("role").addEventListener("change", function() {
   const pharmacyRoles = ["pharmacist", "pharmacy-tech"];
 
   licenseVerified = false;
+  licenseManualReview = false;
   if (resultBox) {
     resultBox.className = "verify-result";
     resultBox.innerHTML = "";
@@ -72,6 +74,7 @@ document.getElementById("verifyBtn").addEventListener("click", function() {
 
 document.getElementById("license").addEventListener("input", function() {
   licenseVerified = false;
+  licenseManualReview = false;
   const resultBox = document.getElementById("verifyResult");
   if (resultBox) {
     resultBox.className = "verify-result";
@@ -228,6 +231,7 @@ async function verifyLicense() {
 
     if (data.success === true) {
       licenseVerified = true;
+      licenseManualReview = false;
       resultBox.className = "verify-result success";
       resultBox.dataset.verified = "1";
       resultBox.innerHTML = `
@@ -239,43 +243,56 @@ async function verifyLicense() {
       `;
     } else if (data.data && data.data.status === "name_mismatch") {
       licenseVerified = false;
+      licenseManualReview = true;
       resultBox.dataset.verified = "0";
       resultBox.className = "verify-result warning";
+      document.getElementById("uploadNote").style.display = "block";
+      document.getElementById("uploadGroup").style.display = "block";
       resultBox.innerHTML = `
         <strong>Name mismatch</strong><br>
         This registration number exists but the name does not match 
         Pharmacy Council records. Please check that your full name 
-        matches exactly as registered with the Council.
+        matches exactly as registered with the Council.<br><br>
+        You can upload your license certificate to continue for manual review.
       `;
     } else if (data.data && data.data.status === "not_found") {
       licenseVerified = false;
+      licenseManualReview = true;
       resultBox.dataset.verified = "0";
       resultBox.className = "verify-result warning";
+      document.getElementById("uploadNote").style.display = "block";
+      document.getElementById("uploadGroup").style.display = "block";
       resultBox.innerHTML = `
         <strong>Not found</strong><br>
         We couldn't find this registration number in Pharmacy Council records. 
-        Please check and try again, or contact us for manual verification.
+        Please check and try again, or upload your license certificate for manual review.
       `;
     } else {
       licenseVerified = false;
+      licenseManualReview = true;
       resultBox.dataset.verified = "0";
       resultBox.className = "verify-result error";
+      document.getElementById("uploadNote").style.display = "block";
+      document.getElementById("uploadGroup").style.display = "block";
       resultBox.innerHTML = `
         <strong>Verification unavailable</strong><br>
         Our verification service is temporarily unavailable. 
-        Your application will be reviewed manually within 24 hours.
+        Upload your license certificate and we will review it manually within 24 hours.
       `;
     }
 
   } catch (err) {
     console.error("Verify error:", err);
     licenseVerified = false;
+    licenseManualReview = true;
     resultBox.dataset.verified = "0";
     resultBox.className = "verify-result error";
+    document.getElementById("uploadNote").style.display = "block";
+    document.getElementById("uploadGroup").style.display = "block";
     resultBox.innerHTML = `
       <strong>Verification unavailable</strong><br>
       Our verification service is temporarily unavailable. 
-      Your application will be reviewed manually within 24 hours.
+      Upload your license certificate and we will review it manually within 24 hours.
     `;
   } finally {
     btn.disabled = false;
@@ -315,8 +332,9 @@ document.getElementById("workerForm").addEventListener("submit", async function(
   }
 
   const pharmacyRoles = ["pharmacist", "pharmacy-tech"];
-  if (pharmacyRoles.includes(worker.role) && !licenseVerified) {
-    ccToast("Please verify your pharmacy license before submitting.", "error");
+  const licenseFile = document.getElementById("licenseFile")?.files?.[0] || null;
+  if (pharmacyRoles.includes(worker.role) && !licenseVerified && !licenseFile) {
+    ccToast("Please verify your pharmacy license or upload a license certificate before submitting.", "error");
     return;
   }
 
@@ -373,6 +391,18 @@ document.getElementById("workerForm").addEventListener("submit", async function(
   btn.textContent = "Saving profile...";
 
   try {
+    let licenseDocumentUrl = null;
+    if (licenseFile) {
+      const { data: uploadResult } = await ccFetch("/api/upload", {
+        method: "POST",
+        body: JSON.stringify({
+          image: await fileToDataUrl(licenseFile),
+          folder: "worker-license-docs"
+        })
+      });
+      licenseDocumentUrl = uploadResult?.success ? uploadResult.url : null;
+    }
+
     const { response, data: result } = await ccFetch("/worker", {
       method: "POST",
       body: JSON.stringify({
@@ -381,6 +411,9 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         phone: worker.phone,
         role: worker.role,
         license_number: worker.license,
+        license_document_url: licenseDocumentUrl,
+        license_verified: licenseVerified,
+        license_manual_review: licenseManualReview,
         country: worker.country,
         city: worker.city,
         experience: worker.experience
