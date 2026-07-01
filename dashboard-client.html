@@ -123,27 +123,27 @@
           <div class="empty-state"><p>Loading wallet transactions...</p></div>
         </div>
 
-        <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem; margin-top:2rem;">
-          <h3 style="margin:0 0 4px; font-size:15px;">Payment methods</h3>
-          <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Add your bank account or mobile money details for making payments.</p>
-          <form id="clientFinanceForm" style="display:flex; flex-direction:column; gap:10px; max-width:400px;">
-            <div style="margin-bottom:0.5rem;">
-              <p style="font-size:13px; font-weight:500; color:var(--fg-primary); margin-bottom:6px;">Bank account</p>
+        <div class="profile-card" style="flex-direction:column; gap:0; padding:1rem; margin-top:1.5rem;">
+          <h3 style="margin:0 0 2px; font-size:14px;">Payment methods</h3>
+          <p style="font-size:12px; color:var(--fg-muted); margin-bottom:0.75rem;">Bank account or mobile money for making payments.</p>
+          <form id="clientFinanceForm" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-width:500px;">
+            <div style="grid-column:1/-1;">
+              <p style="font-size:12px; font-weight:500; color:var(--fg-primary); margin:0 0 4px;">Bank account</p>
             </div>
-            <input id="finBankName" class="glass-input" type="text" placeholder="Bank name (e.g. GC Bank)" />
-            <input id="finBankAccount" class="glass-input" type="text" placeholder="Account number" />
-            <input id="finBankAccountName" class="glass-input" type="text" placeholder="Account holder name" />
-            <div style="margin:0.5rem 0;">
-              <p style="font-size:13px; font-weight:500; color:var(--fg-primary); margin-bottom:6px;">Mobile Money</p>
+            <input id="finBankName" class="glass-input" type="text" placeholder="Bank name" style="font-size:13px; padding:7px 10px;" />
+            <input id="finBankAccount" class="glass-input" type="text" placeholder="Account number" style="font-size:13px; padding:7px 10px;" />
+            <input id="finBankAccountName" class="glass-input" type="text" placeholder="Account holder name" style="font-size:13px; padding:7px 10px; grid-column:1/-1;" />
+            <div style="grid-column:1/-1;">
+              <p style="font-size:12px; font-weight:500; color:var(--fg-primary); margin:2px 0 4px;">Mobile Money</p>
             </div>
-            <select id="finMomoProvider" class="glass-input">
+            <select id="finMomoProvider" class="glass-input" style="font-size:13px; padding:7px 10px;">
               <option value="">Select provider</option>
               <option value="mtn">MTN Mobile Money</option>
               <option value="vodafone">Vodafone Cash</option>
               <option value="airteltigo">AirtelTigo Money</option>
             </select>
-            <input id="finMomoNumber" class="glass-input" type="tel" placeholder="Mobile Money number" />
-            <button type="submit" class="btn-auth" style="align-self:flex-start; margin-top:4px;">Save payment details</button>
+            <input id="finMomoNumber" class="glass-input" type="tel" placeholder="Mobile Money number" style="font-size:13px; padding:7px 10px;" />
+            <button type="submit" class="btn-auth" style="grid-column:1/-1; justify-self:start; font-size:12px; padding:6px 14px; margin-top:2px;">Save payment details</button>
           </form>
         </div>
       </div>
