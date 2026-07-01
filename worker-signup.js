@@ -5,6 +5,36 @@ const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG
 let licenseVerified = false;
 let googleProfile = null;
 
+// ── Populate country dropdown ──
+(function populateCountries() {
+  const sel = document.getElementById("country");
+  AFRICAN_COUNTRIES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.code;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+})();
+
+// ── Country change → populate cities + show form ──
+document.getElementById("country").addEventListener("change", function() {
+  const countryCode = this.value;
+  const country = AFRICAN_COUNTRIES.find(c => c.code === countryCode);
+  const citySel = document.getElementById("city");
+  citySel.innerHTML = '<option value="" disabled selected>Select your city</option>';
+  if (country) {
+    country.cities.forEach(city => {
+      const opt = document.createElement("option");
+      opt.value = city.value;
+      opt.textContent = city.label;
+      citySel.appendChild(opt);
+    });
+    // Update phone placeholder with country prefix
+    document.getElementById("phone").placeholder = country.phonePrefix + " XX XXX XXXX";
+  }
+  document.getElementById("restOfForm").style.display = "block";
+});
+
 // ── Show/hide verify button based on role ──
 document.getElementById("role").addEventListener("change", function() {
   const role = this.value;
@@ -224,6 +254,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     role: document.getElementById("role").value,
     license: document.getElementById("license").value.trim(),
     licenseVerified: licenseVerified,
+    country: document.getElementById("country").value,
     city: document.getElementById("city").value,
     experience: document.getElementById("experience").value,
   };
@@ -234,6 +265,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     !worker.phone ||
     !worker.role ||
     !worker.license ||
+    !worker.country ||
     !worker.city ||
     !worker.experience
   ) {
@@ -308,6 +340,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         phone: worker.phone,
         role: worker.role,
         license_number: worker.license,
+        country: worker.country,
         city: worker.city,
         experience: worker.experience
       })

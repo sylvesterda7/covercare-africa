@@ -37,6 +37,10 @@
     }
     .location-btn:hover { border-color: var(--accent-border); color: var(--accent); }
     .location-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .country-select-group { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .country-select-group label { font-size: 15px; font-weight: 600; }
+    .country-select-group .country-hint { font-size: 13px; color: var(--fg-muted); margin-bottom: 0.75rem; }
+    .country-select-group select { width: 100%; padding: 14px 16px; font-size: 16px; }
   </style>
 </head>
 
@@ -59,103 +63,112 @@
   <section class="signup-form-section">
     <form class="signup-form" id="workerForm">
 
-      <!-- Google sign-up -->
-      <div id="googleBtnWrap">
-        <button type="button" class="google-btn" onclick="signUpWithGoogle()">
-          <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/></svg>
-          Sign up with Google
-        </button>
-        <div class="divider"><span>or continue with email</span></div>
+      <!-- Country selection (first, before anything else) -->
+      <div class="form-group country-select-group">
+        <label for="country">Where are you based?</label>
+        <p class="country-hint">Select your country to get started. Everything else adapts from here.</p>
+        <select id="country" required>
+          <option value="" disabled selected>Select your country</option>
+        </select>
       </div>
 
-      <!-- Google connected badge -->
-      <div class="google-badge" id="googleBadge">
-        <i>G</i> Connected with Google · <span id="googleEmail">—</span>
-      </div>
+      <!-- Rest of form (shown after country selection) -->
+      <div id="restOfForm" style="display:none;">
 
-      <div class="form-group">
-        <label for="fullname">Full name</label>
-        <input type="text" id="fullname" placeholder="e.g. Kwame Mensah" required />
-      </div>
+        <!-- Google sign-up -->
+        <div id="googleBtnWrap">
+          <button type="button" class="google-btn" onclick="signUpWithGoogle()">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/></svg>
+            Sign up with Google
+          </button>
+          <div class="divider"><span>or continue with email</span></div>
+        </div>
 
-      <div class="form-group" id="emailGroup">
-        <label for="email">Email address</label>
-        <input type="email" id="email" placeholder="e.g. kwame@gmail.com" required />
-      </div>
+        <!-- Google connected badge -->
+        <div class="google-badge" id="googleBadge">
+          <i>G</i> Connected with Google · <span id="googleEmail">—</span>
+        </div>
 
-      <div id="regFields" style="display:none;">
         <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" placeholder="At least 8 characters" required />
+          <label for="fullname">Full name</label>
+          <input type="text" id="fullname" placeholder="e.g. Kwame Mensah" required />
         </div>
+
+        <div class="form-group" id="emailGroup">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="e.g. kwame@gmail.com" required />
+        </div>
+
+        <div id="regFields" style="display:none;">
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="At least 8 characters" required />
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm password</label>
+            <input type="password" id="confirmPassword" placeholder="Repeat your password" required />
+          </div>
+        </div>
+
         <div class="form-group">
-          <label for="confirmPassword">Confirm password</label>
-          <input type="password" id="confirmPassword" placeholder="Repeat your password" required />
+          <label for="phone">Phone number</label>
+          <input type="tel" id="phone" placeholder="e.g. 0244000000" required />
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="phone">Phone number (Mobile Money number)</label>
-        <input type="tel" id="phone" placeholder="e.g. 0244000000" required />
-      </div>
-
-      <div class="form-group">
-        <label for="role">Your role</label>
-        <select id="role" required>
-          <option value="" disabled selected>Select your role</option>
-          <option value="pharmacist">Pharmacist</option>
-          <option value="pharmacy-tech">Pharmacy Technician</option>
-          <option value="medical-doctor">Medical Doctor</option>
-          <option value="nurse">Nurse</option>
-          <option value="lab-technician">Lab Technician</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="license">License / Registration number</label>
-        <div class="verify-row">
-          <input type="text" id="license" placeholder="e.g. HPA 3343" required />
-          <button type="button" class="btn-verify" id="verifyBtn" style="display:none;">Verify</button>
+        <div class="form-group">
+          <label for="role">Your role</label>
+          <select id="role" required>
+            <option value="" disabled selected>Select your role</option>
+            <option value="pharmacist">Pharmacist</option>
+            <option value="pharmacy-tech">Pharmacy Technician</option>
+            <option value="medical-doctor">Medical Doctor</option>
+            <option value="nurse">Nurse</option>
+            <option value="lab-technician">Lab Technician</option>
+          </select>
         </div>
-        <div class="verify-result" id="verifyResult"></div>
-        <div class="upload-note" id="uploadNote" style="display:none;">
-          Please upload a copy of your license certificate below for manual verification by our team within 24 hours.
+
+        <div class="form-group">
+          <label for="license">License / Registration number</label>
+          <div class="verify-row">
+            <input type="text" id="license" placeholder="e.g. HPA 3343" required />
+            <button type="button" class="btn-verify" id="verifyBtn" style="display:none;">Verify</button>
+          </div>
+          <div class="verify-result" id="verifyResult"></div>
+          <div class="upload-note" id="uploadNote" style="display:none;">
+            Please upload a copy of your license certificate below for manual verification by our team within 24 hours.
+          </div>
         </div>
-      </div>
 
-      <div class="form-group" id="uploadGroup" style="display:none;">
-        <label for="licenseFile">Upload license certificate</label>
-        <input type="file" id="licenseFile" accept=".pdf,.jpg,.jpeg,.png" />
-      </div>
+        <div class="form-group" id="uploadGroup" style="display:none;">
+          <label for="licenseFile">Upload license certificate</label>
+          <input type="file" id="licenseFile" accept=".pdf,.jpg,.jpeg,.png" />
+        </div>
 
-      <div class="form-group">
-        <label for="city">City</label>
-        <select id="city" required>
-          <option value="" disabled selected>Select your city</option>
-          <option value="accra">Accra</option>
-          <option value="kumasi">Kumasi</option>
-          <option value="tamale">Tamale</option>
-          <option value="cape-coast">Cape Coast</option>
-          <option value="takoradi">Takoradi</option>
-        </select>
-        <input type="hidden" id="lat" />
-        <input type="hidden" id="lng" />
-        <button type="button" class="location-btn" id="locationBtn" onclick="useLiveLocation()">📍 Use my location</button>
-      </div>
+        <div class="form-group">
+          <label for="city">City</label>
+          <select id="city" required>
+            <option value="" disabled selected>Select your city</option>
+          </select>
+          <input type="hidden" id="lat" />
+          <input type="hidden" id="lng" />
+          <button type="button" class="location-btn" id="locationBtn" onclick="useLiveLocation()">📍 Use my location</button>
+        </div>
 
-      <div class="form-group">
-        <label for="experience">Years of experience</label>
-        <select id="experience" required>
-          <option value="" disabled selected>Select experience</option>
-          <option value="0-1">Less than 1 year</option>
-          <option value="1-3">1 – 3 years</option>
-          <option value="3-5">3 – 5 years</option>
-          <option value="5-10">5 – 10 years</option>
-          <option value="10+">10+ years</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="experience">Years of experience</label>
+          <select id="experience" required>
+            <option value="" disabled selected>Select experience</option>
+            <option value="0-1">Less than 1 year</option>
+            <option value="1-3">1 – 3 years</option>
+            <option value="3-5">3 – 5 years</option>
+            <option value="5-10">5 – 10 years</option>
+            <option value="10+">10+ years</option>
+          </select>
+        </div>
 
-      <button type="submit" class="btn-submit">Create my profile</button>
+        <button type="submit" class="btn-submit">Create my profile</button>
+
+      </div><!-- /restOfForm -->
 
     </form>
 
@@ -163,14 +176,14 @@
     <div class="success-card" id="successCard">
       <div class="success-icon">✓</div>
       <h2>You're on the list!</h2>
-      <p>Thanks for joining CoverCare Africa. We're launching in Accra first and will contact you as soon as shifts are available in your city.</p>
+      <p>Thanks for joining CoverCare Africa. We're launching across Africa and will contact you as soon as shifts are available in your city.</p>
       <a href="index.html" class="btn-home">Back to home</a>
     </div>
 
   </section>
 
   <footer>
-    <p>© 2025 CoverCare Africa · Accra, Ghana</p>
+    <p>© 2025 CoverCare Africa · Africa</p>
   </footer>
 
   <script src="config.js"></script>

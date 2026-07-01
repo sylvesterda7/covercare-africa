@@ -53,6 +53,213 @@ const CC_CONFIG = {
   ]
 };
 
+const AFRICAN_COUNTRIES = [
+  {
+    code: "GH", name: "Ghana", currency: "GHS", phonePrefix: "+233",
+    cities: [
+      { value: "accra", label: "Accra" }, { value: "kumasi", label: "Kumasi" },
+      { value: "tamale", label: "Tamale" }, { value: "cape-coast", label: "Cape Coast" },
+      { value: "takoradi", label: "Takoradi" }, { value: "tema", label: "Tema" },
+      { value: "obuasi", label: "Obuasi" }, { value: "sunyani", label: "Sunyani" }
+    ]
+  },
+  {
+    code: "NG", name: "Nigeria", currency: "NGN", phonePrefix: "+234",
+    cities: [
+      { value: "lagos", label: "Lagos" }, { value: "abuja", label: "Abuja" },
+      { value: "port-harcourt", label: "Port Harcourt" }, { value: "ibadan", label: "Ibadan" },
+      { value: "kano", label: "Kano" }, { value: "enugu", label: "Enugu" },
+      { value: "benin-city", label: "Benin City" }, { value: "kaduna", label: "Kaduna" }
+    ]
+  },
+  {
+    code: "KE", name: "Kenya", currency: "KES", phonePrefix: "+254",
+    cities: [
+      { value: "nairobi", label: "Nairobi" }, { value: "mombasa", label: "Mombasa" },
+      { value: "kisumu", label: "Kisumu" }, { value: "nakuru", label: "Nakuru" },
+      { value: "eldoret", label: "Eldoret" }, { value: "thika", label: "Thika" }
+    ]
+  },
+  {
+    code: "ZA", name: "South Africa", currency: "ZAR", phonePrefix: "+27",
+    cities: [
+      { value: "johannesburg", label: "Johannesburg" }, { value: "cape-town", label: "Cape Town" },
+      { value: "durban", label: "Durban" }, { value: "pretoria", label: "Pretoria" },
+      { value: "port-elizabeth", label: "Port Elizabeth" }, { value: "bloemfontein", label: "Bloemfontein" }
+    ]
+  },
+  {
+    code: "UG", name: "Uganda", currency: "UGX", phonePrefix: "+256",
+    cities: [
+      { value: "kampala", label: "Kampala" }, { value: "gulu", label: "Gulu" },
+      { value: "mbarara", label: "Mbarara" }, { value: "jinja", label: "Jinja" },
+      { value: "entebbe", label: "Entebbe" }
+    ]
+  },
+  {
+    code: "TZ", name: "Tanzania", currency: "TZS", phonePrefix: "+255",
+    cities: [
+      { value: "dar-es-salaam", label: "Dar es Salaam" }, { value: "mwanza", label: "Mwanza" },
+      { value: "arusha", label: "Arusha" }, { value: "mbeya", label: "Mbeya" },
+      { value: "zanzibar", label: "Zanzibar" }
+    ]
+  },
+  {
+    code: "RW", name: "Rwanda", currency: "RWF", phonePrefix: "+250",
+    cities: [
+      { value: "kigali", label: "Kigali" }, { value: "butare", label: "Butare" },
+      { value: "gisenyi", label: "Gisenyi" }, { value: "ruhengeri", label: "Ruhengeri" }
+    ]
+  },
+  {
+    code: "ZM", name: "Zambia", currency: "ZMW", phonePrefix: "+260",
+    cities: [
+      { value: "lusaka", label: "Lusaka" }, { value: "ndola", label: "Ndola" },
+      { value: "kitwe", label: "Kitwe" }, { value: "livingstone", label: "Livingstone" }
+    ]
+  },
+  {
+    code: "ET", name: "Ethiopia", currency: "ETB", phonePrefix: "+251",
+    cities: [
+      { value: "addis-ababa", label: "Addis Ababa" }, { value: "dire-dawa", label: "Dire Dawa" },
+      { value: "mekelle", label: "Mekelle" }, { value: "gondar", label: "Gondar" }
+    ]
+  },
+  {
+    code: "CI", name: "Côte d'Ivoire", currency: "XOF", phonePrefix: "+225",
+    cities: [
+      { value: "abidjan", label: "Abidjan" }, { value: "yamoussoukro", label: "Yamoussoukro" },
+      { value: "bouake", label: "Bouaké" }, { value: "daloa", label: "Daloa" }
+    ]
+  },
+  {
+    code: "SN", name: "Senegal", currency: "XOF", phonePrefix: "+221",
+    cities: [
+      { value: "dakar", label: "Dakar" }, { value: "thies", label: "Thiès" },
+      { value: "saint-louis", label: "Saint-Louis" }, { value: "touba", label: "Touba" }
+    ]
+  },
+  {
+    code: "CM", name: "Cameroon", currency: "XAF", phonePrefix: "+237",
+    cities: [
+      { value: "douala", label: "Douala" }, { value: "yaounde", label: "Yaoundé" },
+      { value: "bamenda", label: "Bamenda" }, { value: "garoua", label: "Garoua" }
+    ]
+  },
+  {
+    code: "BW", name: "Botswana", currency: "BWP", phonePrefix: "+267",
+    cities: [
+      { value: "gaborone", label: "Gaborone" }, { value: "francistown", label: "Francistown" },
+      { value: "maun", label: "Maun" }, { value: "kasane", label: "Kasane" }
+    ]
+  },
+  {
+    code: "NA", name: "Namibia", currency: "NAD", phonePrefix: "+264",
+    cities: [
+      { value: "windhoek", label: "Windhoek" }, { value: "swakopmund", label: "Swakopmund" },
+      { value: "walvis-bay", label: "Walvis Bay" }, { value: "oshakati", label: "Oshakati" }
+    ]
+  },
+  {
+    code: "MZ", name: "Mozambique", currency: "MZN", phonePrefix: "+258",
+    cities: [
+      { value: "maputo", label: "Maputo" }, { value: "beira", label: "Beira" },
+      { value: "nampula", label: "Nampula" }, { value: "matola", label: "Matola" }
+    ]
+  },
+  {
+    code: "ZW", name: "Zimbabwe", currency: "ZWL", phonePrefix: "+263",
+    cities: [
+      { value: "harare", label: "Harare" }, { value: "bulawayo", label: "Bulawayo" },
+      { value: "chitungwiza", label: "Chitungwiza" }, { value: "mutare", label: "Mutare" }
+    ]
+  },
+  {
+    code: "MW", name: "Malawi", currency: "MWK", phonePrefix: "+265",
+    cities: [
+      { value: "lilongwe", label: "Lilongwe" }, { value: "blantyre", label: "Blantyre" },
+      { value: "mzuzu", label: "Mzuzu" }, { value: "zomba", label: "Zomba" }
+    ]
+  },
+  {
+    code: "AO", name: "Angola", currency: "AOA", phonePrefix: "+244",
+    cities: [
+      { value: "luanda", label: "Luanda" }, { value: "huambo", label: "Huambo" },
+      { value: "benguela", label: "Benguela" }, { value: "lubango", label: "Lubango" }
+    ]
+  },
+  {
+    code: "MA", name: "Morocco", currency: "MAD", phonePrefix: "+212",
+    cities: [
+      { value: "casablanca", label: "Casablanca" }, { value: "rabat", label: "Rabat" },
+      { value: "marrakech", label: "Marrakech" }, { value: "fes", label: "Fes" }
+    ]
+  },
+  {
+    code: "EG", name: "Egypt", currency: "EGP", phonePrefix: "+20",
+    cities: [
+      { value: "cairo", label: "Cairo" }, { value: "alexandria", label: "Alexandria" },
+      { value: "giza", label: "Giza" }, { value: "luxor", label: "Luxor" }
+    ]
+  },
+  {
+    code: "DZ", name: "Algeria", currency: "DZD", phonePrefix: "+213",
+    cities: [
+      { value: "algiers", label: "Algiers" }, { value: "oran", label: "Oran" },
+      { value: "constantine", label: "Constantine" }, { value: "annaba", label: "Annaba" }
+    ]
+  },
+  {
+    code: "TN", name: "Tunisia", currency: "TND", phonePrefix: "+216",
+    cities: [
+      { value: "tunis", label: "Tunis" }, { value: "sfax", label: "Sfax" },
+      { value: "sousse", label: "Sousse" }, { value: "kairouan", label: "Kairouan" }
+    ]
+  },
+  {
+    code: "MG", name: "Madagascar", currency: "MGA", phonePrefix: "+261",
+    cities: [
+      { value: "antananarivo", label: "Antananarivo" }, { value: "toamasina", label: "Toamasina" },
+      { value: "antsirabe", label: "Antsirabe" }, { value: "mahajanga", label: "Mahajanga" }
+    ]
+  },
+  {
+    code: "SL", name: "Sierra Leone", currency: "SLL", phonePrefix: "+232",
+    cities: [
+      { value: "freetown", label: "Freetown" }, { value: "bo", label: "Bo" },
+      { value: "kenema", label: "Kenema" }, { value: "makeni", label: "Makeni" }
+    ]
+  },
+  {
+    code: "LR", name: "Liberia", currency: "LRD", phonePrefix: "+231",
+    cities: [
+      { value: "monrovia", label: "Monrovia" }, { value: "gbarnga", label: "Gbarnga" },
+      { value: "buchanan", label: "Buchanan" }, { value: "zwedru", label: "Zwedru" }
+    ]
+  },
+  {
+    code: "GM", name: "Gambia", currency: "GMD", phonePrefix: "+220",
+    cities: [
+      { value: "banjul", label: "Banjul" }, { value: "serekunda", label: "Serekunda" },
+      { value: "brikama", label: "Brikama" }, { value: "bakau", label: "Bakau" }
+    ]
+  },
+  {
+    code: "CD", name: "DR Congo", currency: "CDF", phonePrefix: "+243",
+    cities: [
+      { value: "kinshasa", label: "Kinshasa" }, { value: "lubumbashi", label: "Lubumbashi" },
+      { value: "mbuji-mayi", label: "Mbuji-Mayi" }, { value: "goma", label: "Goma" }
+    ]
+  },
+  {
+    code: "MU", name: "Mauritius", currency: "MUR", phonePrefix: "+230",
+    cities: [
+      { value: "port-louis", label: "Port Louis" }, { value: "beau-bassin", label: "Beau Bassin" },
+      { value: "curepipe", label: "Curepipe" }, { value: "quatre-bornes", label: "Quatre Bornes" }
+    ]
+  }
+];
+
 function getPreferredCurrency() {
   try {
     const saved = JSON.parse(localStorage.getItem("cc_currency") || "null");

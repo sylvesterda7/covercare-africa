@@ -3,6 +3,35 @@ const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG
 
 let googleProfile = null;
 
+// ── Populate country dropdown ──
+(function populateCountries() {
+  const sel = document.getElementById("country");
+  AFRICAN_COUNTRIES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.code;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+})();
+
+// ── Country change → populate cities + show form ──
+document.getElementById("country").addEventListener("change", function() {
+  const countryCode = this.value;
+  const country = AFRICAN_COUNTRIES.find(c => c.code === countryCode);
+  const citySel = document.getElementById("city");
+  citySel.innerHTML = '<option value="" disabled selected>Select your city</option>';
+  if (country) {
+    country.cities.forEach(city => {
+      const opt = document.createElement("option");
+      opt.value = city.value;
+      opt.textContent = city.label;
+      citySel.appendChild(opt);
+    });
+    document.getElementById("phone").placeholder = country.phonePrefix + " XX XXX XXXX";
+  }
+  document.getElementById("restOfForm").style.display = "block";
+});
+
 // ── Live location ──
 function useLiveLocation() {
   if (!navigator.geolocation) {
@@ -117,6 +146,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
   const facility = {
     facilityName: document.getElementById("facilityName").value.trim(),
     facilityType: document.getElementById("facilityType").value,
+    country: document.getElementById("country").value,
     city: document.getElementById("city").value,
     contactName: document.getElementById("contactName").value.trim(),
     contactRole: document.getElementById("contactRole").value,
@@ -129,6 +159,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
   if (
     !facility.facilityName ||
     !facility.facilityType ||
+    !facility.country ||
     !facility.city ||
     !facility.contactName ||
     !facility.contactRole ||
@@ -225,6 +256,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
       body: JSON.stringify({
         facility_name: facility.facilityName,
         facility_type: facility.facilityType,
+        country: facility.country,
         city: facility.city,
         contact_name: facility.contactName,
         contact_role: facility.contactRole,

@@ -10,6 +10,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <meta name="theme-color" content="#111827" />
+  <style>
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 12px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); background: #fff;
+      font-size: 15px; font-weight: 500; color: var(--fg-primary);
+      cursor: pointer; transition: var(--transition); font-family: inherit;
+    }
+    .google-btn:hover { background: var(--bg-elevated); border-color: var(--accent-border); }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 12px; color: var(--fg-muted); white-space: nowrap; }
+    .google-badge {
+      display: none; align-items: center; gap: 8px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 14px;
+      font-size: 13px; color: var(--fg-primary); margin-bottom: 1rem;
+    }
+    .google-badge i { color: #4285F4; font-style: normal; font-size: 15px; }
+    .country-hint { font-size: 13px; color: var(--fg-muted); margin-bottom: 0.75rem; }
+  </style>
 </head>
 <body class="auth-body">
   <div class="auth-wrap">
@@ -17,6 +38,29 @@
       <a href="index.html" class="auth-logo">CoverCare Africa</a>
       <h1 class="auth-title">Create your account</h1>
       <p style="color:var(--fg-muted); margin-bottom:1.5rem; font-size:14px;">Set up your profile to start posting shifts and hiring professionals.</p>
+
+      <!-- Country selection -->
+      <div class="form-group" style="margin-bottom:1.5rem;">
+        <label class="form-label">Where are you based?</label>
+        <p class="country-hint">Select your country</p>
+        <select id="clientCountry" class="glass-input" required>
+          <option value="">Select your country</option>
+        </select>
+      </div>
+
+      <!-- Google sign-up -->
+      <div id="googleBtnWrap">
+        <button type="button" class="google-btn" onclick="signUpWithGoogle()">
+          <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/></svg>
+          Sign up with Google
+        </button>
+        <div class="divider"><span>or continue with email</span></div>
+      </div>
+
+      <!-- Google connected badge -->
+      <div class="google-badge" id="googleBadge">
+        <i>G</i> Connected with Google · <span id="googleEmail">—</span>
+      </div>
 
       <form id="clientForm" onsubmit="return submitClient(event)">
         <div class="form-group">
@@ -31,18 +75,13 @@
 
         <div class="form-group">
           <label class="form-label">Phone number</label>
-          <input id="clientPhone" class="glass-input" type="tel" required placeholder="+233 XX XXX XXXX" />
+          <input id="clientPhone" class="glass-input" type="tel" required placeholder="Phone number" />
         </div>
 
         <div class="form-group">
           <label class="form-label">City</label>
           <select id="clientCity" class="glass-input" required>
             <option value="">Select your city</option>
-            <option value="accra">Accra</option>
-            <option value="kumasi">Kumasi</option>
-            <option value="tamale">Tamale</option>
-            <option value="cape-coast">Cape Coast</option>
-            <option value="takoradi">Takoradi</option>
           </select>
         </div>
 
@@ -64,14 +103,81 @@
     const _supabase = window._supabase;
     ccInitInactivityLogout(_supabase);
 
+    let googleProfile = null;
+    let selectedCountry = null;
+
+    // Populate country dropdown
+    (function() {
+      const sel = document.getElementById("clientCountry");
+      AFRICAN_COUNTRIES.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.code;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    })();
+
+    // Country change → populate cities
+    document.getElementById("clientCountry").addEventListener("change", function() {
+      selectedCountry = this.value;
+      const country = AFRICAN_COUNTRIES.find(c => c.code === selectedCountry);
+      const citySel = document.getElementById("clientCity");
+      citySel.innerHTML = '<option value="">Select your city</option>';
+      if (country) {
+        country.cities.forEach(city => {
+          const opt = document.createElement("option");
+          opt.value = city.value;
+          opt.textContent = city.label;
+          citySel.appendChild(opt);
+        });
+        document.getElementById("clientPhone").placeholder = country.phonePrefix + " XX XXX XXXX";
+      }
+    });
+
     async function init() {
       const { data: { session } } = await _supabase.auth.getSession();
       if (!session) {
-        // Not logged in — redirect to register page first
         window.location.href = "register.html?type=client";
         return;
       }
       document.getElementById("clientEmail").value = session.user.email;
+
+      // Check for Google OAuth
+      if (session.user.app_metadata?.provider === "google" || session.user.user_metadata?.provider === "google") {
+        applyGoogleProfile(session);
+      }
+
+      // Handle OAuth redirect hash
+      const hash = window.location.hash;
+      if (hash && (hash.includes("access_token") || hash.includes("type=signup") || hash.includes("type=recovery"))) {
+        const { data } = await _supabase.auth.getSession();
+        if (data?.session) {
+          applyGoogleProfile(data.session);
+          window.location.hash = "";
+        }
+      }
+    }
+
+    function applyGoogleProfile(session) {
+      const meta = session.user.user_metadata;
+      if (!meta) return;
+      googleProfile = meta;
+      document.getElementById("clientName").value = meta.full_name || meta.name || "";
+      document.getElementById("clientEmail").value = meta.email || session.user.email || "";
+      document.getElementById("googleBadge").style.display = "inline-flex";
+      document.getElementById("googleBtnWrap").style.display = "none";
+      document.getElementById("googleEmail").textContent = document.getElementById("clientEmail").value;
+    }
+
+    async function signUpWithGoogle() {
+      const { error } = await _supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + "/client-signup.html",
+          queryParams: { access_type: "offline", prompt: "consent" }
+        }
+      });
+      if (error) ccToast(error.message, "error");
     }
 
     async function submitClient(e) {
@@ -83,9 +189,10 @@
       const full_name = document.getElementById("clientName").value.trim();
       const phone = document.getElementById("clientPhone").value.trim();
       const city = document.getElementById("clientCity").value;
+      const country = document.getElementById("clientCountry").value;
 
-      if (!full_name || !phone || !city) {
-        errEl.textContent = "Please fill in all fields.";
+      if (!full_name || !phone || !city || !country) {
+        errEl.textContent = "Please fill in all fields including your country and city.";
         errEl.style.display = "block";
         return;
       }
@@ -95,7 +202,7 @@
 
       const { data: result } = await ccFetch("/client", {
         method: "POST",
-        body: JSON.stringify({ full_name, phone, city })
+        body: JSON.stringify({ full_name, phone, city, country })
       });
 
       if (result?.success) {
