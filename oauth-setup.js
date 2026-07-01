@@ -47,6 +47,8 @@ document.getElementById("setupForm").addEventListener("submit", async function(e
     window.location.href = "facility-signup.html";
   } else if (type === "worker") {
     window.location.href = "worker-signup.html";
+  } else if (type === "public" || type === "client") {
+    window.location.href = "client-signup.html";
   } else {
     window.location.href = getDashboardUrl(type, email);
   }

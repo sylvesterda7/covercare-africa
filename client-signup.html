@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <meta name="theme-color" content="#111827" />
+</head>
+<body class="auth-body">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <a href="index.html" class="auth-logo">CoverCare Africa</a>
+      <h1 class="auth-title">Create your account</h1>
+      <p style="color:var(--fg-muted); margin-bottom:1.5rem; font-size:14px;">Set up your profile to start posting shifts and hiring professionals.</p>
+
+      <form id="clientForm" onsubmit="return submitClient(event)">
+        <div class="form-group">
+          <label class="form-label">Full name</label>
+          <input id="clientName" class="glass-input" type="text" required placeholder="Your full name" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input id="clientEmail" class="glass-input" type="email" required placeholder="your@email.com" readonly style="background:#f9fafb;" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Phone number</label>
+          <input id="clientPhone" class="glass-input" type="tel" required placeholder="+233 XX XXX XXXX" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <select id="clientCity" class="glass-input" required>
+            <option value="">Select your city</option>
+            <option value="accra">Accra</option>
+            <option value="kumasi">Kumasi</option>
+            <option value="tamale">Tamale</option>
+            <option value="cape-coast">Cape Coast</option>
+            <option value="takoradi">Takoradi</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-auth" id="clientBtn" style="margin-top:1rem;">Create account</button>
+      </form>
+
+      <p style="margin-top:1.25rem; font-size:13px; color:var(--fg-muted); text-align:center;">
+        Already have an account? <a href="login.html" style="color:#111827; font-weight:500;">Sign in</a>
+      </p>
+    </div>
+  </div>
+
+  <div id="clientError" style="display:none; color:#E24B4A; font-size:13px; text-align:center; margin-top:8px;"></div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+    const _supabase = window._supabase;
+    ccInitInactivityLogout(_supabase);
+
+    async function init() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) {
+        // Not logged in — redirect to register page first
+        window.location.href = "register.html?type=client";
+        return;
+      }
+      document.getElementById("clientEmail").value = session.user.email;
+    }
+
+    async function submitClient(e) {
+      e.preventDefault();
+      const btn = document.getElementById("clientBtn");
+      const errEl = document.getElementById("clientError");
+      errEl.style.display = "none";
+
+      const full_name = document.getElementById("clientName").value.trim();
+      const phone = document.getElementById("clientPhone").value.trim();
+      const city = document.getElementById("clientCity").value;
+
+      if (!full_name || !phone || !city) {
+        errEl.textContent = "Please fill in all fields.";
+        errEl.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Creating account...";
+
+      const { data: result } = await ccFetch("/client", {
+        method: "POST",
+        body: JSON.stringify({ full_name, phone, city })
+      });
+
+      if (result?.success) {
+        btn.textContent = "Done!";
+        window.location.href = "post-shift.html";
+      } else {
+        errEl.textContent = result?.message || "Failed to create account. Please try again.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Create account";
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

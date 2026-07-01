@@ -113,6 +113,25 @@ document.addEventListener("DOMContentLoaded", async function() {
     } catch (_) {}
   })();
 
+  // ── Pre-fill client info if user is an individual ──
+  (async () => {
+    try {
+      const { data: client } = await window._supabase
+        .from("clients")
+        .select("full_name, city")
+        .eq("email", session?.user?.email)
+        .maybeSingle();
+      if (client) {
+        const nameEl = document.getElementById("facilityName");
+        if (nameEl && !nameEl.value) nameEl.value = client.full_name || "";
+        const cityEl = document.getElementById("city");
+        if (cityEl && !cityEl.value && client.city) cityEl.value = client.city;
+        const typeEl = document.getElementById("facilityType");
+        if (typeEl && !typeEl.value) typeEl.value = "individual";
+      }
+    } catch (_) {}
+  })();
+
   const roleEl = document.getElementById("role");
   const payRateEl = document.getElementById("payRate");
   const rateHintEl = document.getElementById("rateHint");

@@ -109,6 +109,7 @@ function getArriveUrl(shiftId, workerId, token) {
 function getDashboardUrl(userType, email) {
   if (CC_CONFIG.ADMIN_EMAILS.includes(email)) return "admin.html";
   if (userType === "worker") return "dashboard-worker.html";
+  if (userType === "client") return "dashboard-client.html";
   return "dashboard-facility.html";
 }
 

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard — CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#111827">
+</head>
+<body>
+  <div class="bg-wrap"></div>
+  <div class="content-layer">
+
+    <nav class="dashboard-nav">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="index.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa <span style="font-size:11px;color:var(--fg-muted);margin-left:8px;">CLIENT</span></a>
+      </div>
+      <div class="nav-right">
+        <span class="nav-user" id="navUser">Loading...</span>
+        <button class="btn-logout" onclick="logout()">Sign out</button>
+      </div>
+    </nav>
+
+    <div class="dashboard-layout">
+      <main class="dashboard-main">
+        <div class="dashboard-header">
+          <h1>My Dashboard</h1>
+          <p>Post shifts and manage your care needs.</p>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap;">
+          <a href="post-shift.html" class="btn-auth" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+            <i class="ti ti-plus"></i> Post a new shift
+          </a>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:2rem;" id="clientStats"></div>
+
+        <div id="clientContent">
+          <div class="empty-state"><p>Loading your shifts...</p></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+    const _supabase = window._supabase;
+    ccInitInactivityLogout(_supabase);
+
+    async function init() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) { window.location.href = "login.html"; return; }
+
+      const email = session.user.email;
+      document.getElementById("navUser").textContent = email;
+
+      await loadShifts(email);
+    }
+
+    async function loadShifts(email) {
+      const { data, error } = await _supabase
+        .from("shifts")
+        .select("*")
+        .eq("contact_email", email)
+        .order("created_at", { ascending: false });
+
+      const container = document.getElementById("clientContent");
+      const statsEl = document.getElementById("clientStats");
+
+      if (error || !data) {
+        container.innerHTML = '<div class="empty-state"><p>Could not load shifts.</p></div>';
+        return;
+      }
+
+      const total = data.length;
+      const active = data.filter(s => s.status === "in_progress" || s.status === "accepted").length;
+      const open = data.filter(s => s.status === "open").length;
+      const completed = data.filter(s => s.status === "completed").length;
+
+      statsEl.innerHTML = `
+        <div class="stat-box"><div class="num">${total}</div><div class="label">Total shifts</div></div>
+        <div class="stat-box"><div class="num">${active}</div><div class="label">Active</div></div>
+        <div class="stat-box"><div class="num">${open}</div><div class="label">Open</div></div>
+        <div class="stat-box"><div class="num">${completed}</div><div class="label">Completed</div></div>
+      `;
+
+      if (data.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <p>You haven't posted any shifts yet.</p>
+            <a href="post-shift.html" class="btn-auth" style="display:inline-block; margin-top:12px;">Post your first shift</a>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="section-title" style="border:none; padding:0; margin-bottom:1rem;">My Shifts</div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Role needed</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Pay rate</th>
+                <th>Total pay</th>
+                <th>Posted</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(s => `
+                <tr>
+                  <td style="color:var(--fg-primary);font-weight:500;">${s.role_needed || "—"}</td>
+                  <td>${s.shift_date || "—"}</td>
+                  <td>
+                    ${s.status === "in_progress"
+                      ? '<span class="badge badge-accent" style="background:#111827;color:#fff;">● In progress</span>'
+                      : s.status === "open"
+                      ? '<span class="badge badge-accent">Open</span>'
+                      : s.status === "accepted"
+                      ? '<span class="badge badge-accent">Accepted</span>'
+                      : s.status === "completed"
+                      ? '<span class="badge badge-grey">Completed</span>'
+                      : '<span class="badge badge-grey">' + (s.status || "—") + '</span>'
+                    }
+                  </td>
+                  <td>${s.pay_rate || "—"}</td>
+                  <td style="color:#111827;">${s.total_pay || "—"}</td>
+                  <td style="color:var(--fg-muted);">${s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    async function logout() {
+      await _supabase.auth.signOut();
+      window.location.href = "login.html";
+    }
+
+    init();
+  </script>
+</body>
+</html>

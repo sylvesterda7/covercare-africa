@@ -22,7 +22,7 @@
 
   <!-- HEADER -->
   <section class="signup-header">
-    <p class="section-label">For facilities</p>
+    <p class="section-label">Post a shift</p>
     <h1>Post an open shift</h1>
     <p>Tell us what you need and we'll match you with a verified professional within hours.</p>
   </section>
@@ -37,7 +37,7 @@
       <div class="progress-step" id="step3-dot">3</div>
     </div>
     <div class="progress-labels">
-      <span>Facility</span>
+      <span>Your info</span>
       <span>Shift details</span>
       <span>Requirements</span>
     </div>
@@ -47,19 +47,20 @@
   <section class="signup-form-section">
     <form class="signup-form" id="shiftForm">
 
-      <!-- STEP 1: FACILITY INFO -->
+      <!-- STEP 1: YOUR INFO -->
       <div class="form-step" id="step1">
-        <h3 class="step-title">Your facility</h3>
+        <h3 class="step-title">Your details</h3>
 
         <div class="form-group">
-          <label for="facilityName">Facility name</label>
-          <input type="text" id="facilityName" placeholder="e.g. Nyaho Medical Centre" required />
+          <label for="facilityName">Name / Facility name</label>
+          <input type="text" id="facilityName" placeholder="Your name or facility name" required />
         </div>
 
         <div class="form-group">
-          <label for="facilityType">Facility type</label>
+          <label for="facilityType">Type</label>
           <select id="facilityType" required>
-            <option value="" disabled selected>Select facility type</option>
+            <option value="" disabled selected>Select type</option>
+            <option value="individual">Individual / Home care</option>
             <option value="hospital">Hospital</option>
             <option value="clinic">Clinic</option>
             <option value="community-pharmacy">Community Pharmacy</option>
