@@ -90,6 +90,12 @@
           <div class="empty-state"><p>Loading your shifts...</p></div>
         </div>
 
+        <div class="section-title" style="margin-top:2rem;">Workers I've hired</div>
+        <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Professionals you've worked with on completed or accepted shifts.</p>
+        <div id="workersHistoryContainer">
+          <div class="empty-state"><p>Loading workers history...</p></div>
+        </div>
+
       </div><!-- /section-dashboard -->
 
       <!-- SECTION: FINANCE -->
@@ -103,6 +109,30 @@
         <div id="financeTransactions">
           <div class="empty-state"><p>Loading transactions...</p></div>
         </div>
+
+        <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem; margin-top:2rem;">
+          <h3 style="margin:0 0 4px; font-size:15px;">Payment methods</h3>
+          <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Add your bank account or mobile money details for making payments.</p>
+          <form id="clientFinanceForm" style="display:flex; flex-direction:column; gap:10px; max-width:400px;">
+            <div style="margin-bottom:0.5rem;">
+              <p style="font-size:13px; font-weight:500; color:var(--fg-primary); margin-bottom:6px;">Bank account</p>
+            </div>
+            <input id="finBankName" class="glass-input" type="text" placeholder="Bank name (e.g. GC Bank)" />
+            <input id="finBankAccount" class="glass-input" type="text" placeholder="Account number" />
+            <input id="finBankAccountName" class="glass-input" type="text" placeholder="Account holder name" />
+            <div style="margin:0.5rem 0;">
+              <p style="font-size:13px; font-weight:500; color:var(--fg-primary); margin-bottom:6px;">Mobile Money</p>
+            </div>
+            <select id="finMomoProvider" class="glass-input">
+              <option value="">Select provider</option>
+              <option value="mtn">MTN Mobile Money</option>
+              <option value="vodafone">Vodafone Cash</option>
+              <option value="airteltigo">AirtelTigo Money</option>
+            </select>
+            <input id="finMomoNumber" class="glass-input" type="tel" placeholder="Mobile Money number" />
+            <button type="submit" class="btn-auth" style="align-self:flex-start; margin-top:4px;">Save payment details</button>
+          </form>
+        </div>
       </div>
 
       <!-- SECTION: SETTINGS -->
@@ -112,8 +142,10 @@
 
           <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem;">
             <h3 style="margin:0 0 4px; font-size:15px;">My profile</h3>
-            <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Update your personal information.</p>
-            <div id="settingsProfileForm" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Update your personal information and profile photo.</p>
+            <div id="settingsProfileForm" style="display:flex; flex-direction:column; gap:10px;">
+              <p style="font-size:13px; color:var(--fg-muted);">Loading...</p>
+            </div>
           </div>
 
           <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem;">
@@ -136,9 +168,22 @@
       <button class="scan-modal-close" onclick="closeClientModal()" aria-label="Close">✕</button>
       <h2 style="margin-bottom:1.5rem;">Edit profile</h2>
       <form id="clientProfileForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+          <img id="profilePhotoPreview" src="" alt="Preview" style="width:56px; height:56px; border-radius:50%; object-fit:cover; display:none; background:var(--bg-elevated); border:2px solid rgba(17,24,39,0.15);" />
+          <div>
+            <label style="font-size:12px; color:var(--fg-muted); margin-bottom:4px; display:block;">Profile photo</label>
+            <input id="editClientPhoto" class="glass-input" type="file" accept=".jpg,.jpeg,.png" style="font-size:13px;" />
+          </div>
+        </div>
         <input id="editClientName" class="glass-input" type="text" placeholder="Full name" required />
         <input id="editClientEmail" class="glass-input" type="email" placeholder="Email" readonly style="background:#f9fafb;" />
         <input id="editClientPhone" class="glass-input" type="tel" placeholder="Phone number" required />
+        <select id="editClientGender" class="glass-input">
+          <option value="">Select gender (optional)</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
         <select id="editClientCountry" class="glass-input" required>
           <option value="">Select country</option>
         </select>

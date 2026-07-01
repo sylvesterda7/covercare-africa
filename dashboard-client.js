@@ -23,6 +23,7 @@ let notifOpen = false;
   document.getElementById("navUser").textContent = meta.full_name || user.email;
   await loadClientProfile();
   await loadShifts();
+  await loadWorkersHistory();
 })();
 
 // ── Sidebar ──
@@ -50,14 +51,12 @@ function showSection(name) {
     const nav = document.getElementById("nav-" + s);
     if (nav) nav.classList.toggle("btn-sidebar-active", s === name);
   });
-  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); }
+  if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFinanceProfile(); }
   if (name === "settings") loadSettingsPage();
-  // Close mobile sidebar
   const sidebar = document.querySelector(".dashboard-sidebar");
   const overlay = document.getElementById("sidebarOverlay");
   if (sidebar && sidebar.classList.contains("open")) {
-    sidebar.classList.remove("open");
-    sidebar.classList.add("closed");
+    sidebar.classList.remove("open"); sidebar.classList.add("closed");
     if (overlay) overlay.classList.remove("show");
     document.querySelector(".dashboard-layout").classList.remove("sidebar-open");
   }
@@ -104,7 +103,6 @@ async function markAllRead() {
   loadNotifications();
 }
 
-// Close notifications on outside click
 document.addEventListener("click", function(e) {
   const dd = document.getElementById("notifDropdown");
   const btn = document.getElementById("notifBtn");
@@ -125,17 +123,14 @@ async function loadClientProfile() {
 // ── Shifts ──
 async function loadShifts() {
   const { data: shifts, error } = await _supabase
-    .from("shifts")
-    .select("*")
-    .eq("contact_email", clientEmail)
+    .from("shifts").select("*").eq("contact_email", clientEmail)
     .order("created_at", { ascending: false });
 
   const container = document.getElementById("clientShiftsContainer");
   const statsEl = document.getElementById("clientStats");
 
   if (error || !shifts) {
-    container.innerHTML = '<div class="empty-state"><p>Could not load shifts.</p></div>';
-    return;
+    container.innerHTML = '<div class="empty-state"><p>Could not load shifts.</p></div>'; return;
   }
 
   _clientShifts = shifts;
@@ -143,9 +138,7 @@ async function loadShifts() {
   const active = shifts.filter(s => s.status === "in_progress" || s.status === "accepted").length;
   const open = shifts.filter(s => s.status === "open").length;
   const completed = shifts.filter(s => s.status === "completed").length;
-  const totalSpent = shifts
-    .filter(s => s.payment_status === "paid")
-    .reduce((sum, s) => sum + (parseFloat(s.total_pay) || 0), 0);
+  const totalSpent = shifts.filter(s => s.payment_status === "paid").reduce((sum, s) => sum + (parseFloat(s.total_pay) || 0), 0);
 
   statsEl.innerHTML = `
     <div class="stat-box"><div class="num">${total}</div><div class="label">Total shifts</div></div>
@@ -156,75 +149,60 @@ async function loadShifts() {
   `;
 
   if (shifts.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <p>You haven't posted any shifts yet.</p>
-        <a href="post-shift.html" class="btn-auth" style="display:inline-block; margin-top:12px;">Post your first shift</a>
-      </div>`;
+    container.innerHTML = `<div class="empty-state"><p>You haven't posted any shifts yet.</p><a href="post-shift.html" class="btn-auth" style="display:inline-block;margin-top:12px;">Post your first shift</a></div>`;
     return;
   }
 
-  container.innerHTML = `
-    <div class="admin-table-wrap">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Role needed</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Pay rate</th>
-            <th>Total pay</th>
-            <th>Payment</th>
-            <th>Posted</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${shifts.map(s => `
-            <tr>
-              <td style="color:var(--fg-primary);font-weight:500;">${s.role_needed || "—"}</td>
-              <td>${s.shift_date || "—"}</td>
-              <td>
-                ${s.status === "in_progress"
-                  ? '<span class="badge badge-accent" style="background:#111827;color:#fff;">● In progress</span>'
-                  : s.status === "open"
-                  ? '<span class="badge badge-accent">Open</span>'
-                  : s.status === "accepted"
-                  ? '<span class="badge badge-accent">Accepted</span>'
-                  : s.status === "completed"
-                  ? '<span class="badge badge-grey">Completed</span>'
-                  : s.status === "cancelled"
-                  ? '<span class="badge badge-grey">Cancelled</span>'
-                  : '<span class="badge badge-grey">' + (s.status || "—") + '</span>'
-                }
-              </td>
-              <td>${s.pay_rate || "—"}</td>
-              <td style="color:#111827;">${s.total_pay || "—"}</td>
-              <td>
-                ${s.payment_status === "paid"
-                  ? '<span style="color:#059669;font-size:13px;">Paid</span>'
-                  : s.payment_status === "pending" || !s.payment_status
-                  ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>'
-                  : '<span style="font-size:13px;">' + (s.payment_status || "—") + '</span>'
-                }
-              </td>
-              <td style="color:var(--fg-muted);">${s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  container.innerHTML = `<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Role needed</th><th>Date</th><th>Status</th><th>Pay rate</th><th>Total pay</th><th>Payment</th><th>Posted</th></tr></thead><tbody>
+    ${shifts.map(s => `<tr>
+      <td style="color:var(--fg-primary);font-weight:500;">${s.role_needed || "—"}</td>
+      <td>${s.shift_date || "—"}</td>
+      <td>${s.status === "in_progress" ? '<span class="badge badge-accent" style="background:#111827;color:#fff;">● In progress</span>' : s.status === "open" ? '<span class="badge badge-accent">Open</span>' : s.status === "accepted" ? '<span class="badge badge-accent">Accepted</span>' : s.status === "completed" ? '<span class="badge badge-grey">Completed</span>' : s.status === "cancelled" ? '<span class="badge badge-grey">Cancelled</span>' : '<span class="badge badge-grey">' + (s.status || "—") + '</span>'}</td>
+      <td>${s.pay_rate || "—"}</td>
+      <td style="color:#111827;">${s.total_pay || "—"}</td>
+      <td>${s.payment_status === "paid" ? '<span style="color:#059669;font-size:13px;">Paid</span>' : s.payment_status === "pending" || !s.payment_status ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>' : '<span style="font-size:13px;">' + (s.payment_status || "—") + '</span>'}</td>
+      <td style="color:var(--fg-muted);">${s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}</td>
+    </tr>`).join("")}
+  </tbody></table></div>`;
 }
 
-// ── Finance ──
+// ── Workers history ──
+async function loadWorkersHistory() {
+  const container = document.getElementById("workersHistoryContainer");
+  if (!container) return;
+  const { data: result } = await ccFetch("/client/workers-history", { method: "GET" });
+  if (!result?.success || !result.data) {
+    container.innerHTML = '<div class="empty-state"><p>Could not load workers history.</p></div>'; return;
+  }
+  const history = result.data;
+  if (history.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No workers hired yet. Workers appear here once they accept your shift.</p></div>'; return;
+  }
+  container.innerHTML = `<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Worker</th><th>Role</th><th>Shift</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+    ${history.map(h => `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${h.worker_photo ? `<img src="${escapeHtml(h.worker_photo)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />` : `<div style="width:32px;height:32px;border-radius:50%;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--fg-muted);">${(h.worker_name || "?").charAt(0).toUpperCase()}</div>`}
+          <span style="color:var(--fg-primary);font-weight:500;font-size:14px;">${escapeHtml(h.worker_name || "—")}</span>
+        </div>
+      </td>
+      <td>${h.worker_role || "—"}</td>
+      <td>${h.role_needed || "—"}</td>
+      <td>${h.shift_date || "—"}</td>
+      <td style="color:#111827;">GHS ${(h.total_pay || 0).toLocaleString()}</td>
+      <td>${h.shift_status === "completed" ? '<span class="badge badge-grey">Completed</span>' : h.shift_status === "in_progress" ? '<span class="badge badge-accent" style="background:#111827;color:#fff;">In progress</span>' : '<span class="badge badge-accent">Accepted</span>'}</td>
+    </tr>`).join("")}
+  </tbody></table></div>`;
+}
+
+// ── Finance summary ──
 async function loadFinanceSummary() {
   const container = document.getElementById("financeSummary");
   if (!container) return;
   container.innerHTML = '<div class="empty-state"><p>Loading...</p></div>';
   const { data: result } = await ccFetch("/finance/client/summary", { method: "GET" });
   if (!result?.success || !result.data) {
-    container.innerHTML = '<div class="empty-state"><p>Could not load finance data.</p></div>';
-    return;
+    container.innerHTML = '<div class="empty-state"><p>Could not load finance data.</p></div>'; return;
   }
   const d = result.data;
   container.innerHTML = `
@@ -234,52 +212,27 @@ async function loadFinanceSummary() {
   `;
 }
 
+// ── Finance transactions ──
 async function loadFinanceTransactions() {
   const container = document.getElementById("financeTransactions");
   if (!container) return;
   const { data: result } = await ccFetch("/finance/client/transactions?page=1&limit=50", { method: "GET" });
   if (!result?.success || !result.data) {
-    container.innerHTML = '<div class="empty-state"><p>Could not load transactions.</p></div>';
-    return;
+    container.innerHTML = '<div class="empty-state"><p>Could not load transactions.</p></div>'; return;
   }
   _clientTransactions = result.data.transactions || [];
   if (_clientTransactions.length === 0) {
-    container.innerHTML = '<div class="empty-state"><p>No transactions yet.</p></div>';
-    return;
+    container.innerHTML = '<div class="empty-state"><p>No transactions yet.</p></div>'; return;
   }
-  container.innerHTML = `
-    <div class="admin-table-wrap">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Role</th>
-            <th>Shift date</th>
-            <th>Amount</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${_clientTransactions.map(t => `
-            <tr onclick="previewTxn(${t.id})" style="cursor:pointer;">
-              <td>${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
-              <td style="color:var(--fg-primary);font-weight:500;">${t.role_needed || "—"}</td>
-              <td>${t.shift_date || "—"}</td>
-              <td style="color:#111827;">GHS ${(t.total_pay || 0).toLocaleString()}</td>
-              <td>
-                ${t.payment_status === "paid"
-                  ? '<span style="color:#059669;font-size:13px;">Paid</span>'
-                  : t.payment_status === "pending" || !t.payment_status
-                  ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>'
-                  : '<span style="font-size:13px;">' + (t.payment_status || "—") + '</span>'
-                }
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  container.innerHTML = `<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Date</th><th>Role</th><th>Shift date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+    ${_clientTransactions.map(t => `<tr onclick="previewTxn(${t.id})" style="cursor:pointer;">
+      <td>${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
+      <td style="color:var(--fg-primary);font-weight:500;">${t.role_needed || "—"}</td>
+      <td>${t.shift_date || "—"}</td>
+      <td style="color:#111827;">GHS ${(t.total_pay || 0).toLocaleString()}</td>
+      <td>${t.payment_status === "paid" ? '<span style="color:#059669;font-size:13px;">Paid</span>' : t.payment_status === "pending" || !t.payment_status ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>' : '<span style="font-size:13px;">' + (t.payment_status || "—") + '</span>'}</td>
+    </tr>`).join("")}
+  </tbody></table></div>`;
 }
 
 function previewTxn(id) {
@@ -297,28 +250,53 @@ function previewTxn(id) {
     <div class="arrive-detail-row"><span>Reference</span><strong>${t.payment_reference || "—"}</strong></div>
     <div class="arrive-detail-row"><span>Facility type</span><strong>${t.facility_type || "—"}</strong></div>
     <div class="arrive-detail-row"><span>Shift status</span><strong>${t.status || "—"}</strong></div>
-    <div class="arrive-detail-row"><span>Created</span><strong>${t.created_at ? new Date(t.created_at).toLocaleString() : "—"}</strong></div>
-  `;
+    <div class="arrive-detail-row"><span>Created</span><strong>${t.created_at ? new Date(t.created_at).toLocaleString() : "—"}</strong></div>`;
   document.getElementById("txnPreviewModal").style.display = "flex";
 }
 
-function closeTxnPreview() {
-  document.getElementById("txnPreviewModal").style.display = "none";
-}
+function closeTxnPreview() { document.getElementById("txnPreviewModal").style.display = "none"; }
 
 function downloadClientStatement() {
   if (!_clientTransactions.length) { ccToast("No transactions to download.", "info"); return; }
-  const headers = ["Date", "Role", "Shift date", "Amount", "Payment status", "Reference"];
-  const rows = _clientTransactions.map(t => [
-    t.created_at ? new Date(t.created_at).toLocaleDateString() : "",
-    t.role_needed || "", t.shift_date || "",
+  downloadCSV(_clientTransactions.map(t => [
+    t.created_at ? new Date(t.created_at).toLocaleDateString() : "", t.role_needed || "", t.shift_date || "",
     t.total_pay || 0, t.payment_status || "", t.payment_reference || ""
-  ]);
-  downloadCSV(rows, headers, "covercare-client-statement.csv");
+  ]), ["Date", "Role", "Shift date", "Amount", "Payment status", "Reference"], "covercare-client-statement.csv");
   ccToast("Statement downloaded.", "success");
 }
 
-// ── Settings ──
+// ── Finance profile (momo/bank) ──
+async function loadFinanceProfile() {
+  const { data: result } = await ccFetch("/finance/client/profile", { method: "GET" });
+  if (result?.success && result.data) {
+    document.getElementById("finBankName").value = result.data.bank_name || "";
+    document.getElementById("finBankAccount").value = result.data.bank_account_number || "";
+    document.getElementById("finBankAccountName").value = result.data.bank_account_name || "";
+    document.getElementById("finMomoProvider").value = result.data.momo_provider || "";
+    document.getElementById("finMomoNumber").value = result.data.momo_number || "";
+  }
+}
+
+document.getElementById("clientFinanceForm")?.addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const btn = this.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = "Saving...";
+  const { data: result } = await ccFetch("/finance/client/profile", {
+    method: "POST",
+    body: JSON.stringify({
+      bank_name: document.getElementById("finBankName").value.trim(),
+      bank_account_number: document.getElementById("finBankAccount").value.trim(),
+      bank_account_name: document.getElementById("finBankAccountName").value.trim(),
+      momo_provider: document.getElementById("finMomoProvider").value,
+      momo_number: document.getElementById("finMomoNumber").value.trim()
+    })
+  });
+  if (result?.success) { ccToast("Payment details saved!", "success"); }
+  else { ccToast(result?.message || "Failed to save payment details.", "error"); }
+  btn.disabled = false; btn.textContent = "Save payment details";
+});
+
+// ── Settings page ──
 async function loadSettingsPage() {
   const form = document.getElementById("settingsProfileForm");
   if (!form) return;
@@ -331,6 +309,12 @@ async function loadSettingsPage() {
       <input id="setName" class="glass-input" type="text" placeholder="Full name" value="${escapeHtml(p.full_name || "")}" />
       <input id="setPhone" class="glass-input" type="tel" placeholder="Phone number" value="${escapeHtml(p.phone || "")}" />
       <input id="setEmail" class="glass-input" type="email" value="${escapeHtml(p.email || "")}" readonly style="background:#f9fafb;" />
+      <select id="setGender" class="glass-input">
+        <option value="">Select gender (optional)</option>
+        <option value="male" ${p.gender === "male" ? "selected" : ""}>Male</option>
+        <option value="female" ${p.gender === "female" ? "selected" : ""}>Female</option>
+        <option value="other" ${p.gender === "other" ? "selected" : ""}>Other</option>
+      </select>
       <select id="setCountry" class="glass-input">
         <option value="">Select country</option>
         ${AFRICAN_COUNTRIES.map(c => `<option value="${c.code}" ${c.code === p.country ? "selected" : ""}>${c.name}</option>`).join("")}
@@ -349,9 +333,7 @@ async function loadSettingsPage() {
 }
 
 document.addEventListener("change", function(e) {
-  if (e.target.id === "setCountry") {
-    populateCities("setCountry", "setCity", e.target.value, "");
-  }
+  if (e.target.id === "setCountry") populateCities("setCountry", "setCity", e.target.value, "");
 });
 
 function populateCities(countrySelectId, citySelectId, countryCode, selectedCity) {
@@ -362,8 +344,7 @@ function populateCities(countrySelectId, citySelectId, countryCode, selectedCity
   if (country) {
     country.cities.forEach(city => {
       const opt = document.createElement("option");
-      opt.value = city.value;
-      opt.textContent = city.label;
+      opt.value = city.value; opt.textContent = city.label;
       if (city.value === selectedCity) opt.selected = true;
       citySel.appendChild(opt);
     });
@@ -376,51 +357,68 @@ async function saveSettings() {
     phone: document.getElementById("setPhone").value.trim(),
     city: document.getElementById("setCity").value,
     country: document.getElementById("setCountry").value,
+    gender: document.getElementById("setGender").value,
     address: document.getElementById("setAddress").value.trim(),
     gps_code: document.getElementById("setGpsCode").value.trim()
   };
   if (!body.full_name || !body.phone || !body.city) {
-    ccToast("Name, phone, and city are required.", "error");
-    return;
+    ccToast("Name, phone, and city are required.", "error"); return;
   }
   const btn = document.querySelector("#section-settings .btn-auth");
   if (btn) { btn.disabled = true; btn.textContent = "Saving..."; }
   try {
-    const { data: result } = await ccFetch("/client", {
-      method: "PUT",
-      body: JSON.stringify(body)
-    });
-    if (result?.success) {
-      ccToast("Settings saved!", "success");
-      await loadClientProfile();
-    } else {
-      ccToast(result?.message || "Failed to save settings.", "error");
-    }
-  } catch (err) {
-    ccToast("Network error.", "error");
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "Save changes"; }
-  }
+    const { data: result } = await ccFetch("/client", { method: "PUT", body: JSON.stringify(body) });
+    if (result?.success) { ccToast("Settings saved!", "success"); await loadClientProfile(); }
+    else { ccToast(result?.message || "Failed to save settings.", "error"); }
+  } catch (err) { ccToast("Network error.", "error"); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = "Save changes"; } }
 }
 
 // ── Profile modal ──
+async function uploadPhoto(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const { data: result } = await ccFetch("/api/upload", {
+        method: "POST", body: JSON.stringify({ image: e.target.result, folder: "client-photos" })
+      });
+      resolve(result?.success ? result.url : null);
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById("editClientPhoto")?.addEventListener("change", function() {
+  const file = this.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById("profilePhotoPreview");
+    preview.src = e.target.result;
+    preview.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+});
+
 function openClientModal() {
   if (!clientProfile) { ccToast("Loading profile...", "info"); return; }
   const p = clientProfile;
   document.getElementById("editClientName").value = p.full_name || "";
   document.getElementById("editClientEmail").value = p.email || "";
   document.getElementById("editClientPhone").value = p.phone || "";
-
+  document.getElementById("editClientGender").value = p.gender || "";
+  const preview = document.getElementById("profilePhotoPreview");
+  if (p.profile_photo_url) { preview.src = p.profile_photo_url; preview.style.display = "block"; }
+  else { preview.src = ""; preview.style.display = "none"; }
   const countrySel = document.getElementById("editClientCountry");
   countrySel.innerHTML = '<option value="">Select country</option>';
   AFRICAN_COUNTRIES.forEach(c => {
     const opt = document.createElement("option");
-    opt.value = c.code;
-    opt.textContent = c.name;
+    opt.value = c.code; opt.textContent = c.name;
     if (c.code === p.country) opt.selected = true;
     countrySel.appendChild(opt);
   });
-
   populateCities("editClientCountry", "editClientCity", p.country, p.city);
   document.getElementById("editClientAddress").value = p.address || "";
   document.getElementById("editClientGpsCode").value = p.gps_code || "";
@@ -431,59 +429,48 @@ document.getElementById("editClientCountry").addEventListener("change", function
   populateCities("editClientCountry", "editClientCity", this.value, "");
 });
 
-function closeClientModal() {
-  document.getElementById("clientModal").style.display = "none";
-}
+function closeClientModal() { document.getElementById("clientModal").style.display = "none"; }
 
 document.getElementById("clientProfileForm").addEventListener("submit", async function(e) {
   e.preventDefault();
   const btn = this.querySelector('button[type="submit"]');
-  btn.disabled = true;
-  btn.textContent = "Saving...";
+  btn.disabled = true; btn.textContent = "Saving...";
   try {
+    const fileInput = document.getElementById("editClientPhoto");
+    let profilePhotoUrl = clientProfile?.profile_photo_url || null;
+    if (fileInput?.files?.[0]) {
+      profilePhotoUrl = await uploadPhoto(fileInput.files[0]);
+    }
     const body = {
       full_name: document.getElementById("editClientName").value.trim(),
       phone: document.getElementById("editClientPhone").value.trim(),
       country: document.getElementById("editClientCountry").value,
       city: document.getElementById("editClientCity").value,
+      gender: document.getElementById("editClientGender").value,
       address: document.getElementById("editClientAddress").value.trim(),
       gps_code: document.getElementById("editClientGpsCode").value.trim()
     };
-    const { data: result } = await ccFetch("/client", {
-      method: "PUT",
-      body: JSON.stringify(body)
-    });
+    if (profilePhotoUrl) body.profile_photo_url = profilePhotoUrl;
+    const { data: result } = await ccFetch("/client", { method: "PUT", body: JSON.stringify(body) });
     if (result?.success) {
       ccToast("Profile updated!", "success");
       closeClientModal();
       await loadClientProfile();
       const meta = (await _supabase.auth.getSession()).data?.session?.user?.user_metadata;
       if (meta) document.getElementById("navUser").textContent = meta.full_name || body.full_name || clientEmail;
-    } else {
-      ccToast(result?.message || "Could not update profile.", "error");
-    }
-  } catch (err) {
-    ccToast("Something went wrong.", "error");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Save changes";
-  }
+    } else { ccToast(result?.message || "Could not update profile.", "error"); }
+  } catch (err) { ccToast("Something went wrong.", "error"); }
+  finally { btn.disabled = false; btn.textContent = "Save changes"; }
 });
 
 // ── Support modal ──
-function openSupportModal() {
-  document.getElementById("supportModal").style.display = "flex";
-}
-
-function closeSupportModal() {
-  document.getElementById("supportModal").style.display = "none";
-}
+function openSupportModal() { document.getElementById("supportModal").style.display = "flex"; }
+function closeSupportModal() { document.getElementById("supportModal").style.display = "none"; }
 
 document.getElementById("supportForm")?.addEventListener("submit", async function(e) {
   e.preventDefault();
   const btn = this.querySelector(".btn-auth");
-  btn.disabled = true;
-  btn.textContent = "Sending...";
+  btn.disabled = true; btn.textContent = "Sending...";
   const { data } = await ccFetch("/support/ticket", {
     method: "POST",
     body: JSON.stringify({
@@ -492,14 +479,9 @@ document.getElementById("supportForm")?.addEventListener("submit", async functio
       category: document.getElementById("supportCategory").value
     })
   });
-  if (data?.success) {
-    ccToast("Support ticket sent! We'll respond within 24 hours.", "success");
-    closeSupportModal();
-  } else {
-    ccToast("Failed to send. Please try again.", "error");
-  }
-  btn.disabled = false;
-  btn.textContent = "Send";
+  if (data?.success) { ccToast("Support ticket sent! We'll respond within 24 hours.", "success"); closeSupportModal(); }
+  else { ccToast("Failed to send. Please try again.", "error"); }
+  btn.disabled = false; btn.textContent = "Send";
 });
 
 // ── Account deletion ──
@@ -508,34 +490,17 @@ async function confirmDelete() {
   const email = prompt("Type your email to confirm deletion:");
   if (!email) return;
   try {
-    const { data: result } = await ccFetch("/client", {
-      method: "DELETE",
-      body: JSON.stringify({ email })
-    });
-    if (result.success) {
-      await _supabase.auth.signOut();
-      window.location.href = "index.html";
-    } else {
-      ccToast(result.message || "Could not delete account.", "error");
-    }
-  } catch (err) {
-    ccToast("Something went wrong.", "error");
-  }
+    const { data: result } = await ccFetch("/client", { method: "DELETE", body: JSON.stringify({ email }) });
+    if (result.success) { await _supabase.auth.signOut(); window.location.href = "index.html"; }
+    else { ccToast(result.message || "Could not delete account.", "error"); }
+  } catch (err) { ccToast("Something went wrong.", "error"); }
 }
 
 // ── Logout ──
-async function logout() {
-  await _supabase.auth.signOut();
-  window.location.href = "login.html";
-}
+async function logout() { await _supabase.auth.signOut(); window.location.href = "login.html"; }
 
 // ── Escape helper ──
 function escapeHtml(str) {
   if (str == null) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
