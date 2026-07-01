@@ -6,6 +6,7 @@ ccInitInactivityLogout(_supabase);
 let allWorkers = [];
 let allFacilities = [];
 let allShifts = [];
+let currentShiftFilter = "all";
 let _adminTransactions = [];
 
 // ── Check session ──
@@ -254,11 +255,16 @@ async function loadShifts() {
 
   if (error || !data) return;
   allShifts = data;
+  renderShifts(currentShiftFilter);
+}
 
+function renderShifts(filter) {
+  const data = filter === "all" ? allShifts : allShifts.filter(s => s.status === filter);
   const container = document.getElementById("shiftsTable");
+  if (!container) return;
 
   if (data.length === 0) {
-    container.innerHTML = `<div class="empty-state"><p>No shifts posted yet.</p></div>`;
+    container.innerHTML = `<div class="empty-state"><p>No shifts found for this filter.</p></div>`;
     return;
   }
 
@@ -296,12 +302,16 @@ async function loadShifts() {
                 }
               </td>
               <td>
-                ${s.status === "open"
-                  ? '<span class="badge badge-accent">Open</span>'
+                ${s.status === "in_progress"
+                  ? '<span class="badge badge-accent" style="background:#111827;color:#fff;">● In progress</span>'
+                  : s.status === "open"
+                  ? '<span class="badge badge-yellow">Open</span>'
                   : s.status === "accepted"
                   ? '<span class="badge badge-accent">Accepted</span>'
                   : s.status === "cancelled"
                   ? '<span class="badge badge-red">Cancelled</span>'
+                  : s.status === "completed"
+                  ? '<span class="badge badge-grey">Completed</span>'
                   : '<span class="badge badge-grey">' + (s.status || "—") + '</span>'
                 }
               </td>
@@ -314,6 +324,14 @@ async function loadShifts() {
       </table>
     </div>
   `;
+}
+
+function setShiftFilter(filter) {
+  currentShiftFilter = filter;
+  document.querySelectorAll("#shiftFilterPills .pill-filter").forEach(btn => {
+    btn.classList.toggle("pill-active", btn.dataset.filter === filter);
+  });
+  renderShifts(filter);
 }
 
 // ── Load analytics ──
@@ -339,6 +357,8 @@ async function loadAnalytics() {
   const totalPaid = paidShifts + (result.pendingApplications || 0);
   document.getElementById("kpiPayments").textContent = totalShifts;
   document.getElementById("kpiPendingPct").textContent = totalShifts > 0 ? Math.round(((totalShifts - paidShifts) / totalShifts) * 100) + "% pending" : "—";
+  document.getElementById("kpiInProgress").textContent = result.inProgressShifts || 0;
+  document.getElementById("kpiUnfilled").textContent = result.unfilledShifts || 0;
 
   renderBarChart("workersChart", result.workersByMonth || [], "#111827");
   renderBarChart("shiftsChart", result.shiftsByMonth || [], "#111827");

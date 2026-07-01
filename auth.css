@@ -610,6 +610,28 @@
   box-shadow: var(--shadow-card);
 }
 
+.pill-filter {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.pill-filter:hover {
+  border-color: #111827;
+  color: #111827;
+}
+.pill-filter.pill-active {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
 /* ── QR arrival page ── */
 .arrive-card {
   background: var(--bg-card);
