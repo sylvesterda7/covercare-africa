@@ -13,6 +13,7 @@ async function init() {
 
   const user = session.user;
   const meta = user.user_metadata || {};
+  window._userEmail = user.email;
 
   if (!meta.user_type) {
     window.location.href = "oauth-setup.html";

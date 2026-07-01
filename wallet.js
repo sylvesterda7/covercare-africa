@@ -59,9 +59,10 @@ async function processDeposit() {
       return;
     }
 
+    var userEmail = window._userEmail || "";
     var handler = PaystackPop.setup({
       key: CC_CONFIG.PAYSTACK_PUBLIC_KEY,
-      email: document.getElementById("navUser").textContent.includes("@") ? document.getElementById("navUser").textContent : "",
+      email: userEmail,
       amount: Math.round(amount * 100),
       currency: "GHS",
       ref: res.data.reference,

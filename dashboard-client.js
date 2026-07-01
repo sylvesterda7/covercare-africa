@@ -14,6 +14,7 @@ let notifOpen = false;
   if (!session) { window.location.href = "login.html"; return; }
   const user = session.user;
   const meta = user.user_metadata || {};
+  window._userEmail = user.email;
   if (!meta.user_type && !user.email) { window.location.href = "oauth-setup.html"; return; }
   if (meta.user_type === "worker") { window.location.href = "dashboard-worker.html"; return; }
   if (meta.user_type === "facility") { window.location.href = "dashboard-facility.html"; return; }
