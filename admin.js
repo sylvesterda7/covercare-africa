@@ -330,27 +330,28 @@ async function loadAnalytics() {
   const { data: result } = await ccFetch("/admin/analytics", { method: "GET" });
   if (!result?.success) return;
 
-  // Overview stats
-  document.getElementById("totalWorkers").textContent = result.totalWorkers || 0;
-  document.getElementById("verifiedWorkers").textContent = result.verifiedWorkersCount || 0;
-  document.getElementById("totalFacilities").textContent = result.totalFacilities || 0;
-  document.getElementById("totalShifts").textContent = result.totalShifts || 0;
-  document.getElementById("paidShifts").textContent = result.paidShifts || 0;
-  document.getElementById("totalRevenue").textContent = "GHS " + (result.totalRevenue || 0).toLocaleString();
+  const totalW = result.totalWorkers || 0;
+  const verifiedW = result.verifiedWorkersCount || 0;
+  const idVerifiedW = result.identityVerifiedCount || 0;
+  const pendingApps = result.pendingApplications || 0;
+  const totalShifts = result.totalShifts || 0;
+  const paidShifts = result.paidShifts || 0;
 
-  // Analytics stats
-  document.getElementById("analActiveShifts").textContent = result.activeShifts || 0;
-  document.getElementById("analPendingApps").textContent = result.pendingApplications || 0;
-  document.getElementById("analAvgRating").textContent = result.avgRating || "—";
-  document.getElementById("analFillRate").textContent = (result.fillRate || 0) + "%";
-
-  const totalWorkers = result.totalWorkers || 1;
-  const idVerified = result.identityVerifiedCount || 0;
-  document.getElementById("analIdVerified").textContent = Math.round((idVerified / totalWorkers) * 100) + "%";
+  document.getElementById("kpiRevenue").textContent = "GHS " + (result.totalRevenue || 0).toLocaleString();
+  document.getElementById("kpiRevenueTrend").textContent = paidShifts + " paid shifts";
+  document.getElementById("kpiActiveShifts").textContent = result.activeShifts || 0;
+  document.getElementById("kpiFillRate").textContent = (result.fillRate || 0) + "% fill rate";
+  document.getElementById("kpiWorkers").textContent = totalW;
+  document.getElementById("kpiVerifiedPct").textContent = totalW > 0 ? Math.round((verifiedW / totalW) * 100) + "% verified" : "0% verified";
+  document.getElementById("kpiFacilities").textContent = result.totalFacilities || 0;
+  document.getElementById("kpiRating").textContent = result.avgRating !== "—" ? result.avgRating + " ★ avg" : "No ratings";
+  const totalPaid = paidShifts + (result.pendingApplications || 0);
+  document.getElementById("kpiPayments").textContent = totalShifts;
+  document.getElementById("kpiPendingPct").textContent = totalShifts > 0 ? Math.round(((totalShifts - paidShifts) / totalShifts) * 100) + "% pending" : "—";
 
   renderBarChart("workersChart", result.workersByMonth || [], "#111827");
   renderBarChart("shiftsChart", result.shiftsByMonth || [], "#111827");
-  renderBarChart("revenueChart", (result.revenueByMonth || []).map(r => ({ ...r, count: r.amount })), "#F0B429");
+  renderBarChart("revenueChart", (result.revenueByMonth || []).map(r => ({ ...r, count: r.amount })), "#111827");
 }
 
 function renderBarChart(containerId, data, color) {
@@ -522,43 +523,43 @@ async function loadAdminFinanceSummary() {
 async function loadAdminFinanceTransactions() {
   const container = document.getElementById("adminFinanceTransactions");
   if (!container) return;
-  const { data: result } = await ccFetch("/finance/admin/transactions?page=1&limit=50", { method: "GET" });
-  if (!result?.success || !result.data?.transactions?.length) {
+  const { data: result } = await ccFetch("/admin/payments", { method: "GET" });
+  if (!result?.success || !result.data?.length) {
     container.innerHTML = '<div class="empty-state"><p>No transactions found.</p></div>';
     return;
   }
-  const txns = result.data.transactions;
+  const txns = result.data;
   container.innerHTML = `
-    <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${result.data.total} transactions</p>
-    <div class="admin-table-wrap">
-      <table class="admin-table">
+    <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${txns.length} transactions</p>
+    <div style="overflow-x:auto;">
+      <table class="admin-table" style="min-width:900px;">
         <thead>
           <tr>
             <th>Date</th>
             <th>Facility</th>
             <th>Shift</th>
-            <th>Amount</th>
-            <th>Fee (25%)</th>
+            <th>Worker pay</th>
+            <th>Facility total</th>
             <th>Status</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           ${txns.map(t => {
             const amount = t.facility_total || 0;
-            const fee = amount * 0.2;
-            const statusColor = t.payment_status === "paid" ? "#059669" : t.payment_status === "postpaid" ? "#F0B429" : "#6b7280";
-            const statusLabel = t.payment_status === "paid" ? "Paid" : t.payment_status === "postpaid" ? "Postpaid" : t.payment_status || "—";
-            const markPaidBtn = t.payment_status === "postpaid" ? `<button onclick="markPostpaidPaid('${escapeHtml(t.id)}')" style="font-size:11px;padding:4px 8px;border-radius:4px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;">Mark paid</button>` : "—";
+            const workerPay = t.total_pay || 0;
+            const statusColor = t.payment_status === "paid" || t.payment_status === "completed" ? "#059669" : t.payment_status === "postpaid" ? "#F0B429" : t.payment_status === "held" ? "#E24B4A" : t.payment_status === "refunded" ? "#9ca3af" : "#6b7280";
+            const statusLabel = (t.payment_status || "—").charAt(0).toUpperCase() + (t.payment_status || "—").slice(1);
+            const actions = paymentActions(t.id, t.payment_status);
             return `
               <tr>
-                <td style="color:var(--fg-muted);">${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
+                <td style="color:var(--fg-muted); white-space:nowrap;">${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
                 <td style="color:var(--fg-primary); font-weight:500;">${escapeHtml(t.facility_name) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);font-weight:400;">${escapeHtml(t.contact_email) || ""}</span></td>
                 <td>${escapeHtml(t.role_needed) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);">${escapeHtml(t.shift_date) || ""}</span></td>
+                <td style="color:#111827;">GHS ${workerPay.toLocaleString()}</td>
                 <td style="color:#111827; font-weight:500;">GHS ${amount.toLocaleString()}</td>
-                <td>GHS ${fee.toLocaleString()}</td>
-                <td><span style="color:${statusColor};">${statusLabel}</span></td>
-                <td>${markPaidBtn}</td>
+                <td><span style="color:${statusColor}; font-weight:500;">${statusLabel}</span></td>
+                <td><div style="display:flex; gap:4px; flex-wrap:wrap;">${actions}</div></td>
               </tr>
             `;
           }).join("")}
@@ -567,19 +568,36 @@ async function loadAdminFinanceTransactions() {
     </div>`;
 }
 
-// ── Admin: mark postpaid as paid ──
-async function markPostpaidPaid(shiftId) {
-  if (!confirm("Mark this postpaid shift as paid?")) return;
-  const { data: result } = await ccFetch("/finance/admin/mark-paid", {
+function paymentActions(shiftId, status) {
+  const btn = (label, action, color) =>
+    `<button onclick="handlePaymentAction('${escapeHtml(shiftId)}', '${action}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid ${color};background:transparent;color:${color};cursor:pointer;font-family:inherit;white-space:nowrap;">${label}</button>`;
+  switch (status) {
+    case "paid": case "completed":
+      return btn("Refund", "refund", "#E24B4A") + btn("Hold", "hold", "#F0B429");
+    case "postpaid": case "pending":
+      return btn("Complete", "complete", "#059669") + btn("Hold", "hold", "#F0B429");
+    case "held":
+      return btn("Release", "release", "#059669") + btn("Refund", "refund", "#E24B4A");
+    case "refunded":
+      return '<span style="font-size:11px;color:#9ca3af;">Final</span>';
+    default:
+      return btn("Complete", "complete", "#059669");
+  }
+}
+
+async function handlePaymentAction(shiftId, action) {
+  const labels = { hold: "Hold", release: "Release", refund: "Refund", complete: "Complete" };
+  if (!confirm(`${labels[action] || action} payment for this shift?`)) return;
+  const { data: result } = await ccFetch(`/admin/payment/${action}`, {
     method: "POST",
     body: JSON.stringify({ shift_id: shiftId })
   });
   if (result?.success) {
-    ccToast("Marked as paid.", "success");
+    ccToast(`Payment ${labels[action] || action}ed.`, "success");
     loadAdminFinanceTransactions();
     loadAdminFinanceSummary();
   } else {
-    ccToast(result?.message || "Failed.", "error");
+    ccToast(result?.message || `Failed to ${action} payment.`, "error");
   }
 }
 

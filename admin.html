@@ -115,39 +115,51 @@
         <div id="shiftsTable"></div>
       </div>
 
-      <!-- ANALYTICS (default view) -->
+      <!-- ANALYTICS (default view — pure graphical dashboard) -->
       <div id="panel-analytics">
-        <div class="section-title">Platform Overview</div>
 
-        <div class="stats-row" id="overviewStats">
-          <div class="stat-box"><div class="num" id="totalWorkers">—</div><div class="label">Total workers</div></div>
-          <div class="stat-box"><div class="num" id="verifiedWorkers">—</div><div class="label">Verified workers</div></div>
-          <div class="stat-box"><div class="num" id="totalFacilities">—</div><div class="label">Facilities</div></div>
-          <div class="stat-box"><div class="num" id="totalShifts">—</div><div class="label">Total shifts</div></div>
-          <div class="stat-box"><div class="num" id="paidShifts">—</div><div class="label">Paid shifts</div></div>
-          <div class="stat-box"><div class="num" id="totalRevenue">—</div><div class="label">Est. revenue</div></div>
+        <!-- KPI ROW -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:2rem;">
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1rem;">
+            <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Revenue</div>
+            <div style="font-size:22px; font-weight:600; color:#111827;" id="kpiRevenue">—</div>
+            <div style="font-size:12px; color:#6b7280; margin-top:2px;" id="kpiRevenueTrend"></div>
+          </div>
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1rem;">
+            <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Active shifts</div>
+            <div style="font-size:22px; font-weight:600; color:#111827;" id="kpiActiveShifts">—</div>
+            <div style="font-size:12px; color:#6b7280; margin-top:2px;" id="kpiFillRate"></div>
+          </div>
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1rem;">
+            <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Workers</div>
+            <div style="font-size:22px; font-weight:600; color:#111827;" id="kpiWorkers">—</div>
+            <div style="font-size:12px; color:#6b7280; margin-top:2px;" id="kpiVerifiedPct"></div>
+          </div>
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1rem;">
+            <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Facilities</div>
+            <div style="font-size:22px; font-weight:600; color:#111827;" id="kpiFacilities">—</div>
+            <div style="font-size:12px; color:#6b7280; margin-top:2px;" id="kpiRating"></div>
+          </div>
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1rem;">
+            <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Payments</div>
+            <div style="font-size:22px; font-weight:600; color:#111827;" id="kpiPayments">—</div>
+            <div style="font-size:12px; color:#6b7280; margin-top:2px;" id="kpiPendingPct"></div>
+          </div>
         </div>
 
-        <div class="stats-row" id="analyticsStats" style="margin-top:1rem;">
-          <div class="stat-box"><div class="num" id="analActiveShifts">—</div><div class="label">Active shifts</div></div>
-          <div class="stat-box"><div class="num" id="analPendingApps">—</div><div class="label">Pending apps</div></div>
-          <div class="stat-box"><div class="num" id="analAvgRating">—</div><div class="label">Avg rating</div></div>
-          <div class="stat-box"><div class="num" id="analFillRate">—</div><div class="label">Fill rate</div></div>
-          <div class="stat-box"><div class="num" id="analIdVerified">—</div><div class="label">Identity %</div></div>
+        <!-- CHARTS ROW -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+            <p style="font-size:12px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Workers registered</p>
+            <div id="workersChart" class="chart-bars"></div>
+          </div>
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+            <p style="font-size:12px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Shifts posted</p>
+            <div id="shiftsChart" class="chart-bars"></div>
+          </div>
         </div>
-
-        <div style="margin-top:2rem;">
-          <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Workers registered (last 6 months)</p>
-          <div id="workersChart" class="chart-bars"></div>
-        </div>
-
-        <div style="margin-top:2rem;">
-          <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Shifts posted (last 6 months)</p>
-          <div id="shiftsChart" class="chart-bars"></div>
-        </div>
-
-        <div style="margin-top:2rem;">
-          <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Revenue (GHS, last 6 months)</p>
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+          <p style="font-size:12px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Revenue (GHS)</p>
           <div id="revenueChart" class="chart-bars"></div>
         </div>
       </div>
