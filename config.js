@@ -77,6 +77,22 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
+function downloadCSV(rows, headers, filename) {
+  const csv = [headers.join(","), ...rows.map(r => r.map(cell => {
+    const val = String(cell ?? "");
+    return val.includes(",") || val.includes('"') || val.includes("\n") ? '"' + val.replace(/"/g, '""') + '"' : val;
+  }).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function getArriveUrl(shiftId, workerId, token) {
   const base = window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1"

@@ -4,6 +4,7 @@ window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFI
 const _supabase = window._supabase;
 ccInitInactivityLogout(_supabase);
 let facilityEmail = null;
+let _facilityTransactions = [];
 
 // ── Init ──
 async function init() {
@@ -1082,6 +1083,7 @@ async function loadFinanceTransactions() {
   }
   const txns = result.data.transactions;
   const total = result.data.total;
+  _facilityTransactions = txns;
   container.innerHTML = `
     <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${total} transaction${total !== 1 ? "s" : ""}</p>
     <div class="admin-table-wrap">
@@ -1096,12 +1098,13 @@ async function loadFinanceTransactions() {
           </tr>
         </thead>
         <tbody>
-          ${txns.map(t => {
+          ${txns.map((t, i) => {
             const statusLabel = t.payment_status === "paid" ? "Paid" : t.payment_status === "postpaid" ? "Postpaid" : t.payment_status === "pending" ? "Pending" : t.payment_status || "—";
             const statusColor = t.payment_status === "paid" ? "#059669" : t.payment_status === "postpaid" ? "#F0B429" : "#6b7280";
             const workerName = t.worker_name || "—";
+            const txnJson = escapeHtml(JSON.stringify(t));
             return `
-              <tr>
+              <tr onclick='previewFacilityTransaction(${txnJson})' style="cursor:pointer;">
                 <td style="color:var(--fg-muted);">${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
                 <td style="color:var(--fg-primary); font-weight:500;">${escapeHtml(t.role_needed) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);font-weight:400;">${escapeHtml(t.shift_date) || ""}</span></td>
                 <td>${escapeHtml(workerName)}</td>
@@ -1113,6 +1116,57 @@ async function loadFinanceTransactions() {
         </tbody>
       </table>
     </div>`;
+}
+
+// ── Transaction preview ──
+function previewFacilityTransaction(t) {
+  const c = document.getElementById("txnPreviewContent");
+  if (!c) return;
+  const fields = [
+    ["Role", escapeHtml(t.role_needed || "")],
+    ["Shift date", t.shift_date || "—"],
+    ["Worker", escapeHtml(t.worker_name || "—")],
+    ["Worker email", escapeHtml(t.worker_email || "—")],
+    ["Start time", t.start_time || "—"],
+    ["Duration", t.duration_hours ? t.duration_hours + "h" : "—"],
+    ["Days needed", t.days_needed || "1"],
+    ["Pay rate", t.pay_rate ? "GHS " + t.pay_rate : "—"],
+    ["Worker pay", t.total_pay ? "GHS " + Number(t.total_pay).toLocaleString() : "—"],
+    ["Facility total", t.facility_total ? "GHS " + Number(t.facility_total).toLocaleString() : "—"],
+    ["Payment status", t.payment_status || "—"],
+    ["Facility credit", t.facility_credit ? "GHS " + Number(t.facility_credit).toLocaleString() : "GHS 0"],
+    ["Waived", t.waived ? "Yes" : "No"],
+    ["Paid at", t.paid_at ? new Date(t.paid_at).toLocaleString() : "—"],
+    ["Created", t.created_at ? new Date(t.created_at).toLocaleString() : "—"]
+  ];
+  c.innerHTML = fields.map(([label, val]) => `
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+      <span style="font-size:13px; color:var(--fg-muted);">${label}</span>
+      <span style="font-size:13px; font-weight:500; color:var(--fg-primary);">${val}</span>
+    </div>
+  `).join("");
+  document.getElementById("txnPreviewModal").style.display = "flex";
+}
+
+function closeTxnPreview() {
+  document.getElementById("txnPreviewModal").style.display = "none";
+}
+
+// ── Download statement ──
+function downloadFacilityStatement() {
+  if (!_facilityTransactions.length) { ccToast("No transactions to download.", "info"); return; }
+  const headers = ["Date", "Role", "Shift date", "Worker", "Worker pay", "Facility total", "Status"];
+  const rows = _facilityTransactions.map(t => [
+    t.created_at ? new Date(t.created_at).toLocaleDateString() : "",
+    t.role_needed || "",
+    t.shift_date || "",
+    t.worker_name || "",
+    t.total_pay || 0,
+    t.facility_total || 0,
+    t.payment_status || ""
+  ]);
+  downloadCSV(rows, headers, "covercare-facility-statement.csv");
+  ccToast("Statement downloaded.", "success");
 }
 
 // ── Settings page ──

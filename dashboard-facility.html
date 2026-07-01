@@ -224,7 +224,10 @@
       <div id="section-finance" style="display:none;">
         <div class="section-title">Finance overview</div>
         <div class="stats-row" id="financeSummary"></div>
-        <div class="section-title" style="margin-top:2rem;">Transaction history</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem;">
+          <div class="section-title" style="margin:0;">Transaction history</div>
+          <button onclick="downloadFacilityStatement()" class="btn-auth" style="white-space:nowrap; padding:7px 16px; font-size:13px;">Download statement</button>
+        </div>
         <div id="financeTransactions">
           <div class="empty-state"><p>Loading transactions...</p></div>
         </div>
@@ -472,6 +475,15 @@
         <textarea id="supportMessage" class="glass-input" placeholder="Describe your issue..." rows="4" required style="resize:vertical; padding:11px 14px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:10px; font-size:14px; color:var(--fg-primary); font-family:inherit;"></textarea>
         <button type="submit" class="btn-auth">Send</button>
       </form>
+    </div>
+  </div>
+
+  <!-- TRANSACTION PREVIEW MODAL -->
+  <div id="txnPreviewModal" class="scan-modal-overlay" style="display:none;">
+    <div class="scan-modal" style="max-width:480px;">
+      <button class="scan-modal-close" onclick="closeTxnPreview()" aria-label="Close">✕</button>
+      <h2 style="margin-bottom:1rem;">Transaction details</h2>
+      <div id="txnPreviewContent" style="display:flex; flex-direction:column; gap:10px;"></div>
     </div>
   </div>
 

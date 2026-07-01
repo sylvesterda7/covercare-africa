@@ -1,6 +1,7 @@
 const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 ccInitInactivityLogout(_supabase);
 let currentWorker = null;
+let _workerTransactions = [];
 
 /* ── Sidebar ── */
 function toggleSidebar() {
@@ -227,10 +228,12 @@ async function loadFinanceTransactions() {
       container.innerHTML = '<div class="empty-state"><p>No completed shifts yet.</p></div>';
       return;
     }
+    _workerTransactions = d.transactions;
     container.innerHTML = d.transactions.map(t => {
       const statusColor = t.payout_status === "paid" ? "#111827" : t.payout_status === "failed" ? "#E24B4A" : "#F0B429";
       const statusLabel = t.payout_status === "paid" ? "Paid" : t.payout_status === "failed" ? "Failed" : "Pending";
-      return `<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border);">
+      const txnJson = escapeHtml(JSON.stringify(t));
+      return `<div onclick='previewWorkerTransaction(${txnJson})' style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s;" onmouseenter="this.style.background='rgba(17,24,39,0.03)'" onmouseleave="this.style.background='transparent'">
         <div style="flex:1;">
           <p style="font-size:14px; font-weight:500; color:var(--fg-primary); margin:0;">${escapeHtml(t.facility_name)}</p>
           <p style="font-size:12px; color:var(--fg-muted); margin:2px 0 0;">${escapeHtml(t.role_needed)} · ${t.shift_date || "—"}</p>
@@ -242,6 +245,48 @@ async function loadFinanceTransactions() {
       </div>`;
     }).join("");
   } catch (e) { console.error("Finance transactions error:", e); container.innerHTML = '<div class="empty-state"><p>Failed to load.</p></div>'; }
+}
+
+/* ── Transaction preview ── */
+function previewWorkerTransaction(t) {
+  const c = document.getElementById("txnPreviewContent");
+  if (!c) return;
+  const fields = [
+    ["Facility", escapeHtml(t.facility_name)],
+    ["Role", escapeHtml(t.role_needed)],
+    ["Shift date", t.shift_date || "—"],
+    ["Completion time", t.completion_time ? new Date(t.completion_time).toLocaleString() : "—"],
+    ["Amount", formatCurrency(t.amount)],
+    ["Payout status", t.payout_status || "—"],
+    ["Transaction date", t.created_at ? new Date(t.created_at).toLocaleString() : "—"]
+  ];
+  c.innerHTML = fields.map(([label, val]) => `
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+      <span style="font-size:13px; color:var(--fg-muted);">${label}</span>
+      <span style="font-size:13px; font-weight:500; color:var(--fg-primary);">${val}</span>
+    </div>
+  `).join("");
+  document.getElementById("txnPreviewModal").style.display = "flex";
+}
+
+function closeTxnPreview() {
+  document.getElementById("txnPreviewModal").style.display = "none";
+}
+
+/* ── Download statement ── */
+function downloadWorkerStatement() {
+  if (!_workerTransactions.length) { ccToast("No transactions to download.", "info"); return; }
+  const headers = ["Date", "Facility", "Role", "Shift date", "Amount", "Status"];
+  const rows = _workerTransactions.map(t => [
+    t.created_at ? new Date(t.created_at).toLocaleDateString() : "",
+    t.facility_name || "",
+    t.role_needed || "",
+    t.shift_date || "",
+    t.amount || 0,
+    t.payout_status || ""
+  ]);
+  downloadCSV(rows, headers, "covercare-statement.csv");
+  ccToast("Statement downloaded.", "success");
 }
 
 async function logout() {
