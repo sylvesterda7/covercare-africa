@@ -47,6 +47,9 @@ async function init() {
   ]);
 
   checkAdminBanner();
+
+  // ── Default to analytics tab ──
+  showTab("analytics");
 }
 
 // ── Load workers ──
@@ -246,24 +249,6 @@ async function loadShifts() {
   if (error || !data) return;
   allShifts = data;
 
-  const paidShifts = data.filter(s => s.payment_status === "paid");
-
-  document.getElementById("totalShifts").textContent = data.length;
-  document.getElementById("paidShifts").textContent = paidShifts.length;
-
-  // ── Estimate revenue (25% margin) ──
-  const totalRevenue = paidShifts.reduce((sum, shift) => {
-    const total = parseFloat(
-      (shift.total_pay || "0")
-        .replace("GHS ", "")
-        .replace(",", "")
-    ) || 0;
-    return sum + (total * 0.25);
-  }, 0);
-
-  document.getElementById("totalRevenue").textContent =
-    "GHS " + totalRevenue.toLocaleString();
-
   const container = document.getElementById("shiftsTable");
 
   if (data.length === 0) {
@@ -379,8 +364,6 @@ function showTab(tab) {
   ["workers", "facilities", "shifts", "analytics", "trusted", "finance", "settings"].forEach(t => {
     const panel = document.getElementById("panel-" + t);
     if (panel) panel.style.display = t === tab ? "block" : "none";
-    const tabEl = document.getElementById("tab-" + t);
-    if (tabEl) tabEl.classList.toggle("active", t === tab);
     const navEl = document.getElementById("nav-" + t);
     if (navEl) navEl.classList.toggle("btn-sidebar-active", t === tab);
   });
@@ -392,10 +375,12 @@ function showTab(tab) {
 function closeSidebar() {
   const sidebar = document.querySelector(".dashboard-sidebar");
   const overlay = document.querySelector(".sidebar-overlay");
+  const layout = document.querySelector(".dashboard-layout");
   if (!sidebar) return;
   sidebar.classList.remove("open");
   sidebar.classList.add("closed");
   if (overlay) overlay.classList.remove("show");
+  if (layout) layout.classList.remove("sidebar-open");
 }
 
 function toggleSidebar() {

@@ -65,33 +65,8 @@
       <!-- ANNOUNCEMENT BANNER -->
       <div id="adminBanner" style="display:none; align-items:center; gap:12px; padding:12px 16px; background:#f8f9fa; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:1.25rem; font-size:14px; color:#111827;">
         <i class="ti ti-info-circle" style="color:#111827; font-size:18px; flex-shrink:0;"></i>
-        <span style="flex:1;" id="adminBannerText">Welcome to the admin dashboard. Use the tabs above to manage workers, facilities, shifts, and financials.</span>
+        <span style="flex:1;" id="adminBannerText">Welcome to the admin dashboard. Manage workers, facilities, shifts, payments, and settings from the sidebar.</span>
         <button onclick="dismissAdminBanner()" style="background:none; border:none; cursor:pointer; font-size:16px; color:#9ca3af; padding:0; line-height:1; flex-shrink:0;" aria-label="Dismiss">✕</button>
-      </div>
-
-      <!-- TABS -->
-      <div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
-        <button class="tab-btn" id="tab-workers" onclick="showTab('workers')">
-          <i class="ti ti-users"></i> Workers
-        </button>
-        <button class="tab-btn" id="tab-facilities" onclick="showTab('facilities')">
-          <i class="ti ti-building-hospital"></i> Facilities
-        </button>
-        <button class="tab-btn" id="tab-shifts" onclick="showTab('shifts')">
-          <i class="ti ti-calendar"></i> Shifts
-        </button>
-        <button class="tab-btn active" id="tab-analytics" onclick="showTab('analytics')">
-          <i class="ti ti-chart-bar"></i> Analytics
-        </button>
-        <button class="tab-btn" id="tab-trusted" onclick="showTab('trusted')">
-          <i class="ti ti-shield-check"></i> Trusted facilities
-        </button>
-        <button class="tab-btn" id="tab-finance" onclick="showTab('finance')">
-          <i class="ti ti-coin"></i> Finance
-        </button>
-        <button class="tab-btn" id="tab-settings" onclick="showTab('settings')">
-          <i class="ti ti-settings"></i> Settings
-        </button>
       </div>
 
       <!-- WORKERS TABLE -->
