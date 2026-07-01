@@ -54,6 +54,7 @@ document.getElementById("role").addEventListener("change", function() {
     verifyBtn.style.display = "block";
     uploadNote.style.display = "none";
     uploadGroup.style.display = "none";
+    verifyBtn.disabled = false;
     verifyBtn.textContent = "Verify";
   } else {
     verifyBtn.style.display = "none";
