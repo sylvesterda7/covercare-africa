@@ -1,5 +1,6 @@
 // ── Supabase client ──
-const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+// Use the shared singleton helper from config.js to avoid creating multiple GoTrueClient instances
+const _supabase = ccGetSupabaseClient() || (window.supabase && window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY));
 
 // ── License verification ──
 let licenseVerified = false;
