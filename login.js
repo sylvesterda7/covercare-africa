@@ -1,16 +1,39 @@
 const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
 
+async function resolveUserType(email) {
+  const tables = [
+    { table: "worker", type: "worker" },
+    { table: "facility", type: "facility" },
+    { table: "client", type: "client" }
+  ];
+  for (const { table, type } of tables) {
+    try {
+      const resp = await fetch(CC_CONFIG.API_BASE + "/" + table + "/by-email", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await resp.json();
+      if (data?.success) return type;
+    } catch (_) {}
+  }
+  return null;
+}
+
+async function redirectToDashboard(userType, email) {
+  if (!userType) {
+    userType = await resolveUserType(email);
+  }
+  if (!userType) {
+    window.location.href = "oauth-setup.html";
+    return;
+  }
+  window.location.href = getDashboardUrl(userType, email);
+}
+
 async function checkSession() {
   const { data: { session } } = await _supabase.auth.getSession();
   if (session) {
-    if (!session.user.user_metadata?.user_type) {
-      window.location.href = "oauth-setup.html";
-      return;
-    }
-    window.location.href = getDashboardUrl(
-      session.user.user_metadata.user_type,
-      session.user.email
-    );
+    await redirectToDashboard(session.user.user_metadata?.user_type, session.user.email);
   }
 }
 
@@ -43,14 +66,7 @@ checkSession();
 
 _supabase.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_IN" && session) {
-    if (!session.user.user_metadata?.user_type) {
-      window.location.href = "oauth-setup.html";
-      return;
-    }
-    window.location.href = getDashboardUrl(
-      session.user.user_metadata.user_type,
-      session.user.email
-    );
+    redirectToDashboard(session.user.user_metadata?.user_type, session.user.email);
   }
 });
 
@@ -82,15 +98,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   successMsg.textContent = "Signed in successfully. Redirecting...";
   successMsg.style.display = "block";
 
-  setTimeout(() => {
-    const userType = data.user.user_metadata?.user_type;
-    if (!userType) {
-      window.location.href = "oauth-setup.html";
-      return;
-    }
-    window.location.href = getDashboardUrl(
-      userType,
-      data.user.email
-    );
+  setTimeout(async () => {
+    await redirectToDashboard(data.user.user_metadata?.user_type, data.user.email);
   }, 800);
 });
