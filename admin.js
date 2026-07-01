@@ -355,9 +355,30 @@ function showTab(tab) {
     if (panel) panel.style.display = t === tab ? "block" : "none";
     const tabEl = document.getElementById("tab-" + t);
     if (tabEl) tabEl.classList.toggle("active", t === tab);
+    const navEl = document.getElementById("nav-" + t);
+    if (navEl) navEl.classList.toggle("btn-sidebar-active", t === tab);
   });
   if (tab === "finance") { loadAdminFinanceSummary(); loadAdminFinanceTransactions(); }
   if (tab === "settings") loadAdminSettings();
+  closeSidebar();
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector(".dashboard-sidebar");
+  const overlay = document.querySelector(".sidebar-overlay");
+  if (!sidebar) return;
+  sidebar.classList.remove("open");
+  sidebar.classList.add("closed");
+  if (overlay) overlay.classList.remove("show");
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector(".dashboard-sidebar");
+  const overlay = document.querySelector(".sidebar-overlay");
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.toggle("open");
+  sidebar.classList.toggle("closed", !isOpen);
+  if (overlay) overlay.classList.toggle("show", isOpen);
 }
 
 // ── Logout ──

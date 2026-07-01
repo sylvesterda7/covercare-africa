@@ -353,6 +353,13 @@
   color: #DC2626;
 }
 
+.sidebar-actions .btn-sidebar-active {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+  color: var(--fg-primary);
+  font-weight: 600;
+}
+
 /* ── Sidebar toggle ── */
 .sidebar-toggle {
   background: var(--bg-elevated);
