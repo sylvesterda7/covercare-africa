@@ -97,6 +97,22 @@ document.addEventListener("DOMContentLoaded", async function() {
 
   fetchSuggestedRates();
 
+  // ── Check if facility is trusted (postpaid billing) ──
+  (async () => {
+    try {
+      const { data: fac } = await window._supabase
+        .from("facilities")
+        .select("billing_model, trusted_by")
+        .eq("email", session?.user?.email)
+        .maybeSingle();
+      window._canPostpaid = fac?.billing_model === "postpaid" && !!fac?.trusted_by;
+      if (window._canPostpaid) {
+        const el = document.getElementById("paymentMethodToggle");
+        if (el) el.style.display = "block";
+      }
+    } catch (_) {}
+  })();
+
   const roleEl = document.getElementById("role");
   const payRateEl = document.getElementById("payRate");
   const rateHintEl = document.getElementById("rateHint");
@@ -227,19 +243,33 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
 
   console.log("Initializing payment for GHS", facilityAmount);
 
+  // ── Determine payment method ──
+  var paymentMethod = "instant";
+  var pmRadio = document.querySelector('input[name="paymentMethod"]:checked');
+  if (pmRadio) paymentMethod = pmRadio.value;
+
   try {
     var { data: initData } = await ccFetch("/payment/initialize", {
       method: "POST",
       body: JSON.stringify({
         email: shift.contact_email,
         amount: facilityAmount,
-        shift_data: shift
+        shift_data: shift,
+        payment_method: paymentMethod
       })
     });
     console.log("Payment init:", initData);
 
     if (!initData.success) {
       ccToast("Payment initialization failed. Please try again.", "error");
+      return;
+    }
+
+    // ── Postpaid: shift created directly, no Paystack ──
+    if (paymentMethod === "postpaid") {
+      document.getElementById("shiftForm").style.display = "none";
+      document.getElementById("successCard").style.display = "block";
+      document.getElementById("successCard").scrollIntoView({ behavior: "smooth" });
       return;
     }
 
