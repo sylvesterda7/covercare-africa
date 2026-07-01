@@ -103,14 +103,17 @@ function renderShifts(shifts) {
       </div>`;
     return;
   }
-  container.innerHTML = shifts.map(shift => `
+  container.innerHTML = shifts.map(shift => {
+    const hasPoster = shift._poster_photo || shift._poster_name;
+    const posterInitials = shift._poster_name ? shift._poster_name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() : (shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH");
+    return `
     <div class="profile-card" style="margin-bottom:12px;">
-      <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px;">
-        ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
+      <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px; overflow:hidden;">
+        ${shift._poster_photo ? `<img src="${escapeHtml(shift._poster_photo)}" alt="" style="width:100%;height:100%;object-fit:cover;" />` : posterInitials}
       </div>
       <div class="profile-info" style="flex:1;">
-        <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
-        <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
+        <h3>${escapeHtml(shift._poster_name || shift.facility_name) || "—"}</h3>
+        <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift._poster_city || shift.city) || "—"}</p>
         <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
         <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
         <div style="margin-top:8px;">
@@ -127,8 +130,8 @@ function renderShifts(shifts) {
           Apply
         </button>
       </div>
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
 }
 
 function applyFilters() {
@@ -203,7 +206,31 @@ async function loadShifts() {
     if (apps) apps.forEach(a => appliedIds.add(a.shift_id));
   }
 
-  _allShifts = (data || []).filter(s => !appliedIds.has(s.id));
+  // Fetch poster details (clients) for shifts
+  const clientEmails = [...new Set((data || [])
+    .filter(s => !appliedIds.has(s.id))
+    .map(s => s.contact_email?.toLowerCase())
+    .filter(Boolean))];
+  const posterMap = {};
+  if (clientEmails.length > 0) {
+    const { data: clients } = await _supabase
+      .from("clients")
+      .select("email, full_name, profile_photo_url, city")
+      .in("email", clientEmails);
+    if (clients) {
+      clients.forEach(c => { posterMap[c.email.toLowerCase()] = c; });
+    }
+  }
+
+  _allShifts = (data || []).filter(s => !appliedIds.has(s.id)).map(s => {
+    const poster = posterMap[s.contact_email?.toLowerCase()];
+    if (poster) {
+      s._poster_name = poster.full_name;
+      s._poster_photo = poster.profile_photo_url;
+      s._poster_city = poster.city;
+    }
+    return s;
+  });
   applyFilters();
 }
 

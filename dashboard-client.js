@@ -119,6 +119,11 @@ async function loadClientProfile() {
   const { data: result } = await ccFetch("/client", { method: "GET" });
   if (result?.success && result.data) {
     clientProfile = result.data;
+    const photo = document.getElementById("navUserPhoto");
+    if (clientProfile.profile_photo_url) {
+      photo.src = clientProfile.profile_photo_url;
+      photo.style.display = "inline-block";
+    }
   }
 }
 
@@ -308,6 +313,10 @@ async function loadSettingsPage() {
     const p = result.data;
     clientProfile = p;
     form.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        ${p.profile_photo_url ? `<img src="${escapeHtml(p.profile_photo_url)}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(17,24,39,0.15);" />` : `<div style="width:48px;height:48px;border-radius:50%;background:rgba(17,24,39,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;color:#6b7280;">${(p.full_name || "?")[0].toUpperCase()}</div>`}
+        <div style="font-size:13px;color:var(--fg-muted);"><strong style="color:#111827;">${escapeHtml(p.full_name || "—")}</strong><br />${escapeHtml(p.email || "")}</div>
+      </div>
       <input id="setName" class="glass-input" type="text" placeholder="Full name" value="${escapeHtml(p.full_name || "")}" />
       <input id="setPhone" class="glass-input" type="tel" placeholder="Phone number" value="${escapeHtml(p.phone || "")}" />
       <input id="setEmail" class="glass-input" type="email" value="${escapeHtml(p.email || "")}" readonly style="background:#f9fafb;" />
