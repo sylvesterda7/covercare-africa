@@ -42,7 +42,8 @@ async function init() {
     loadWorkers(),
     loadFacilities(),
     loadShifts(),
-    loadAnalytics()
+    loadAnalytics(),
+    loadTrustedFacilities()
   ]);
 }
 
@@ -184,6 +185,7 @@ async function loadFacilities() {
             <th>Contact</th>
             <th>Email</th>
             <th>Staff needs</th>
+            <th>Billing</th>
             <th>Joined</th>
           </tr>
         </thead>
@@ -196,6 +198,18 @@ async function loadFacilities() {
               <td>${f.contact_name || "—"}</td>
               <td>${f.email || "—"}</td>
               <td>${f.staff_needs || "—"}</td>
+              <td>
+                ${f.billing_model === "postpaid"
+                  ? '<span class="badge badge-accent">Postpaid</span>'
+                  : '<span class="badge badge-yellow">Prepaid</span>'
+                }
+                ${f.billing_model !== "postpaid" ? `
+                  <button onclick="approveFacility('${escapeHtml(f.email)}')"
+                    style="font-size:10px; padding:2px 8px; border-radius:4px; border:1px solid #059669; background:transparent; color:#059669; cursor:pointer; font-family:inherit; margin-left:4px;">
+                    Approve
+                  </button>
+                ` : ""}
+              </td>
               <td style="color:var(--fg-muted);">
                 ${f.created_at ? new Date(f.created_at).toLocaleDateString() : "—"}
               </td>
@@ -334,7 +348,7 @@ function renderBarChart(containerId, data, color) {
 
 // ── Tab switching ──
 function showTab(tab) {
-  ["workers", "facilities", "shifts", "analytics"].forEach(t => {
+  ["workers", "facilities", "shifts", "analytics", "trusted"].forEach(t => {
     document.getElementById("panel-" + t).style.display = t === tab ? "block" : "none";
     document.getElementById("tab-" + t).classList.toggle("active", t === tab);
   });
@@ -344,6 +358,96 @@ function showTab(tab) {
 async function logout() {
   await _supabase.auth.signOut();
   window.location.href = "login.html";
+}
+
+// ── Load trusted facilities ──
+async function loadTrustedFacilities() {
+  const { data: result } = await ccFetch("/admin/trusted-facilities", { method: "GET" });
+  if (!result?.success) return;
+
+  const container = document.getElementById("trustedFacilitiesTable");
+
+  const allFacilities = result.data || [];
+
+  if (allFacilities.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>No trusted facilities yet.</p>
+        <p style="font-size:13px;">Approve facilities from the Facilities tab to enable postpaid billing.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Facility</th>
+            <th>City</th>
+            <th>Email</th>
+            <th>Approved by</th>
+            <th>Shifts this month</th>
+            <th>Monthly charge (GHS)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allFacilities.map(f => `
+            <tr>
+              <td style="color:var(--fg-primary); font-weight:500;">${escapeHtml(f.facility_name || "—")}</td>
+              <td>${escapeHtml(f.city || "—")}</td>
+              <td>${escapeHtml(f.email || "—")}</td>
+              <td>${escapeHtml(f.trusted_by || "—")}</td>
+              <td>${f.shift_count || 0}</td>
+              <td style="color:#111827; font-weight:500;">${f.monthly_charge ? f.monthly_charge.toLocaleString() : "0"}</td>
+              <td>
+                <button onclick="revokeFacility('${escapeHtml(f.email)}')"
+                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid rgba(226,75,74,0.3); background:transparent; color:#E24B4A; cursor:pointer; font-family:inherit;">
+                  Revoke
+                </button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── Approve facility (from facilities tab) ──
+async function approveFacility(email) {
+  const confirmed = confirm(`Approve ${email} for postpaid billing?`);
+  if (!confirmed) return;
+
+  const { data: result } = await ccFetch("/admin/approve-facility", {
+    method: "POST",
+    body: JSON.stringify({ email })
+  });
+
+  if (result?.success) {
+    ccToast(`Facility approved for postpaid billing.`, "success");
+    await Promise.all([loadFacilities(), loadTrustedFacilities()]);
+  } else {
+    ccToast(result?.message || "Failed to approve facility.", "error");
+  }
+}
+
+// ── Revoke facility ──
+async function revokeFacility(email) {
+  const confirmed = confirm(`Revoke postpaid billing for ${email}? They will need to pay upfront.`);
+  if (!confirmed) return;
+
+  const { data: result } = await ccFetch("/admin/revoke-facility", {
+    method: "POST",
+    body: JSON.stringify({ email })
+  });
+
+  if (result?.success) {
+    ccToast("Postpaid billing revoked.", "success");
+    await Promise.all([loadFacilities(), loadTrustedFacilities()]);
+  } else {
+    ccToast(result?.message || "Failed to revoke facility.", "error");
+  }
 }
 
 // ── Run ──

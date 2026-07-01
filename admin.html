@@ -79,6 +79,9 @@
         <button class="tab-btn" id="tab-analytics" onclick="showTab('analytics')">
           <i class="ti ti-chart-bar"></i> Analytics
         </button>
+        <button class="tab-btn" id="tab-trusted" onclick="showTab('trusted')">
+          <i class="ti ti-shield-check"></i> Trusted facilities
+        </button>
       </div>
 
       <!-- WORKERS TABLE -->
@@ -128,6 +131,15 @@
           <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Revenue (GHS, last 6 months)</p>
           <div id="revenueChart" class="chart-bars"></div>
         </div>
+      </div>
+
+      <!-- TRUSTED FACILITIES -->
+      <div id="panel-trusted" style="display:none;">
+        <div class="section-title">Trusted Facilities (Postpaid Billing)</div>
+        <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">
+          Approved facilities post shifts without upfront payment. CoverCare pays workers instantly and bills the facility at end of month.
+        </p>
+        <div id="trustedFacilitiesTable"></div>
       </div>
 
     </div>
