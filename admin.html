@@ -38,10 +38,10 @@
       <div class="dashboard-sidebar-card">
         <div class="sidebar-card-title">Navigation</div>
         <div class="sidebar-actions">
-          <button onclick="showTab('workers')" class="btn-sidebar btn-sidebar-active" id="nav-workers"><i class="ti ti-users" style="margin-right:6px;"></i> Workers</button>
+          <button onclick="showTab('workers')" class="btn-sidebar" id="nav-workers"><i class="ti ti-users" style="margin-right:6px;"></i> Workers</button>
           <button onclick="showTab('facilities')" class="btn-sidebar" id="nav-facilities"><i class="ti ti-building-hospital" style="margin-right:6px;"></i> Facilities</button>
           <button onclick="showTab('shifts')" class="btn-sidebar" id="nav-shifts"><i class="ti ti-calendar" style="margin-right:6px;"></i> Shifts</button>
-          <button onclick="showTab('analytics')" class="btn-sidebar" id="nav-analytics"><i class="ti ti-chart-bar" style="margin-right:6px;"></i> Analytics</button>
+          <button onclick="showTab('analytics')" class="btn-sidebar btn-sidebar-active" id="nav-analytics"><i class="ti ti-chart-bar" style="margin-right:6px;"></i> Analytics</button>
           <button onclick="showTab('trusted')" class="btn-sidebar" id="nav-trusted"><i class="ti ti-shield-check" style="margin-right:6px;"></i> Trusted</button>
           <button onclick="showTab('finance')" class="btn-sidebar" id="nav-finance"><i class="ti ti-coin" style="margin-right:6px;"></i> Finance</button>
           <button onclick="showTab('settings')" class="btn-sidebar" id="nav-settings"><i class="ti ti-settings" style="margin-right:6px;"></i> Settings</button>
@@ -62,34 +62,6 @@
         <p>Full platform overview — workers, facilities, shifts and revenue.</p>
       </div>
 
-      <!-- OVERVIEW STATS -->
-      <div class="stats-row" id="overviewStats">
-        <div class="stat-box">
-          <div class="num" id="totalWorkers">—</div>
-          <div class="label">Total workers</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="verifiedWorkers">—</div>
-          <div class="label">Verified workers</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="totalFacilities">—</div>
-          <div class="label">Facilities</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="totalShifts">—</div>
-          <div class="label">Total shifts</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="paidShifts">—</div>
-          <div class="label">Paid shifts</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="totalRevenue">—</div>
-          <div class="label">Est. revenue</div>
-        </div>
-      </div>
-
       <!-- ANNOUNCEMENT BANNER -->
       <div id="adminBanner" style="display:none; align-items:center; gap:12px; padding:12px 16px; background:#f8f9fa; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:1.25rem; font-size:14px; color:#111827;">
         <i class="ti ti-info-circle" style="color:#111827; font-size:18px; flex-shrink:0;"></i>
@@ -99,7 +71,7 @@
 
       <!-- TABS -->
       <div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
-        <button class="tab-btn active" id="tab-workers" onclick="showTab('workers')">
+        <button class="tab-btn" id="tab-workers" onclick="showTab('workers')">
           <i class="ti ti-users"></i> Workers
         </button>
         <button class="tab-btn" id="tab-facilities" onclick="showTab('facilities')">
@@ -108,7 +80,7 @@
         <button class="tab-btn" id="tab-shifts" onclick="showTab('shifts')">
           <i class="ti ti-calendar"></i> Shifts
         </button>
-        <button class="tab-btn" id="tab-analytics" onclick="showTab('analytics')">
+        <button class="tab-btn active" id="tab-analytics" onclick="showTab('analytics')">
           <i class="ti ti-chart-bar"></i> Analytics
         </button>
         <button class="tab-btn" id="tab-trusted" onclick="showTab('trusted')">
@@ -123,7 +95,7 @@
       </div>
 
       <!-- WORKERS TABLE -->
-      <div id="panel-workers">
+      <div id="panel-workers" style="display:none;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
           <div class="section-title" style="border:none; margin:0; padding:0;">All Workers</div>
           <input id="workerSearch" class="glass-input" type="text" placeholder="Search by name or email..." style="max-width:250px; padding:8px 12px; font-size:13px;" oninput="filterWorkers()" />
@@ -143,16 +115,25 @@
         <div id="shiftsTable"></div>
       </div>
 
-      <!-- ANALYTICS -->
-      <div id="panel-analytics" style="display:none;">
-        <div class="section-title">Platform Analytics</div>
+      <!-- ANALYTICS (default view) -->
+      <div id="panel-analytics">
+        <div class="section-title">Platform Overview</div>
 
-        <div class="stats-row" id="analyticsStats">
-          <div class="stat-box"><div class="num" id="analAvgRating">—</div><div class="label">Avg rating</div></div>
+        <div class="stats-row" id="overviewStats">
+          <div class="stat-box"><div class="num" id="totalWorkers">—</div><div class="label">Total workers</div></div>
+          <div class="stat-box"><div class="num" id="verifiedWorkers">—</div><div class="label">Verified workers</div></div>
+          <div class="stat-box"><div class="num" id="totalFacilities">—</div><div class="label">Facilities</div></div>
+          <div class="stat-box"><div class="num" id="totalShifts">—</div><div class="label">Total shifts</div></div>
+          <div class="stat-box"><div class="num" id="paidShifts">—</div><div class="label">Paid shifts</div></div>
+          <div class="stat-box"><div class="num" id="totalRevenue">—</div><div class="label">Est. revenue</div></div>
+        </div>
+
+        <div class="stats-row" id="analyticsStats" style="margin-top:1rem;">
           <div class="stat-box"><div class="num" id="analActiveShifts">—</div><div class="label">Active shifts</div></div>
-          <div class="stat-box"><div class="num" id="analPendingApps">—</div><div class="label">Pending applications</div></div>
-          <div class="stat-box"><div class="num" id="analOpenTickets">—</div><div class="label">Open support tickets</div></div>
-          <div class="stat-box"><div class="num" id="analIdVerified">—</div><div class="label">Identity verified</div></div>
+          <div class="stat-box"><div class="num" id="analPendingApps">—</div><div class="label">Pending apps</div></div>
+          <div class="stat-box"><div class="num" id="analAvgRating">—</div><div class="label">Avg rating</div></div>
+          <div class="stat-box"><div class="num" id="analFillRate">—</div><div class="label">Fill rate</div></div>
+          <div class="stat-box"><div class="num" id="analIdVerified">—</div><div class="label">Identity %</div></div>
         </div>
 
         <div style="margin-top:2rem;">

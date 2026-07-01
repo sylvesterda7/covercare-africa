@@ -119,6 +119,11 @@ function renderWorkers(workers) {
                   style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--fg-muted); cursor:pointer; font-family:inherit;">
                   ${w.license_verified ? "Unverify" : "Verify"}
                 </button>
+                <button
+                  onclick="resetAccount('${escapeHtml(w.email)}', 'worker')"
+                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid rgba(226,75,74,0.3); background:transparent; color:#E24B4A; cursor:pointer; font-family:inherit; margin-left:4px;">
+                  Reset
+                </button>
               </td>
             </tr>
           `).join("")}
@@ -189,6 +194,7 @@ async function loadFacilities() {
             <th>Staff needs</th>
             <th>Billing</th>
             <th>Joined</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -214,6 +220,13 @@ async function loadFacilities() {
               </td>
               <td style="color:var(--fg-muted);">
                 ${f.created_at ? new Date(f.created_at).toLocaleDateString() : "—"}
+              </td>
+              <td>
+                <button
+                  onclick="resetAccount('${escapeHtml(f.email)}', 'facility')"
+                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid rgba(226,75,74,0.3); background:transparent; color:#E24B4A; cursor:pointer; font-family:inherit;">
+                  Reset
+                </button>
               </td>
             </tr>
           `).join("")}
@@ -317,11 +330,23 @@ async function loadAnalytics() {
   const { data: result } = await ccFetch("/admin/analytics", { method: "GET" });
   if (!result?.success) return;
 
-  document.getElementById("analAvgRating").textContent = result.avgRating || "—";
+  // Overview stats
+  document.getElementById("totalWorkers").textContent = result.totalWorkers || 0;
+  document.getElementById("verifiedWorkers").textContent = result.verifiedWorkersCount || 0;
+  document.getElementById("totalFacilities").textContent = result.totalFacilities || 0;
+  document.getElementById("totalShifts").textContent = result.totalShifts || 0;
+  document.getElementById("paidShifts").textContent = result.paidShifts || 0;
+  document.getElementById("totalRevenue").textContent = "GHS " + (result.totalRevenue || 0).toLocaleString();
+
+  // Analytics stats
   document.getElementById("analActiveShifts").textContent = result.activeShifts || 0;
   document.getElementById("analPendingApps").textContent = result.pendingApplications || 0;
-  document.getElementById("analOpenTickets").textContent = result.openSupportTickets || 0;
-  document.getElementById("analIdVerified").textContent = result.identityVerifiedCount || 0;
+  document.getElementById("analAvgRating").textContent = result.avgRating || "—";
+  document.getElementById("analFillRate").textContent = (result.fillRate || 0) + "%";
+
+  const totalWorkers = result.totalWorkers || 1;
+  const idVerified = result.identityVerifiedCount || 0;
+  document.getElementById("analIdVerified").textContent = Math.round((idVerified / totalWorkers) * 100) + "%";
 
   renderBarChart("workersChart", result.workersByMonth || [], "#111827");
   renderBarChart("shiftsChart", result.shiftsByMonth || [], "#111827");
@@ -375,10 +400,12 @@ function closeSidebar() {
 function toggleSidebar() {
   const sidebar = document.querySelector(".dashboard-sidebar");
   const overlay = document.querySelector(".sidebar-overlay");
+  const layout = document.querySelector(".dashboard-layout");
   if (!sidebar) return;
   const isOpen = sidebar.classList.toggle("open");
   sidebar.classList.toggle("closed", !isOpen);
   if (overlay) overlay.classList.toggle("show", isOpen);
+  if (layout) layout.classList.toggle("sidebar-open", isOpen);
 }
 
 // ── Logout ──
@@ -614,6 +641,28 @@ function dismissAdminBanner() {
   const banner = document.getElementById("adminBanner");
   if (banner) banner.style.display = "none";
   localStorage.setItem("admin_banner_dismissed", "true");
+}
+
+// ── Reset account ──
+async function resetAccount(email, type) {
+  const label = type === "worker" ? "worker" : "facility";
+  if (!confirm(`Permanently reset this ${label} account? All their data will be deleted. This cannot be undone.`)) return;
+  if (!prompt(`Type "${email}" to confirm reset:`) === email) {
+    ccToast("Email did not match. Reset cancelled.", "error");
+    return;
+  }
+  const { data: result } = await ccFetch("/admin/reset-account", {
+    method: "POST",
+    body: JSON.stringify({ email, type })
+  });
+  if (result?.success) {
+    ccToast(`Account reset for ${email}.`, "success");
+    if (type === "worker") await loadWorkers();
+    else await loadFacilities();
+    await loadAnalytics();
+  } else {
+    ccToast(result?.message || "Failed to reset account.", "error");
+  }
 }
 
 // ── Run ──
