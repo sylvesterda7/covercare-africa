@@ -45,6 +45,8 @@ async function init() {
     loadAnalytics(),
     loadTrustedFacilities()
   ]);
+
+  checkAdminBanner();
 }
 
 // ── Load workers ──
@@ -576,6 +578,31 @@ async function saveAllSuggestedRates() {
   });
   await saveAdminSetting("suggested_rates", rates);
   ccToast("Suggested rates saved.", "success");
+}
+
+// ── Collapsible banner ──
+function checkAdminBanner() {
+  const banner = document.getElementById("adminBanner");
+  if (!banner) return;
+  const dismissed = localStorage.getItem("admin_banner_dismissed");
+  if (dismissed === "true") { banner.style.display = "none"; return; }
+
+  const pendingCount = document.querySelector("#adminFinanceSummary .stat-box:nth-child(2) .num")?.textContent || "GHS 0";
+  const numVal = parseFloat((pendingCount || "").replace(/[^0-9.]/g, "")) || 0;
+
+  if (numVal > 0) {
+    document.getElementById("adminBannerText").textContent =
+      `You have GHS ${numVal.toLocaleString()} in outstanding postpaid payments awaiting processing. Review and mark shifts as paid in the Finance tab.`;
+    banner.style.display = "flex";
+  } else {
+    banner.style.display = "none";
+  }
+}
+
+function dismissAdminBanner() {
+  const banner = document.getElementById("adminBanner");
+  if (banner) banner.style.display = "none";
+  localStorage.setItem("admin_banner_dismissed", "true");
 }
 
 // ── Run ──
