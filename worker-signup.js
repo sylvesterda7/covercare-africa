@@ -54,6 +54,10 @@ document.getElementById("role").addEventListener("change", function() {
   }
 });
 
+document.getElementById("verifyBtn").addEventListener("click", function() {
+  verifyLicense();
+});
+
 // ── Live location ──
 function useLiveLocation() {
   if (!navigator.geolocation) {
