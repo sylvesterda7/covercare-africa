@@ -3,33 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Dashboard — CoverCare Africa</title>
+  <title>My Dashboard – CoverCare Africa</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="auth.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#111827">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 </head>
 <body>
-  <div class="bg-wrap"></div>
-  <div class="content-layer">
 
-    <nav class="dashboard-nav">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <a href="index.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa <span style="font-size:11px;color:var(--fg-muted);margin-left:8px;">CLIENT</span></a>
-      </div>
-      <div class="nav-right">
-        <span class="nav-user" id="navUser">Loading...</span>
-        <button class="btn-logout" onclick="logout()">Sign out</button>
-      </div>
-    </nav>
-
-    <div class="dashboard-layout">
-      <main class="dashboard-main">
-        <div class="dashboard-header">
-          <h1>My Dashboard</h1>
-          <p>Post shifts and manage your care needs.</p>
+  <!-- NAV -->
+  <nav class="dashboard-nav">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button onclick="toggleSidebar()" class="sidebar-toggle" aria-label="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <a href="index.html" class="nav-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
+    </div>
+    <div class="nav-right" style="position:relative;">
+      <span class="nav-user" id="navUser">Loading...</span>
+      <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" aria-label="Toggle notifications" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:var(--fg-muted);">
+        <i class="ti ti-bell" style="font-size:18px; color:#111827;"></i>
+        <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:#fff; font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
+      </button>
+      <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:var(--shadow-lg);">
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:500; color:var(--fg-muted);">Notifications</span>
+          <button onclick="markAllRead()" style="font-size:11px; color:#111827; background:none; border:none; cursor:pointer; font-family:inherit;">Mark all read</button>
         </div>
+        <div id="notifList" style="padding:8px 0;">
+          <div style="padding:16px; text-align:center; color:var(--fg-muted); font-size:13px;">No notifications</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="dashboard-sidebar closed">
+    <div class="dashboard-sidebar-card">
+      <div class="sidebar-card-title">Navigation</div>
+      <div class="sidebar-actions">
+        <button onclick="showSection('dashboard')" class="btn-sidebar btn-sidebar-active" id="nav-dashboard">Dashboard</button>
+        <button onclick="showSection('finance')" class="btn-sidebar" id="nav-finance">Finance</button>
+        <button onclick="showSection('settings')" class="btn-sidebar" id="nav-settings">Settings</button>
+      </div>
+    </div>
+    <div class="dashboard-sidebar-card">
+      <div class="sidebar-card-title">Account</div>
+      <div class="sidebar-actions">
+        <button onclick="openClientModal()" class="btn-sidebar">Edit profile</button>
+        <button onclick="confirmDelete()" class="btn-sidebar btn-sidebar-danger">Delete account</button>
+        <button onclick="openSupportModal()" class="btn-sidebar">Contact support</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- DASHBOARD LAYOUT -->
+  <div class="dashboard-layout">
+    <main class="dashboard-main">
+
+      <div class="dashboard-header">
+        <h1 id="welcomeMsg">Welcome back</h1>
+        <p>Post shifts and manage your care needs from here.</p>
+      </div>
+
+      <div class="dashboard-tabs" style="display:flex; gap:4px; margin-bottom:1.5rem; border-bottom:1px solid #e5e7eb; padding-bottom:0;">
+        <button onclick="showSection('dashboard')" class="dashboard-tab dashboard-tab-active" id="tab-dashboard" style="padding:10px 16px; font-size:13px; font-weight:500; border:none; background:none; cursor:pointer; font-family:inherit; color:#111827; border-bottom:2px solid #111827; margin-bottom:-1px;">Dashboard</button>
+        <button onclick="showSection('finance')" class="dashboard-tab" id="tab-finance" style="padding:10px 16px; font-size:13px; font-weight:500; border:none; background:none; cursor:pointer; font-family:inherit; color:#6b7280; border-bottom:2px solid transparent; margin-bottom:-1px;">Finance</button>
+        <button onclick="showSection('settings')" class="dashboard-tab" id="tab-settings" style="padding:10px 16px; font-size:13px; font-weight:500; border:none; background:none; cursor:pointer; font-family:inherit; color:#6b7280; border-bottom:2px solid transparent; margin-bottom:-1px;">Settings</button>
+      </div>
+
+      <!-- SECTION: DASHBOARD -->
+      <div id="section-dashboard">
 
         <div style="display:flex; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap;">
           <a href="post-shift.html" class="btn-auth" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
@@ -37,116 +83,116 @@
           </a>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:2rem;" id="clientStats"></div>
+        <div class="stats-row" id="clientStats"></div>
 
-        <div id="clientContent">
+        <div class="section-title" style="margin-top:2rem;">My shifts</div>
+        <div id="clientShiftsContainer">
           <div class="empty-state"><p>Loading your shifts...</p></div>
         </div>
-      </main>
+
+      </div><!-- /section-dashboard -->
+
+      <!-- SECTION: FINANCE -->
+      <div id="section-finance" style="display:none;">
+        <div class="section-title">Finance overview</div>
+        <div class="stats-row" id="financeSummary"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem;">
+          <div class="section-title" style="margin:0;">Transaction history</div>
+          <button onclick="downloadClientStatement()" class="btn-auth" style="white-space:nowrap; padding:7px 16px; font-size:13px;">Download statement</button>
+        </div>
+        <div id="financeTransactions">
+          <div class="empty-state"><p>Loading transactions...</p></div>
+        </div>
+      </div>
+
+      <!-- SECTION: SETTINGS -->
+      <div id="section-settings" style="display:none;">
+        <div class="section-title" style="margin-bottom:1rem;">Settings</div>
+        <div style="display:flex; flex-direction:column; gap:1.25rem; max-width:600px;">
+
+          <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem;">
+            <h3 style="margin:0 0 4px; font-size:15px;">My profile</h3>
+            <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Update your personal information.</p>
+            <div id="settingsProfileForm" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+
+          <div class="profile-card" style="flex-direction:column; gap:0; padding:1.25rem;">
+            <h3 style="margin:0 0 4px; font-size:15px;">Account</h3>
+            <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1rem;">Manage your account settings.</p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <button onclick="confirmDelete()" class="btn-auth" style="background:transparent; border:1px solid rgba(226,75,74,0.3); color:#E24B4A;">Delete account</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- CLIENT PROFILE MODAL -->
+  <div id="clientModal" class="scan-modal-overlay" style="display:none;">
+    <div class="scan-modal" style="max-width:500px;">
+      <button class="scan-modal-close" onclick="closeClientModal()" aria-label="Close">✕</button>
+      <h2 style="margin-bottom:1.5rem;">Edit profile</h2>
+      <form id="clientProfileForm" style="display:flex; flex-direction:column; gap:12px;">
+        <input id="editClientName" class="glass-input" type="text" placeholder="Full name" required />
+        <input id="editClientEmail" class="glass-input" type="email" placeholder="Email" readonly style="background:#f9fafb;" />
+        <input id="editClientPhone" class="glass-input" type="tel" placeholder="Phone number" required />
+        <select id="editClientCountry" class="glass-input" required>
+          <option value="">Select country</option>
+        </select>
+        <select id="editClientCity" class="glass-input" required>
+          <option value="">Select city</option>
+        </select>
+        <input id="editClientAddress" class="glass-input" type="text" placeholder="Address / Location" />
+        <input id="editClientGpsCode" class="glass-input" type="text" placeholder="GPS Code (e.g. GA-123-4567)" />
+        <div style="margin-top:0.5rem; font-size:12px; color:var(--fg-muted);">
+          <i class="ti ti-map-pin" style="margin-right:4px;"></i>
+          GPS Code helps workers find your location. You can get it from the Google Maps app or the GhanaPostGPS app.
+        </div>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+          <button type="submit" class="btn-auth" style="flex:1;">Save changes</button>
+          <button type="button" onclick="closeClientModal()" class="btn-auth" style="flex:1; background:transparent; border:1px solid var(--border); color:var(--fg-muted);">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <!-- SUPPORT MODAL -->
+  <div id="supportModal" class="scan-modal-overlay" style="display:none;">
+    <div class="scan-modal" style="max-width:480px;">
+      <button class="scan-modal-close" onclick="closeSupportModal()" aria-label="Close">✕</button>
+      <h2 style="margin-bottom:1.5rem;">Contact support</h2>
+      <form id="supportForm" style="display:flex; flex-direction:column; gap:12px;">
+        <select id="supportCategory" class="glass-input" required>
+          <option value="">Select category</option>
+          <option value="general">General</option>
+          <option value="payment">Payment</option>
+          <option value="shift">Shift issue</option>
+          <option value="account">Account</option>
+          <option value="technical">Technical</option>
+        </select>
+        <input id="supportSubject" class="glass-input" type="text" placeholder="Subject" required />
+        <textarea id="supportMessage" class="glass-input" placeholder="Describe your issue..." rows="4" required style="resize:vertical; padding:11px 14px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:10px; font-size:14px; color:var(--fg-primary); font-family:inherit;"></textarea>
+        <button type="submit" class="btn-auth">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TRANSACTION PREVIEW MODAL -->
+  <div id="txnPreviewModal" class="scan-modal-overlay" style="display:none;">
+    <div class="scan-modal" style="max-width:480px;">
+      <button class="scan-modal-close" onclick="closeTxnPreview()" aria-label="Close">✕</button>
+      <h2 style="margin-bottom:1rem;">Transaction details</h2>
+      <div id="txnPreviewContent" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
-    const _supabase = window._supabase;
-    ccInitInactivityLogout(_supabase);
-
-    async function init() {
-      const { data: { session } } = await _supabase.auth.getSession();
-      if (!session) { window.location.href = "login.html"; return; }
-
-      const email = session.user.email;
-      document.getElementById("navUser").textContent = email;
-
-      await loadShifts(email);
-    }
-
-    async function loadShifts(email) {
-      const { data, error } = await _supabase
-        .from("shifts")
-        .select("*")
-        .eq("contact_email", email)
-        .order("created_at", { ascending: false });
-
-      const container = document.getElementById("clientContent");
-      const statsEl = document.getElementById("clientStats");
-
-      if (error || !data) {
-        container.innerHTML = '<div class="empty-state"><p>Could not load shifts.</p></div>';
-        return;
-      }
-
-      const total = data.length;
-      const active = data.filter(s => s.status === "in_progress" || s.status === "accepted").length;
-      const open = data.filter(s => s.status === "open").length;
-      const completed = data.filter(s => s.status === "completed").length;
-
-      statsEl.innerHTML = `
-        <div class="stat-box"><div class="num">${total}</div><div class="label">Total shifts</div></div>
-        <div class="stat-box"><div class="num">${active}</div><div class="label">Active</div></div>
-        <div class="stat-box"><div class="num">${open}</div><div class="label">Open</div></div>
-        <div class="stat-box"><div class="num">${completed}</div><div class="label">Completed</div></div>
-      `;
-
-      if (data.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <p>You haven't posted any shifts yet.</p>
-            <a href="post-shift.html" class="btn-auth" style="display:inline-block; margin-top:12px;">Post your first shift</a>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = `
-        <div class="section-title" style="border:none; padding:0; margin-bottom:1rem;">My Shifts</div>
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Role needed</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Pay rate</th>
-                <th>Total pay</th>
-                <th>Posted</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.map(s => `
-                <tr>
-                  <td style="color:var(--fg-primary);font-weight:500;">${s.role_needed || "—"}</td>
-                  <td>${s.shift_date || "—"}</td>
-                  <td>
-                    ${s.status === "in_progress"
-                      ? '<span class="badge badge-accent" style="background:#111827;color:#fff;">● In progress</span>'
-                      : s.status === "open"
-                      ? '<span class="badge badge-accent">Open</span>'
-                      : s.status === "accepted"
-                      ? '<span class="badge badge-accent">Accepted</span>'
-                      : s.status === "completed"
-                      ? '<span class="badge badge-grey">Completed</span>'
-                      : '<span class="badge badge-grey">' + (s.status || "—") + '</span>'
-                    }
-                  </td>
-                  <td>${s.pay_rate || "—"}</td>
-                  <td style="color:#111827;">${s.total_pay || "—"}</td>
-                  <td style="color:var(--fg-muted);">${s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    async function logout() {
-      await _supabase.auth.signOut();
-      window.location.href = "login.html";
-    }
-
-    init();
-  </script>
+  <script src="dashboard-client.js"></script>
 </body>
 </html>
