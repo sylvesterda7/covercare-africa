@@ -218,10 +218,27 @@ async function verifyLicense() {
   try {
     const name = document.getElementById("fullname").value.trim();
 
-    const { response, data } = await ccFetch(
-      `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`,
-      { method: "GET" }
-    );
+    const payload = {
+      registration_number: license,
+      name
+    };
+
+    let response;
+    let data;
+
+    // Try the modern body-based contract first, then fall back to the old query-string form.
+    ({ response, data } = await ccFetch("/verify", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }));
+
+    if (!data?.success && (!response.ok || response.status === 404 || response.status === 405 || response.status === 500)) {
+      ({ response, data } = await ccFetch(
+        `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}`,
+        { method: "GET" }
+      ));
+    }
+
     console.log("Verification response:", data);
 
     if (data.success === true) {
