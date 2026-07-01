@@ -70,7 +70,18 @@
 
         <div class="form-group">
           <label class="form-label">Email</label>
-          <input id="clientEmail" class="glass-input" type="email" required placeholder="your@email.com" readonly style="background:#f9fafb;" />
+          <input id="clientEmail" class="glass-input" type="email" required placeholder="your@email.com" />
+        </div>
+
+        <div id="clientRegFields" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input id="clientPassword" class="glass-input" type="password" required placeholder="At least 8 characters" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm password</label>
+            <input id="clientConfirmPassword" class="glass-input" type="password" required placeholder="Repeat your password" />
+          </div>
         </div>
 
         <div class="form-group">
@@ -87,6 +98,15 @@
 
         <button type="submit" class="btn-auth" id="clientBtn" style="margin-top:1rem;">Create account</button>
       </form>
+
+      <!-- Success card -->
+      <div id="clientSuccess" style="display:none;">
+        <div style="text-align:center; padding:1.5rem 0;">
+          <div style="width:48px; height:48px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; font-size:22px; font-weight:600;">✓</div>
+          <h2 style="font-size:20px; margin-bottom:0.5rem;">Account created!</h2>
+          <p style="color:var(--fg-muted); font-size:14px;">Check your email to confirm your account, then sign in and complete your profile.</p>
+        </div>
+      </div>
 
       <p style="margin-top:1.25rem; font-size:13px; color:var(--fg-muted); text-align:center;">
         Already have an account? <a href="login.html" style="color:#111827; font-weight:500;">Sign in</a>
@@ -136,18 +156,17 @@
 
     async function init() {
       const { data: { session } } = await _supabase.auth.getSession();
-      if (!session) {
-        window.location.href = "register.html?type=client";
-        return;
+      if (session) {
+        document.getElementById("clientEmail").value = session.user.email;
+        document.getElementById("clientEmail").readOnly = true;
+        document.getElementById("clientRegFields").style.display = "none";
+      } else {
+        document.getElementById("clientEmail").readOnly = false;
+        document.getElementById("clientRegFields").style.display = "block";
       }
-      document.getElementById("clientEmail").value = session.user.email;
-
-      // Check for Google OAuth
-      if (session.user.app_metadata?.provider === "google" || session.user.user_metadata?.provider === "google") {
+      if (session?.user?.app_metadata?.provider === "google" || session?.user?.user_metadata?.provider === "google") {
         applyGoogleProfile(session);
       }
-
-      // Handle OAuth redirect hash
       const hash = window.location.hash;
       if (hash && (hash.includes("access_token") || hash.includes("type=signup") || hash.includes("type=recovery"))) {
         const { data } = await _supabase.auth.getSession();
@@ -164,6 +183,8 @@
       googleProfile = meta;
       document.getElementById("clientName").value = meta.full_name || meta.name || "";
       document.getElementById("clientEmail").value = meta.email || session.user.email || "";
+      document.getElementById("clientEmail").readOnly = true;
+      document.getElementById("clientRegFields").style.display = "none";
       document.getElementById("googleBadge").style.display = "inline-flex";
       document.getElementById("googleBtnWrap").style.display = "none";
       document.getElementById("googleEmail").textContent = document.getElementById("clientEmail").value;
@@ -180,6 +201,18 @@
       if (error) ccToast(error.message, "error");
     }
 
+    _supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+        if (session.user.user_metadata?.user_type === "client") {
+          window.location.href = "dashboard-client.html";
+          return;
+        }
+        if (session.user.user_metadata?.provider === "google") {
+          applyGoogleProfile(session);
+        }
+      }
+    });
+
     async function submitClient(e) {
       e.preventDefault();
       const btn = document.getElementById("clientBtn");
@@ -187,11 +220,12 @@
       errEl.style.display = "none";
 
       const full_name = document.getElementById("clientName").value.trim();
+      const email = document.getElementById("clientEmail").value.trim();
       const phone = document.getElementById("clientPhone").value.trim();
       const city = document.getElementById("clientCity").value;
       const country = document.getElementById("clientCountry").value;
 
-      if (!full_name || !phone || !city || !country) {
+      if (!full_name || !email || !phone || !city || !country) {
         errEl.textContent = "Please fill in all fields including your country and city.";
         errEl.style.display = "block";
         return;
@@ -200,12 +234,61 @@
       btn.disabled = true;
       btn.textContent = "Creating account...";
 
+      const { data: { session } } = await _supabase.auth.getSession();
+
+      // Step 1: Create auth account if not logged in
+      if (!session) {
+        const password = document.getElementById("clientPassword").value;
+        const confirmPassword = document.getElementById("clientConfirmPassword").value;
+
+        if (!password || password.length < 8) {
+          errEl.textContent = "Password must be at least 8 characters.";
+          errEl.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Create account";
+          return;
+        }
+        if (password !== confirmPassword) {
+          errEl.textContent = "Passwords do not match.";
+          errEl.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Create account";
+          return;
+        }
+
+        const { data: signUpData, error: signUpError } = await _supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name, user_type: "client" } }
+        });
+
+        if (signUpError) {
+          errEl.textContent = signUpError.message;
+          errEl.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Create account";
+          return;
+        }
+
+        if (!signUpData.session) {
+          document.getElementById("clientForm").style.display = "none";
+          document.getElementById("clientSuccess").style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Create account";
+          return;
+        }
+      }
+
+      // Step 2: Save client profile
+      btn.textContent = "Saving...";
+
       const { data: result } = await ccFetch("/client", {
         method: "POST",
         body: JSON.stringify({ full_name, phone, city, country })
       });
 
       if (result?.success) {
+        await _supabase.auth.updateUser({ data: { user_type: "client" } }).catch(() => {});
         btn.textContent = "Done!";
         window.location.href = "post-shift.html";
       } else {
