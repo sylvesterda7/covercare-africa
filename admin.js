@@ -44,6 +44,7 @@ async function init() {
     loadFacilities(),
     loadShifts(),
     loadAnalytics(),
+    loadPerformance(),
     loadTrustedFacilities()
   ]);
 
@@ -364,9 +365,82 @@ function renderBarChart(containerId, data, color) {
   }).join("");
 }
 
+// ── Performance dashboard ──
+async function loadPerformance() {
+  const { data: result } = await ccFetch("/admin/performance", { method: "GET" });
+  if (!result?.success) return;
+
+  // Summary cards
+  const summaryEl = document.getElementById("perfSummaryCards");
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="stat-box"><div class="num">${result.workerCount || 0}</div><div class="label">Workers with shifts</div></div>
+      <div class="stat-box"><div class="num">${result.facilityCount || 0}</div><div class="label">Active facilities</div></div>
+      <div class="stat-box"><div class="num">${result.totalCompleted || 0}</div><div class="label">Completed shifts</div></div>
+    `;
+  }
+
+  // Top workers
+  const topW = document.getElementById("topWorkersTable");
+  if (topW) {
+    const workers = result.topWorkers || [];
+    if (!workers.length) {
+      topW.innerHTML = '<div style="color:var(--fg-muted);font-size:13px;text-align:center;padding:1rem;">No worker performance data yet.</div>';
+    } else {
+      topW.innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Worker</th><th>Role</th><th>Completed</th><th>Earnings</th><th>Rating</th><th>On-time</th></tr></thead>
+          <tbody>
+            ${workers.map((w, i) => `
+              <tr>
+                <td style="color:var(--fg-muted);">${i + 1}</td>
+                <td style="color:var(--fg-primary);font-weight:500;">${escapeHtml(w.full_name)}</td>
+                <td>${escapeHtml(w.role)}</td>
+                <td style="font-weight:500;">${w.completed}</td>
+                <td style="font-weight:500;">GHS ${w.total_earnings.toLocaleString()}</td>
+                <td>${w.avg_rating ? "★ " + w.avg_rating : "—"}</td>
+                <td>${w.on_time_rate}%</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+  }
+
+  // Top facilities
+  const topF = document.getElementById("topFacilitiesTable");
+  if (topF) {
+    const facilities = result.topFacilities || [];
+    if (!facilities.length) {
+      topF.innerHTML = '<div style="color:var(--fg-muted);font-size:13px;text-align:center;padding:1rem;">No facility performance data yet.</div>';
+    } else {
+      topF.innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Facility</th><th>Posted</th><th>Completed</th><th>Fill rate</th><th>Spend</th><th>Rating</th><th>Credits</th></tr></thead>
+          <tbody>
+            ${facilities.map((f, i) => `
+              <tr>
+                <td style="color:var(--fg-muted);">${i + 1}</td>
+                <td style="color:var(--fg-primary);font-weight:500;">${escapeHtml(f.facility_name)}</td>
+                <td>${f.total_posted}</td>
+                <td style="font-weight:500;">${f.completed}</td>
+                <td>${f.fill_rate}%</td>
+                <td style="font-weight:500;">GHS ${f.total_spend.toLocaleString()}</td>
+                <td>${f.avg_rating ? "★ " + f.avg_rating : "—"}</td>
+                <td>GHS ${f.credits_saved.toLocaleString()}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+  }
+}
+
 // ── Tab switching ──
 function showTab(tab) {
-  ["workers", "facilities", "shifts", "analytics", "trusted", "finance", "settings"].forEach(t => {
+  ["workers", "facilities", "shifts", "analytics", "performance", "trusted", "finance", "settings"].forEach(t => {
     const panel = document.getElementById("panel-" + t);
     if (panel) panel.style.display = t === tab ? "block" : "none";
     const navEl = document.getElementById("nav-" + t);

@@ -55,6 +55,7 @@
           <button onclick="showTab('facilities')" class="btn-sidebar" id="nav-facilities"><i class="ti ti-building-hospital" style="margin-right:6px;"></i> Facilities</button>
           <button onclick="showTab('shifts')" class="btn-sidebar" id="nav-shifts"><i class="ti ti-calendar" style="margin-right:6px;"></i> Shifts</button>
           <button onclick="showTab('analytics')" class="btn-sidebar btn-sidebar-active" id="nav-analytics"><i class="ti ti-chart-bar" style="margin-right:6px;"></i> Analytics</button>
+          <button onclick="showTab('performance')" class="btn-sidebar" id="nav-performance"><i class="ti ti-trending-up" style="margin-right:6px;"></i> Performance</button>
           <button onclick="showTab('trusted')" class="btn-sidebar" id="nav-trusted"><i class="ti ti-shield-check" style="margin-right:6px;"></i> Trusted</button>
           <button onclick="showTab('finance')" class="btn-sidebar" id="nav-finance"><i class="ti ti-coin" style="margin-right:6px;"></i> Finance</button>
           <button onclick="showTab('settings')" class="btn-sidebar" id="nav-settings"><i class="ti ti-settings" style="margin-right:6px;"></i> Settings</button>
@@ -149,6 +150,26 @@
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
           <p style="font-size:12px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Revenue (GHS)</p>
           <div id="revenueChart" class="chart-bars"></div>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE -->
+      <div id="panel-performance" style="display:none;">
+        <div class="section-title">Worker & Facility Performance</div>
+        <p style="font-size:13px; color:var(--fg-muted); margin-bottom:1.5rem;">Top performers ranked by completed shifts, ratings, and earnings.</p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+            <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Top Workers</p>
+            <div id="topWorkersTable" style="overflow-x:auto;"></div>
+          </div>
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+            <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Top Facilities</p>
+            <div id="topFacilitiesTable" style="overflow-x:auto;"></div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:1.5rem;" id="perfSummaryCards">
         </div>
       </div>
 
