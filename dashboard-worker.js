@@ -212,7 +212,7 @@ function calcShiftEndTime(shift) {
   if (!shift.shift_date || !shift.start_time) return null;
   const start = new Date(`${shift.shift_date}T${shift.start_time}:00`);
   if (isNaN(start.getTime())) return null;
-  const hours = parseFloat((shift.duration || "").replace(/[^0-9.]/g, "")) || 0;
+  const hours = parseFloat(shift.duration_hours) || parseFloat((shift.duration || "").replace(/[^0-9.]/g, "")) || 0;
   return new Date(start.getTime() + hours * 60 * 60 * 1000);
 }
 
