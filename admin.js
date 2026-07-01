@@ -50,6 +50,7 @@ async function init() {
 
   // ── Default to analytics tab ──
   showTab("analytics");
+  loadNotifications();
 }
 
 // ── Load workers ──
@@ -61,11 +62,6 @@ async function loadWorkers() {
 
   if (error || !data) return;
   allWorkers = data;
-
-  // ── Update stats ──
-  document.getElementById("totalWorkers").textContent = data.length;
-  document.getElementById("verifiedWorkers").textContent =
-    data.filter(w => w.license_verified).length;
 
   renderWorkers(data);
 }
@@ -174,8 +170,6 @@ async function loadFacilities() {
 
   if (error || !data) return;
   allFacilities = data;
-
-  document.getElementById("totalFacilities").textContent = data.length;
 
   const container = document.getElementById("facilitiesTable");
 
@@ -398,6 +392,55 @@ function toggleSidebar() {
 async function logout() {
   await _supabase.auth.signOut();
   window.location.href = "login.html";
+}
+
+// ── Notifications ──
+let notifOpen = false;
+
+async function loadNotifications() {
+  const { data } = await ccFetch("/notifications", { method: "GET" });
+  if (!data) return;
+
+  const badge = document.getElementById("notifBadge");
+  const list = document.getElementById("notifList");
+  if (!badge || !list) return;
+
+  if (data.unread_count > 0) {
+    badge.style.display = "flex";
+    badge.textContent = data.unread_count;
+  } else {
+    badge.style.display = "none";
+  }
+
+  if (!data.data || data.data.length === 0) {
+    list.innerHTML = '<div style="padding:16px; text-align:center; color:var(--fg-muted); font-size:13px;">No notifications</div>';
+    return;
+  }
+
+  list.innerHTML = data.data.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markRead('${escapeHtml(n.id)}')" data-id="${escapeHtml(n.id)}">
+      <div style="color:var(--fg-muted);">${escapeHtml(n.title)}</div>
+      <div style="color:var(--fg-muted); font-size:12px; margin-top:2px;">${escapeHtml(n.message)}</div>
+      <div class="notif-time">${n.created_at ? new Date(n.created_at).toLocaleDateString() : ""}</div>
+    </div>
+  `).join("");
+}
+
+function toggleNotifications() {
+  notifOpen = !notifOpen;
+  const dd = document.getElementById("notifDropdown");
+  if (dd) dd.style.display = notifOpen ? "block" : "none";
+  if (notifOpen) loadNotifications();
+}
+
+async function markRead(id) {
+  await ccFetch(`/notifications/${id}/read`, { method: "PUT" });
+  loadNotifications();
+}
+
+async function markAllRead() {
+  await ccFetch("/notifications/read-all", { method: "POST" });
+  loadNotifications();
 }
 
 // ── Load trusted facilities ──

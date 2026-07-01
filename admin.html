@@ -29,6 +29,19 @@
       </div>
       <div class="nav-right">
         <span class="nav-user" id="navUser">Loading...</span>
+        <button onclick="toggleNotifications()" class="notif-btn" id="notifBtn" aria-label="Toggle notifications" style="background:none; border:none; cursor:pointer; position:relative; font-size:18px; color:var(--fg-muted);">
+            <i class="ti ti-bell" style="font-size:18px; color:#111827;"></i>
+          <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; background:#E24B4A; color:#fff; font-size:10px; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:600; line-height:1;">0</span>
+        </button>
+        <div id="notifDropdown" class="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; width:320px; max-height:400px; overflow-y:auto; z-index:200; box-shadow:var(--shadow-lg);">
+          <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:13px; font-weight:500; color:var(--fg-muted);">Notifications</span>
+            <button onclick="markAllRead()" style="font-size:11px; color:#111827; background:none; border:none; cursor:pointer; font-family:inherit;">Mark all read</button>
+          </div>
+          <div id="notifList" style="padding:8px 0;">
+            <div style="padding:16px; text-align:center; color:var(--fg-muted); font-size:13px;">No notifications</div>
+          </div>
+        </div>
         <button class="btn-logout" onclick="logout()">Sign out</button>
       </div>
     </nav>
