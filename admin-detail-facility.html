@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Facility Details — CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#111827">
+</head>
+
+<body>
+  <div class="bg-wrap"></div>
+  <div class="content-layer">
+
+    <nav class="dashboard-nav">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="admin.html" class="nav-logo" style="font-family:var(--font-heading);">
+          <i class="ti ti-arrow-left" style="margin-right:6px;"></i> Back to Admin
+        </a>
+      </div>
+      <div class="nav-right">
+        <span class="nav-user" id="navUser">Loading...</span>
+        <button class="btn-logout" onclick="logout()">Sign out</button>
+      </div>
+    </nav>
+
+    <div class="dashboard-layout">
+      <main class="dashboard-main">
+        <div id="facilityDetailContent"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+    const _supabase = window._supabase;
+    ccInitInactivityLogout(_supabase);
+
+    async function init() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) { window.location.href = "login.html"; return; }
+
+      const { data: adminCheck } = await ccFetch("/admin/verify", { method: "POST" });
+      if (!adminCheck?.admin) { window.location.href = "admin.html"; return; }
+
+      document.getElementById("navUser").textContent = session.user.email;
+
+      const params = new URLSearchParams(window.location.search);
+      const facilityId = params.get("id");
+      if (!facilityId) { document.getElementById("facilityDetailContent").innerHTML = '<div class="empty-state"><p>No facility ID provided.</p></div>'; return; }
+
+      await loadFacilityDetail(facilityId);
+    }
+
+    async function loadFacilityDetail(id) {
+      const c = document.getElementById("facilityDetailContent");
+      c.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--fg-muted);">Loading facility details...</div>';
+
+      const { data: result } = await ccFetch("/admin/facility/" + id, { method: "GET" });
+      if (!result?.success || !result.facility) {
+        c.innerHTML = '<div class="empty-state"><p>Facility not found.</p></div>';
+        return;
+      }
+
+      const f = result.facility;
+      const stats = result.shiftStats || {};
+
+      const billingLabel = f.billing_model === "postpaid"
+        ? '<span style="color:#059669; font-weight:500;">Postpaid (Trusted)</span>'
+        : '<span style="color:#6b7280; font-weight:500;">Prepaid</span>';
+
+      const billingBtnLabel = f.billing_model === "postpaid" ? "Switch to prepaid" : "Enable postpaid billing";
+
+      // Document URLs
+      const docs = [
+        { label: "Incorporation certificate", url: f.incorporation_doc_url },
+        { label: "HEFRA license", url: f.hefra_license_url },
+        { label: "Pharmacy Council permit", url: f.pharmacy_council_url }
+      ].filter(d => d.url);
+
+      const docHtml = docs.length > 0 ? docs.map(d => `
+        <div style="margin-bottom:12px;">
+          <p style="font-size:12px; font-weight:500; color:#6b7280; margin:0 0 6px;">${escapeHtml(d.label)}</p>
+          <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener">
+            <img src="${escapeHtml(d.url)}" alt="${escapeHtml(d.label)}" style="max-width:240px; max-height:160px; border-radius:8px; border:1px solid var(--border); object-fit:cover;" onerror="this.style.display='none'">
+          </a>
+          <br>
+          <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener" style="font-size:12px; color:#111827; margin-top:4px; display:inline-block;">
+            <i class="ti ti-external-link" style="font-size:12px;"></i> Open in new tab
+          </a>
+        </div>
+      `).join("") : '<p style="font-size:13px; color:var(--fg-muted);">No documents uploaded.</p>';
+
+      c.innerHTML = `
+        <div class="section-title">Facility Details</div>
+        <a href="admin.html" style="font-size:13px; color:#111827; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:1rem;">
+          <i class="ti ti-arrow-left"></i> Back to admin panel
+        </a>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.25rem;">
+          <!-- Left: Profile -->
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.5rem;">
+            <h2 style="margin:0 0 4px; font-size:20px;">${escapeHtml(f.facility_name || "—")}</h2>
+            <p style="margin:0 0 1.5rem; color:var(--fg-muted); font-size:14px;">${escapeHtml(f.facility_type || "—")}${f.city ? " &middot; " + escapeHtml(f.city) : ""}</p>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+              ${[
+                ["Email", f.email],
+                ["Phone", f.phone],
+                ["Contact name", f.contact_name],
+                ["Contact role", f.contact_role],
+                ["Contact phone", f.contact_phone],
+                ["City", f.city],
+                ["Staff needs", f.staff_needs],
+                ["Frequency", f.frequency],
+                ["Billing model", billingLabel],
+                ["Trusted by", f.trusted_by],
+                ["Joined", f.created_at ? new Date(f.created_at).toLocaleDateString() : "—"]
+              ].filter(field => field[1]).map(([label, val]) => `
+                <div style="padding:8px 0; border-bottom:1px solid #f3f4f6;">
+                  <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">${label}</div>
+                  <div style="font-size:14px; color:#111827;">${val}</div>
+                </div>
+              `).join("")}
+            </div>
+
+            <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid #e5e7eb;">
+              <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 8px;">Billing Controls</p>
+              <button id="billingToggleBtn" onclick="toggleBilling('${f.id}')"
+                style="padding:8px 20px; border-radius:8px; border:1px solid #111827; background:${f.billing_model === "postpaid" ? '#fff' : '#111827'}; color:${f.billing_model === "postpaid" ? '#111827' : '#fff'}; cursor:pointer; font-family:inherit; font-size:13px; font-weight:500;">
+                ${billingBtnLabel}
+              </button>
+              <p style="font-size:12px; color:var(--fg-muted); margin-top:8px;">
+                ${f.billing_model === "postpaid"
+                  ? "Facility can post shifts without upfront payment. Bills are settled at end of month."
+                  : "Facility pays upfront for each shift before posting."}
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Stats + Documents -->
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+              <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Shift Stats</p>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="stat-box"><div class="num">${stats.total || 0}</div><div class="label">Total shifts</div></div>
+                <div class="stat-box"><div class="num">${stats.completed || 0}</div><div class="label">Completed</div></div>
+                <div class="stat-box"><div class="num">${stats.in_progress || 0}</div><div class="label">In progress</div></div>
+                <div class="stat-box"><div class="num">${stats.open || 0}</div><div class="label">Unfilled</div></div>
+                <div class="stat-box"><div class="num">GHS ${(stats.total_spend || 0).toLocaleString()}</div><div class="label">Total spend</div></div>
+              </div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+              <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Verification Documents</p>
+              ${docHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function toggleBilling(facilityId) {
+      const btn = document.getElementById("billingToggleBtn");
+      if (btn) btn.disabled = true;
+
+      const { data: result } = await ccFetch("/admin/toggle-billing", {
+        method: "POST",
+        body: JSON.stringify({ facility_id: facilityId })
+      });
+
+      if (result?.success) {
+        ccToast(result.message, "success");
+        await loadFacilityDetail(facilityId);
+      } else {
+        ccToast(result?.message || "Failed to toggle billing.", "error");
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function logout() {
+      await _supabase.auth.signOut();
+      window.location.href = "login.html";
+    }
+
+    init();
+  </script>
+</body>
+</html>

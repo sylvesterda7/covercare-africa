@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worker Details — CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#111827">
+</head>
+
+<body>
+  <div class="bg-wrap"></div>
+  <div class="content-layer">
+
+    <nav class="dashboard-nav">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="admin.html" class="nav-logo" style="font-family:var(--font-heading);">
+          <i class="ti ti-arrow-left" style="margin-right:6px;"></i> Back to Admin
+        </a>
+      </div>
+      <div class="nav-right">
+        <span class="nav-user" id="navUser">Loading...</span>
+        <button class="btn-logout" onclick="logout()">Sign out</button>
+      </div>
+    </nav>
+
+    <div class="dashboard-layout">
+      <main class="dashboard-main">
+        <div id="workerDetailContent"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+    const _supabase = window._supabase;
+    ccInitInactivityLogout(_supabase);
+
+    async function init() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) { window.location.href = "login.html"; return; }
+
+      const { data: adminCheck } = await ccFetch("/admin/verify", { method: "POST" });
+      if (!adminCheck?.admin) { window.location.href = "admin.html"; return; }
+
+      document.getElementById("navUser").textContent = session.user.email;
+
+      const params = new URLSearchParams(window.location.search);
+      const workerId = params.get("id");
+      if (!workerId) { document.getElementById("workerDetailContent").innerHTML = '<div class="empty-state"><p>No worker ID provided.</p></div>'; return; }
+
+      await loadWorkerDetail(workerId);
+    }
+
+    async function loadWorkerDetail(id) {
+      const c = document.getElementById("workerDetailContent");
+      c.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--fg-muted);">Loading worker details...</div>';
+
+      const { data: result } = await ccFetch("/admin/worker/" + id, { method: "GET" });
+      if (!result?.success || !result.worker) {
+        c.innerHTML = '<div class="empty-state"><p>Worker not found.</p></div>';
+        return;
+      }
+
+      const w = result.worker;
+      const stats = result.shiftStats || {};
+      const photo = w.profile_photo_url
+        ? `<img src="${escapeHtml(w.profile_photo_url)}" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">`
+        : `<div style="width:80px;height:80px;border-radius:50%;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:var(--fg-muted);border:2px solid var(--border);">${(w.full_name || "?")[0]}</div>`;
+
+      // Documents section
+      const docs = [
+        { label: "Profile photo", url: w.profile_photo_url },
+        { label: "Selfie (ID verification)", url: w.selfie_url },
+        { label: "ID document", url: w.id_document_url }
+      ].filter(d => d.url);
+
+      const docHtml = docs.length > 0 ? docs.map(d => `
+        <div style="margin-bottom:12px;">
+          <p style="font-size:12px; font-weight:500; color:#6b7280; margin:0 0 6px;">${escapeHtml(d.label)}</p>
+          <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener">
+            <img src="${escapeHtml(d.url)}" alt="${escapeHtml(d.label)}" style="max-width:240px; max-height:160px; border-radius:8px; border:1px solid var(--border); object-fit:cover;" onerror="this.style.display='none'">
+          </a>
+        </div>
+      `).join("") : '<p style="font-size:13px; color:var(--fg-muted);">No documents uploaded.</p>';
+
+      c.innerHTML = `
+        <div class="section-title">Worker Details</div>
+        <a href="admin.html" style="font-size:13px; color:#111827; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:1rem;">
+          <i class="ti ti-arrow-left"></i> Back to admin panel
+        </a>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.25rem;">
+          <!-- Left: Profile -->
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.5rem;">
+            <div style="display:flex; align-items:center; gap:16px; margin-bottom:1.5rem;">
+              ${photo}
+              <div>
+                <h2 style="margin:0 0 4px; font-size:20px;">${escapeHtml(w.full_name || "—")}</h2>
+                <p style="margin:0; color:var(--fg-muted); font-size:14px;">${escapeHtml(w.role || "—")}</p>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+              ${[
+                ["Email", w.email],
+                ["Phone", w.phone],
+                ["City", w.city],
+                ["Experience", w.experience],
+                ["Bio", w.bio],
+                ["License number", w.license_number],
+                ["License verified", w.license_verified ? '<span style="color:#059669;">✓ Verified</span>' : '<span style="color:#E24B4A;">Not verified</span>'],
+                ["Identity verified", w.identity_verified ? '<span style="color:#059669;">✓ Verified</span>' : '<span style="color:#E24B4A;">Not verified</span>'],
+                ["Available for work", w.available_for_work ? "Yes" : "No"],
+                ["Bank", w.bank_name],
+                ["Bank account", w.bank_account_number],
+                ["MoMo provider", w.momo_provider],
+                ["MoMo number", w.momo_number],
+                ["Joined", w.created_at ? new Date(w.created_at).toLocaleDateString() : "—"]
+              ].filter(f => f[1]).map(([label, val]) => `
+                <div style="padding:8px 0; border-bottom:1px solid #f3f4f6;">
+                  <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">${label}</div>
+                  <div style="font-size:14px; color:#111827;">${val}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- Right: Stats + Documents -->
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+              <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Shift Stats</p>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="stat-box"><div class="num">${stats.total || 0}</div><div class="label">Total shifts</div></div>
+                <div class="stat-box"><div class="num">${stats.completed || 0}</div><div class="label">Completed</div></div>
+                <div class="stat-box"><div class="num">${stats.in_progress || 0}</div><div class="label">In progress</div></div>
+                <div class="stat-box"><div class="num">GHS ${(stats.total_earnings || 0).toLocaleString()}</div><div class="label">Earnings</div></div>
+              </div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+              <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Documents</p>
+              ${docHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function logout() {
+      await _supabase.auth.signOut();
+      window.location.href = "login.html";
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -754,85 +754,14 @@ function downloadAdminStatement() {
   ccToast("Statement downloaded.", "success");
 }
 
-// ── Worker detail modal ──
+// ── Worker / Facility detail pages ──
 function viewWorkerById(id) {
-  const worker = allWorkers.find(w => w.id === id);
-  if (worker) viewWorkerDetail(worker);
+  window.location.href = "admin-detail-worker.html?id=" + encodeURIComponent(id);
 }
 
-function viewWorkerDetail(w) {
-  const c = document.getElementById("workerDetailContent");
-  if (!c) return;
-  const photo = w.profile_photo_url
-    ? `<img src="${escapeHtml(w.profile_photo_url)}" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">`
-    : `<div style="width:64px;height:64px;border-radius:50%;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:var(--fg-muted);border:2px solid var(--border);">${(w.full_name || "?")[0]}</div>`;
-  const fields = [
-    ["", `<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">${photo}<div><strong style="font-size:16px;">${escapeHtml(w.full_name || "—")}</strong><br><span style="font-size:13px;color:var(--fg-muted);">${escapeHtml(w.role || "—")}</span></div></div>`, true],
-    ["Email", escapeHtml(w.email || "—")],
-    ["Phone", escapeHtml(w.phone || "—")],
-    ["City", escapeHtml(w.city || "—")],
-    ["Experience", escapeHtml(w.experience || "—")],
-    ["Bio", escapeHtml(w.bio || "—")],
-    ["License number", escapeHtml(w.license_number || "—")],
-    ["License verified", w.license_verified ? "Yes" : "No"],
-    ["Identity verified", w.identity_verified ? "Yes" : "No"],
-    ["Available for work", w.available_for_work ? "Yes" : "No"],
-    ["Bank", escapeHtml(w.bank_name || "—")],
-    ["Bank account", escapeHtml(w.bank_account_number || "—")],
-    ["MoMo provider", escapeHtml(w.momo_provider || "—")],
-    ["MoMo number", escapeHtml(w.momo_number || "—")],
-    ["Joined", w.created_at ? new Date(w.created_at).toLocaleDateString() : "—"]
-  ];
-  c.innerHTML = fields.map(([label, val, skip]) => skip ? val : `
-    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
-      <span style="font-size:13px; color:var(--fg-muted);">${label}</span>
-      <span style="font-size:13px; font-weight:500; color:var(--fg-primary);">${val}</span>
-    </div>
-  `).join("");
-  document.getElementById("workerDetailModal").style.display = "flex";
-}
-
-function closeWorkerDetail() {
-  document.getElementById("workerDetailModal").style.display = "none";
-}
-
-// ── Facility detail modal ──
 function viewFacilityById(id) {
-  const facility = allFacilities.find(f => f.id === id);
-  if (facility) viewFacilityDetail(facility);
+  window.location.href = "admin-detail-facility.html?id=" + encodeURIComponent(id);
 }
-
-function viewFacilityDetail(f) {
-  const c = document.getElementById("facilityDetailContent");
-  if (!c) return;
-  const fields = [
-    ["Facility name", escapeHtml(f.facility_name || "—")],
-    ["Type", escapeHtml(f.facility_type || "—")],
-    ["City", escapeHtml(f.city || "—")],
-    ["Email", escapeHtml(f.email || "—")],
-    ["Phone", escapeHtml(f.phone || "—")],
-    ["Contact name", escapeHtml(f.contact_name || "—")],
-    ["Contact role", escapeHtml(f.contact_role || "—")],
-    ["Contact phone", escapeHtml(f.contact_phone || "—")],
-    ["Staff needs", escapeHtml(f.staff_needs || "—")],
-    ["Frequency", escapeHtml(f.frequency || "—")],
-    ["Billing model", f.billing_model === "postpaid" ? "Postpaid" : "Prepaid"],
-    ["Trusted by", escapeHtml(f.trusted_by || "—")],
-    ["Joined", f.created_at ? new Date(f.created_at).toLocaleDateString() : "—"]
-  ];
-  c.innerHTML = fields.map(([label, val]) => `
-    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
-      <span style="font-size:13px; color:var(--fg-muted);">${label}</span>
-      <span style="font-size:13px; font-weight:500; color:var(--fg-primary);">${val}</span>
-    </div>
-  `).join("");
-  document.getElementById("facilityDetailModal").style.display = "flex";
-}
-
-function closeFacilityDetail() {
-  document.getElementById("facilityDetailModal").style.display = "none";
-}
-
 function paymentActions(shiftId, status) {
   const btn = (label, action, color) =>
     `<button onclick="handlePaymentAction('${escapeHtml(shiftId)}', '${action}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid ${color};background:transparent;color:${color};cursor:pointer;font-family:inherit;white-space:nowrap;">${label}</button>`;
