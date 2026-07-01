@@ -157,6 +157,23 @@ input[type="file"]:hover {
   font-family: inherit;
 }
 
+.btn-verify.loading {
+  opacity: 0.8;
+  cursor: progress;
+}
+
+.btn-verify-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  vertical-align: -2px;
+  animation: cc-spin 0.7s linear infinite;
+}
+
 .btn-verify:hover {
   background: var(--border);
 }
@@ -191,6 +208,11 @@ input[type="file"]:hover {
   background: rgba(226,75,74,0.08);
   border: 1px solid rgba(226,75,74,0.15);
   color: #E24B4A;
+}
+
+@keyframes cc-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* ── Upload note ── */

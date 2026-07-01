@@ -41,21 +41,45 @@ document.getElementById("role").addEventListener("change", function() {
   const verifyBtn = document.getElementById("verifyBtn");
   const uploadNote = document.getElementById("uploadNote");
   const uploadGroup = document.getElementById("uploadGroup");
+  const resultBox = document.getElementById("verifyResult");
   const pharmacyRoles = ["pharmacist", "pharmacy-tech"];
+
+  licenseVerified = false;
+  if (resultBox) {
+    resultBox.className = "verify-result";
+    resultBox.innerHTML = "";
+  }
 
   if (pharmacyRoles.includes(role)) {
     verifyBtn.style.display = "block";
     uploadNote.style.display = "none";
     uploadGroup.style.display = "none";
+    verifyBtn.textContent = "Verify";
   } else {
     verifyBtn.style.display = "none";
     uploadNote.style.display = "block";
     uploadGroup.style.display = "block";
+    verifyBtn.disabled = false;
+    verifyBtn.textContent = "Verify";
   }
 });
 
 document.getElementById("verifyBtn").addEventListener("click", function() {
   verifyLicense();
+});
+
+document.getElementById("license").addEventListener("input", function() {
+  licenseVerified = false;
+  const resultBox = document.getElementById("verifyResult");
+  if (resultBox) {
+    resultBox.className = "verify-result";
+    resultBox.innerHTML = "";
+  }
+  const verifyBtn = document.getElementById("verifyBtn");
+  if (verifyBtn && verifyBtn.style.display !== "none") {
+    verifyBtn.textContent = "Verify";
+    verifyBtn.disabled = false;
+  }
 });
 
 // ── Live location ──
@@ -181,8 +205,12 @@ async function verifyLicense() {
     return;
   }
 
+  if (btn.disabled) return;
+
+  const originalText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = "Checking...";
+  btn.classList.add("loading");
+  btn.innerHTML = '<span class="btn-verify-spinner" aria-hidden="true"></span>Checking...';
   resultBox.className = "verify-result";
   resultBox.innerHTML = "";
 
@@ -198,6 +226,7 @@ async function verifyLicense() {
     if (data.success === true) {
       licenseVerified = true;
       resultBox.className = "verify-result success";
+      resultBox.dataset.verified = "1";
       resultBox.innerHTML = `
         <strong>Verified — Active and in good standing</strong><br>
         ${data.message}<br>
@@ -207,6 +236,7 @@ async function verifyLicense() {
       `;
     } else if (data.data && data.data.status === "name_mismatch") {
       licenseVerified = false;
+      resultBox.dataset.verified = "0";
       resultBox.className = "verify-result warning";
       resultBox.innerHTML = `
         <strong>Name mismatch</strong><br>
@@ -216,6 +246,7 @@ async function verifyLicense() {
       `;
     } else if (data.data && data.data.status === "not_found") {
       licenseVerified = false;
+      resultBox.dataset.verified = "0";
       resultBox.className = "verify-result warning";
       resultBox.innerHTML = `
         <strong>Not found</strong><br>
@@ -224,6 +255,7 @@ async function verifyLicense() {
       `;
     } else {
       licenseVerified = false;
+      resultBox.dataset.verified = "0";
       resultBox.className = "verify-result error";
       resultBox.innerHTML = `
         <strong>Verification unavailable</strong><br>
@@ -235,16 +267,18 @@ async function verifyLicense() {
   } catch (err) {
     console.error("Verify error:", err);
     licenseVerified = false;
+    resultBox.dataset.verified = "0";
     resultBox.className = "verify-result error";
     resultBox.innerHTML = `
       <strong>Verification unavailable</strong><br>
       Our verification service is temporarily unavailable. 
       Your application will be reviewed manually within 24 hours.
     `;
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("loading");
+    btn.textContent = originalText || "Verify";
   }
-
-  btn.disabled = false;
-  btn.textContent = "Verify";
 }
 
 // ── Form submission ──
