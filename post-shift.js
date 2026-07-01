@@ -84,8 +84,8 @@ async function fetchSuggestedRates() {
 }
 
 document.addEventListener("DOMContentLoaded", async function() {
-  const _supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
-  const { data: { session } } = await _supabase.auth.getSession();
+  window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+  const { data: { session } } = await window._supabase.auth.getSession();
   if (session) {
     const emailField = document.getElementById("contactEmail");
     emailField.value = session.user.email;
