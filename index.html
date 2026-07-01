@@ -321,20 +321,27 @@
           authLink.style.display = "none";
           if (registerBtn) registerBtn.style.display = "none";
           dashBtn.style.display = "inline-block";
-          // determine correct dashboard
-          const meta = session.user.user_metadata || {};
-          let type = meta.user_type;
-          if (type === "worker") {
-            dashBtn.href = "dashboard-worker.html";
-          } else if (type === "facility") {
-            dashBtn.href = "dashboard-facility.html";
+          // check if admin first
+          const { data: adminRow } = await supabase.from("admins").select("email").eq("email", session.user.email).maybeSingle();
+          if (adminRow) {
+            dashBtn.textContent = "Admin panel";
+            dashBtn.href = "admin.html";
           } else {
-            // try the workers table
-            const { data: worker } = await supabase.from("workers").select("id").eq("email", session.user.email).maybeSingle();
-            if (worker) {
+            // determine correct dashboard
+            const meta = session.user.user_metadata || {};
+            let type = meta.user_type;
+            if (type === "worker") {
               dashBtn.href = "dashboard-worker.html";
-            } else {
+            } else if (type === "facility") {
               dashBtn.href = "dashboard-facility.html";
+            } else {
+              // try the workers table
+              const { data: worker } = await supabase.from("workers").select("id").eq("email", session.user.email).maybeSingle();
+              if (worker) {
+                dashBtn.href = "dashboard-worker.html";
+              } else {
+                dashBtn.href = "dashboard-facility.html";
+              }
             }
           }
         }
