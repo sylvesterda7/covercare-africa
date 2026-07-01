@@ -64,6 +64,12 @@ async function loadShifts(email) {
   }, 0);
   _s("totalSpend", "GHS " + totalSpend.toLocaleString());
 
+  // Facility credits from late arrivals
+  const totalCredits = filledShifts.reduce((sum, shift) => {
+    return sum + (parseFloat(shift.facility_credit) || 0);
+  }, 0);
+  _s("facilityCredits", "GHS " + totalCredits.toLocaleString());
+
   // ── Open shifts ──
   const openContainer = document.getElementById("openShiftsContainer");
   if (openShifts.length > 0) {
@@ -148,8 +154,11 @@ async function loadShifts(email) {
       const lateInfo = shift.late_minutes > 0 ? `
         <p style="font-size:12px;color:#b45309;margin-top:4px;">
           ⏰ ${shift.late_minutes} min late · Pay: ${escapeHtml(shift.adjusted_pay || shift.total_pay)}
+          ${shift.facility_credit > 0 ? `· Facility saved: <strong>GHS ${parseFloat(shift.facility_credit).toLocaleString()}</strong>` : ''}
           ${shift.made_up ? '· <span style="color:#059669;">Made up time</span>' : ''}
+          ${shift.waived ? '· <span style="color:#059669;">Deduction waived</span>' : ''}
         </p>` : "";
+      const showWaive = shift.late_minutes > 0 && !shift.made_up && !shift.waived;
       return `
       <div class="profile-card" style="margin-bottom:12px;">
         <div class="profile-avatar" style="${w?.profile_photo_url ? 'background:none;border:none;' : 'background:rgba(17,24,39,0.1);'} font-size:14px;">
@@ -165,6 +174,7 @@ async function loadShifts(email) {
               ${shift.status === "in_progress" ? "⏱ In progress" : shift.status === "completed" ? "✓ Completed" : "✓ Filled"}
             </span>
             ${w ? `<button data-worker-id="${escapeHtml(w.id)}" onclick="showWorkerDetailsById(this.dataset.workerId)" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--fg-muted);cursor:pointer;font-family:inherit;">View worker</button>` : ""}
+            ${showWaive ? `<button onclick="waiveDeduction('${escapeHtml(shift.id)}')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;">Waive deduction</button>` : ""}
           </div>
         </div>
       </div>`;
@@ -344,6 +354,28 @@ async function cancelShift(shiftId) {
 
   await loadShifts(facilityEmail);
   await loadApplications(facilityEmail);
+}
+
+// ── Waive late deduction ──
+async function waiveDeduction(shiftId) {
+  const confirmed = confirm("Waive the late deduction for this shift? The worker will receive full pay.");
+  if (!confirmed) return;
+
+  try {
+    const { data: result } = await ccFetch("/shifts/waive-deduction", {
+      method: "POST",
+      body: JSON.stringify({ shift_id: shiftId })
+    });
+
+    if (result.success) {
+      ccToast("Deduction waived — worker will receive full pay.", "success");
+      await loadShifts(facilityEmail);
+    } else {
+      ccToast(result.message || "Failed to waive deduction.", "error");
+    }
+  } catch (err) {
+    ccToast("Network error. Please try again.", "error");
+  }
 }
 
 // ── Load completed shifts ──
