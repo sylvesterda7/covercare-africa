@@ -273,15 +273,28 @@ function downloadClientStatement() {
 }
 
 // ── Finance profile (momo/bank) ──
-async function loadFinanceProfile() {
-  const { data: result } = await ccFetch("/finance/client/profile", { method: "GET" });
-  if (result?.success && result.data) {
-    document.getElementById("finBankName").value = result.data.bank_name || "";
-    document.getElementById("finBankAccount").value = result.data.bank_account_number || "";
-    document.getElementById("finBankAccountName").value = result.data.bank_account_name || "";
-    document.getElementById("finMomoProvider").value = result.data.momo_provider || "";
-    document.getElementById("finMomoNumber").value = result.data.momo_number || "";
+function populateBankDropdown(countryCode, selectedBank) {
+  const sel = document.getElementById("finBankName");
+  if (!sel) return;
+  const banks = BANKS_BY_COUNTRY[countryCode];
+  if (banks) {
+    sel.innerHTML = '<option value="">Select bank</option>' + banks.map(b => `<option value="${escapeHtml(b)}" ${b === selectedBank ? "selected" : ""}>${escapeHtml(b)}</option>`).join("");
+    sel.style.display = "";
+  } else {
+    sel.innerHTML = '<option value="">Type your bank name</option>';
+    sel.style.display = "";
   }
+}
+
+async function loadFinanceProfile() {
+  const countryCode = clientProfile?.country || "GH";
+  const { data: result } = await ccFetch("/finance/client/profile", { method: "GET" });
+  const saved = result?.success && result.data ? result.data : {};
+  populateBankDropdown(countryCode, saved.bank_name || "");
+  document.getElementById("finBankAccount").value = saved.bank_account_number || "";
+  document.getElementById("finBankAccountName").value = saved.bank_account_name || "";
+  document.getElementById("finMomoProvider").value = saved.momo_provider || "";
+  document.getElementById("finMomoNumber").value = saved.momo_number || "";
 }
 
 document.getElementById("clientFinanceForm")?.addEventListener("submit", async function(e) {
