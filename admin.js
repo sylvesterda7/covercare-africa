@@ -250,14 +250,17 @@ async function loadFacilities() {
 
 // ── Load clients ──
 async function loadClients() {
-  const { data, error } = await _supabase
-    .from("clients")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data: result } = await ccFetch("/admin/clients", { method: "GET" });
 
-  if (error || !data) return;
-  allClients = data;
-  renderClients(data);
+  if (!result?.success) {
+    console.error("loadClients error:", result?.message || "Unknown error");
+    const container = document.getElementById("clientsTable");
+    if (container) container.innerHTML = `<div class="empty-state"><p>Could not load clients: ${escapeHtml(result?.message || "Unknown error")}</p></div>`;
+    return;
+  }
+
+  allClients = result.clients || [];
+  renderClients(allClients);
 }
 
 // ── Render clients table ──
