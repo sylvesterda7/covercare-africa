@@ -53,6 +53,7 @@
         <div class="sidebar-actions">
           <button onclick="showTab('workers')" class="btn-sidebar" id="nav-workers"><i class="ti ti-users" style="margin-right:6px;"></i> Workers</button>
           <button onclick="showTab('facilities')" class="btn-sidebar" id="nav-facilities"><i class="ti ti-building-hospital" style="margin-right:6px;"></i> Facilities</button>
+          <button onclick="showTab('clients')" class="btn-sidebar" id="nav-clients"><i class="ti ti-user" style="margin-right:6px;"></i> Clients</button>
           <button onclick="showTab('shifts')" class="btn-sidebar" id="nav-shifts"><i class="ti ti-calendar" style="margin-right:6px;"></i> Shifts</button>
           <button onclick="showTab('analytics')" class="btn-sidebar btn-sidebar-active" id="nav-analytics"><i class="ti ti-chart-bar" style="margin-right:6px;"></i> Analytics</button>
           <button onclick="showTab('performance')" class="btn-sidebar" id="nav-performance"><i class="ti ti-trending-up" style="margin-right:6px;"></i> Performance</button>
@@ -97,6 +98,15 @@
       <div id="panel-facilities" style="display:none;">
         <div class="section-title">All Facilities</div>
         <div id="facilitiesTable"></div>
+      </div>
+
+      <!-- CLIENTS TABLE -->
+      <div id="panel-clients" style="display:none;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+          <div class="section-title" style="border:none; margin:0; padding:0;">All Clients</div>
+          <input id="clientSearch" class="glass-input" type="text" placeholder="Search by name or email..." style="max-width:250px; padding:8px 12px; font-size:13px;" oninput="filterClients()" />
+        </div>
+        <div id="clientsTable"></div>
       </div>
 
       <!-- SHIFTS TABLE -->

@@ -5,6 +5,7 @@ ccInitInactivityLogout(_supabase);
 // ── State ──
 let allWorkers = [];
 let allFacilities = [];
+let allClients = [];
 let allShifts = [];
 let currentShiftFilter = "all";
 let _adminTransactions = [];
@@ -43,6 +44,7 @@ async function init() {
   await Promise.all([
     loadWorkers(),
     loadFacilities(),
+    loadClients(),
     loadShifts(),
     loadAnalytics(),
     loadPerformance(),
@@ -244,6 +246,77 @@ async function loadFacilities() {
       </table>
     </div>
   `;
+}
+
+// ── Load clients ──
+async function loadClients() {
+  const { data, error } = await _supabase
+    .from("clients")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return;
+  allClients = data;
+  renderClients(data);
+}
+
+// ── Render clients table ──
+function renderClients(clients) {
+  const container = document.getElementById("clientsTable");
+
+  if (clients.length === 0) {
+    container.innerHTML = `<div class="empty-state"><p>No clients found.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>Joined</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${clients.map(c => `
+            <tr>
+              <td style="color:var(--fg-primary); font-weight:500; cursor:pointer;" onclick="viewClientById('${c.id}')">${escapeHtml(c.full_name || "—")}</td>
+              <td>${escapeHtml(c.email || "—")}</td>
+              <td>${escapeHtml(c.phone || "—")}</td>
+              <td>${escapeHtml(c.city || "—")}</td>
+              <td>${escapeHtml(c.country || "—")}</td>
+              <td style="color:var(--fg-muted);">
+                ${c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
+              </td>
+              <td>
+                <button
+                  onclick="resetAccount('${escapeHtml(c.email)}', 'client')"
+                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid rgba(226,75,74,0.3); background:transparent; color:#E24B4A; cursor:pointer; font-family:inherit;">
+                  Reset
+                </button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ── Filter clients ──
+function filterClients() {
+  const query = document.getElementById("clientSearch").value.toLowerCase();
+  const filtered = allClients.filter(c =>
+    (c.full_name || "").toLowerCase().includes(query) ||
+    (c.email || "").toLowerCase().includes(query)
+  );
+  renderClients(filtered);
 }
 
 // ── Load shifts ──
@@ -460,7 +533,7 @@ async function loadPerformance() {
 
 // ── Tab switching ──
 function showTab(tab) {
-  ["workers", "facilities", "shifts", "analytics", "performance", "trusted", "finance", "wallet", "settings"].forEach(t => {
+  ["workers", "facilities", "clients", "shifts", "analytics", "performance", "trusted", "finance", "wallet", "settings"].forEach(t => {
     const panel = document.getElementById("panel-" + t);
     if (panel) panel.style.display = t === tab ? "block" : "none";
     const navEl = document.getElementById("nav-" + t);
@@ -763,6 +836,11 @@ function viewWorkerById(id) {
 function viewFacilityById(id) {
   window.location.href = "admin-detail-facility.html?id=" + encodeURIComponent(id);
 }
+
+function viewClientById(id) {
+  window.location.href = "admin-detail-client.html?id=" + encodeURIComponent(id);
+}
+
 function paymentActions(shiftId, status) {
   const btn = (label, action, color) =>
     `<button onclick="handlePaymentAction('${escapeHtml(shiftId)}', '${action}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid ${color};background:transparent;color:${color};cursor:pointer;font-family:inherit;white-space:nowrap;">${label}</button>`;
@@ -1019,7 +1097,8 @@ function dismissAdminBanner() {
 
 // ── Reset account ──
 async function resetAccount(email, type) {
-  const label = type === "worker" ? "worker" : "facility";
+  const labels = { worker: "worker", facility: "facility", client: "client" };
+  const label = labels[type] || "account";
   if (!confirm(`Permanently reset this ${label} account? All their data will be deleted. This cannot be undone.`)) return;
   if (!prompt(`Type "${email}" to confirm reset:`) === email) {
     ccToast("Email did not match. Reset cancelled.", "error");
@@ -1032,7 +1111,8 @@ async function resetAccount(email, type) {
   if (result?.success) {
     ccToast(`Account reset for ${email}.`, "success");
     if (type === "worker") await loadWorkers();
-    else await loadFacilities();
+    else if (type === "facility") await loadFacilities();
+    else if (type === "client") await loadClients();
     await loadAnalytics();
   } else {
     ccToast(result?.message || "Failed to reset account.", "error");

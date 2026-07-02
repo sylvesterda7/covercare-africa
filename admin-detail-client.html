@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Details — CoverCare Africa</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#111827">
+</head>
+
+<body>
+  <div class="bg-wrap"></div>
+  <div class="content-layer">
+
+    <nav class="dashboard-nav">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="admin.html" class="nav-logo" style="font-family:var(--font-heading);">
+          <i class="ti ti-arrow-left" style="margin-right:6px;"></i> Back to Admin
+        </a>
+      </div>
+      <div class="nav-right">
+        <span class="nav-user" id="navUser">Loading...</span>
+        <button class="btn-logout" onclick="logout()">Sign out</button>
+      </div>
+    </nav>
+
+    <div class="dashboard-layout">
+      <main class="dashboard-main">
+        <div id="clientDetailContent"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
+    const _supabase = window._supabase;
+    ccInitInactivityLogout(_supabase);
+
+    async function init() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) { window.location.href = "login.html"; return; }
+
+      const { data: adminCheck } = await ccFetch("/admin/verify", { method: "POST" });
+      if (!adminCheck?.admin) { window.location.href = "admin.html"; return; }
+
+      document.getElementById("navUser").textContent = session.user.email;
+
+      const params = new URLSearchParams(window.location.search);
+      const clientId = params.get("id");
+      if (!clientId) { document.getElementById("clientDetailContent").innerHTML = '<div class="empty-state"><p>No client ID provided.</p></div>'; return; }
+
+      await loadClientDetail(clientId);
+    }
+
+    async function loadClientDetail(id) {
+      const c = document.getElementById("clientDetailContent");
+      c.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--fg-muted);">Loading client details...</div>';
+
+      const { data: result } = await ccFetch("/admin/client/" + id, { method: "GET" });
+      if (!result?.success || !result.client) {
+        c.innerHTML = '<div class="empty-state"><p>Client not found.</p></div>';
+        return;
+      }
+
+      const cl = result.client;
+      const stats = result.shiftStats || {};
+
+      const photo = cl.profile_photo_url
+        ? `<img src="${escapeHtml(cl.profile_photo_url)}" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">`
+        : `<div style="width:80px;height:80px;border-radius:50%;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:var(--fg-muted);border:2px solid var(--border);">${(cl.full_name || "?")[0]}</div>`;
+
+      const walletDisplay = cl.wallet_balance != null
+        ? `GHS ${Number(cl.wallet_balance).toLocaleString()}`
+        : "—";
+
+      const bankInfo = cl.bank_name
+        ? `${escapeHtml(cl.bank_name)} ${cl.bank_account_number ? "· " + escapeHtml(cl.bank_account_number) : ""}`
+        : "—";
+
+      const momoInfo = cl.momo_provider
+        ? `${escapeHtml(cl.momo_provider)} ${cl.momo_number ? "· " + escapeHtml(cl.momo_number) : ""}`
+        : "—";
+
+      const cardInfo = cl.card_brand && cl.card_last4
+        ? `${escapeHtml(cl.card_brand)} ···· ${escapeHtml(cl.card_last4)}`
+        : "—";
+
+      c.innerHTML = `
+        <div class="section-title">Client Details</div>
+        <a href="admin.html" style="font-size:13px; color:#111827; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:1rem;">
+          <i class="ti ti-arrow-left"></i> Back to admin panel
+        </a>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.25rem;">
+          <!-- Left: Profile -->
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.5rem;">
+            <div style="display:flex; align-items:center; gap:16px; margin-bottom:1.5rem;">
+              ${photo}
+              <div>
+                <h2 style="margin:0 0 4px; font-size:20px;">${escapeHtml(cl.full_name || "—")}</h2>
+                <p style="margin:0; color:var(--fg-muted); font-size:14px;">Client</p>
+                <div style="margin-top:4px; font-size:13px;">Wallet: <strong>${walletDisplay}</strong></div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+              ${[
+                ["Email", cl.email],
+                ["Phone", cl.phone],
+                ["City", cl.city],
+                ["Country", cl.country],
+                ["Gender", cl.gender],
+                ["Address", cl.address],
+                ["GPS code", cl.gps_code],
+                ["Bank", bankInfo],
+                ["Mobile Money", momoInfo],
+                ["Card", cardInfo],
+                ["Joined", cl.created_at ? new Date(cl.created_at).toLocaleDateString() : "—"]
+              ].filter(f => f[1] && f[1] !== "—").map(([label, val]) => `
+                <div style="padding:8px 0; border-bottom:1px solid #f3f4f6;">
+                  <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">${label}</div>
+                  <div style="font-size:14px; color:#111827;">${val}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- Right: Stats -->
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+              <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Shift Stats</p>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="stat-box"><div class="num">${stats.total || 0}</div><div class="label">Total shifts</div></div>
+                <div class="stat-box"><div class="num">${stats.completed || 0}</div><div class="label">Completed</div></div>
+                <div class="stat-box"><div class="num">${stats.in_progress || 0}</div><div class="label">In progress</div></div>
+                <div class="stat-box"><div class="num">${stats.open || 0}</div><div class="label">Unfilled</div></div>
+                <div class="stat-box"><div class="num">GHS ${(stats.total_spend || 0).toLocaleString()}</div><div class="label">Total spend</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function logout() {
+      await _supabase.auth.signOut();
+      window.location.href = "login.html";
+    }
+
+    init();
+  </script>
+</body>
+</html>
