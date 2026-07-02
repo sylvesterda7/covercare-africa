@@ -44,7 +44,7 @@
   background: transparent;
   color: var(--accent);
   border: none;
-  box-shadow: inset 0 0 0 1px rgba(20,20,20,0.16);
+  box-shadow: inset 0 0 0 1px rgba(64,64,64,0.16);
   padding: 0 16px;
   min-height: 44px;
   border-radius: 9999px;
@@ -77,8 +77,8 @@
 
 /* ── Next steps ── */
 .next-steps {
-  background: rgba(20,20,20,0.05);
-  border: 1px solid rgba(20,20,20,0.12);
+  background: rgba(64,64,64,0.05);
+  border: 1px solid rgba(64,64,64,0.12);
   border-radius: 14px;
   padding: 1.25rem;
   margin: 1.5rem 0;
@@ -109,8 +109,8 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(20,20,20,0.15);
-  border: 1px solid rgba(20,20,20,0.25);
+  background: rgba(64,64,64,0.15);
+  border: 1px solid rgba(64,64,64,0.25);
   color: var(--accent);
   font-size: 12px;
   font-weight: 500;

@@ -595,9 +595,9 @@
 .pill-filter {
   padding: 5px 14px;
   border-radius: 20px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #6b7280;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--fg-muted);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -689,13 +689,13 @@
 }
 
 .arrive-icon-pending {
-  background: rgba(20,20,20,0.08);
-  border: 1px solid rgba(20,20,20,0.2);
+  background: rgba(64,64,64,0.08);
+  border: 1px solid rgba(64,64,64,0.2);
 }
 
 .arrive-icon-success {
-  background: rgba(20,20,20,0.12);
-  border: 1px solid rgba(20,20,20,0.3);
+  background: rgba(64,64,64,0.12);
+  border: 1px solid rgba(64,64,64,0.3);
   color: var(--accent);
   font-weight: 600;
 }
@@ -755,7 +755,7 @@
 .arrive-spinner {
   width: 40px;
   height: 40px;
-  border: 2px solid rgba(20,20,20,0.15);
+  border: 2px solid rgba(64,64,64,0.15);
   border-top-color: var(--accent);
   border-radius: 50%;
   margin: 0 auto 1.25rem;
@@ -848,7 +848,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(20,20,20,0.5);
+  box-shadow: 0 0 10px rgba(64,64,64,0.5);
   animation: live-pulse 2s ease-in-out infinite;
   flex-shrink: 0;
 }
@@ -920,8 +920,8 @@
 }
 
 #qrReader button {
-  background: rgba(20,20,20,0.12) !important;
-  border: 1px solid rgba(20,20,20,0.25) !important;
+  background: rgba(64,64,64,0.12) !important;
+  border: 1px solid rgba(64,64,64,0.25) !important;
   color: var(--accent) !important;
   border-radius: 8px !important;
   font-family: inherit !important;
@@ -929,7 +929,7 @@
 }
 
 #qrReader button:hover {
-  background: rgba(20,20,20,0.18) !important;
+  background: rgba(64,64,64,0.18) !important;
 }
 
 #qrReader select {
@@ -1036,7 +1036,7 @@
 
 .notif-item.unread {
   border-left: 3px solid var(--accent);
-  background: rgba(20,20,20,0.03);
+  background: rgba(64,64,64,0.03);
 }
 
 .notif-item .notif-time {
@@ -1114,8 +1114,8 @@
 }
 
 .checkin-card-live {
-  border-color: rgba(20,20,20,0.2);
-  box-shadow: 0 0 24px rgba(20,20,20,0.05);
+  border-color: rgba(64,64,64,0.2);
+  box-shadow: 0 0 24px rgba(64,64,64,0.05);
 }
 
 .checkin-card-done {
@@ -1251,7 +1251,7 @@
 }
 .cc-combobox-item:hover,
 .cc-combobox-item.focused {
-  background: rgba(20,20,20,0.1);
+  background: rgba(64,64,64,0.1);
 }
 .cc-combobox-code {
   font-size: 13px;
