@@ -4,6 +4,7 @@ const _supabase = ccGetSupabaseClient() || (window.supabase && window.supabase.c
 
 // ── License verification ──
 let licenseVerified = false;
+let licenseVerificationToken = null;
 let googleProfile = null;
 
 // ── Populate country dropdown ──
@@ -223,6 +224,7 @@ async function verifyLicense() {
 
     if (data.success === true) {
       licenseVerified = true;
+      licenseVerificationToken = data.data?.verification_token || null;
       uploadGroup.style.display = "block";
       const label = document.querySelector("#uploadGroup label");
       if (label) label.innerHTML = 'Upload license certificate <span style="font-weight:400;color:#6b7280;">(required for account activation — PDF or image)</span>';
@@ -236,6 +238,7 @@ async function verifyLicense() {
       `;
     } else if (data.data && data.data.status === "name_mismatch") {
       licenseVerified = false;
+      licenseVerificationToken = null;
       uploadGroup.style.display = "block";
       resultBox.className = "verify-result warning";
       resultBox.innerHTML = `
@@ -246,6 +249,7 @@ async function verifyLicense() {
       `;
     } else if (data.data && data.data.status === "not_found") {
       licenseVerified = false;
+      licenseVerificationToken = null;
       uploadGroup.style.display = "block";
       resultBox.className = "verify-result warning";
       resultBox.innerHTML = `
@@ -256,6 +260,7 @@ async function verifyLicense() {
       `;
     } else {
       licenseVerified = false;
+      licenseVerificationToken = null;
       uploadGroup.style.display = "block";
       resultBox.className = "verify-result info";
       resultBox.innerHTML = `
@@ -412,6 +417,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         role: worker.role,
         license_number: worker.license,
         license_file_url: licenseFileUrl,
+        license_verification_token: licenseVerificationToken,
         country: worker.country,
         city: worker.city,
         experience: worker.experience
