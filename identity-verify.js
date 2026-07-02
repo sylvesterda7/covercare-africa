@@ -68,8 +68,24 @@ function goToStep3() {
 }
 
 // ── ID preview ──
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB
+
 function previewID(input) {
   if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    ccToast("Please upload a JPG, PNG, or WEBP image.", "error");
+    input.value = "";
+    return;
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    ccToast("Image is too large. Maximum size is 8MB.", "error");
+    input.value = "";
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = function(e) {
     const preview = document.getElementById("idPreview");
@@ -78,7 +94,7 @@ function previewID(input) {
     idImageElement = new Image();
     idImageElement.src = e.target.result;
   };
-  reader.readAsDataURL(input.files[0]);
+  reader.readAsDataURL(file);
 }
 
 // ── Camera ──
@@ -230,9 +246,9 @@ async function markVerified() {
   document.getElementById("verifySuccess").innerHTML = `
     <div style="text-align:center; padding:1rem;">
       <div style="font-size:48px; margin-bottom:12px;">✓</div>
-      <h3 style="margin:0 0 8px;">Identity verified!</h3>
+      <h3 style="margin:0 0 8px;">Documents submitted!</h3>
       <p style="color:var(--fg-muted); font-size:14px; margin:0;">
-        Your documents have been submitted for review. Your account will be activated
+        Your documents have been submitted for review. Your identity will be verified
         by our team once all checks are complete — usually within 24 hours.
       </p>
       <a href="dashboard-worker.html" style="display:inline-block; margin-top:1rem; padding:10px 24px; background:#111827; color:#fff; border-radius:8px; text-decoration:none; font-size:14px;">Go to dashboard</a>

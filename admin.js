@@ -108,10 +108,10 @@ function renderWorkers(workers) {
           ${workers.map(w => {
             return `
             <tr>
-              <td style="color:var(--fg-primary); font-weight:500; cursor:pointer;" onclick="viewWorkerById('${w.id}')">${w.full_name || "—"}</td>
-              <td>${w.email || "—"}</td>
-              <td>${w.role || "—"}</td>
-              <td>${w.city || "—"}</td>
+              <td style="color:var(--fg-primary); font-weight:500; cursor:pointer;" onclick="viewWorkerById('${escapeHtml(w.id)}')">${escapeHtml(w.full_name || "—")}</td>
+              <td>${escapeHtml(w.email || "—")}</td>
+              <td>${escapeHtml(w.role || "—")}</td>
+              <td>${escapeHtml(w.city || "—")}</td>
               <td>
                 ${w.license_verified
                   ? '<span class="badge badge-accent">✓ Verified</span>'
@@ -129,9 +129,14 @@ function renderWorkers(workers) {
               </td>
               <td>
                 <button
-                  onclick="toggleLicenseVerified('${w.id}', ${w.license_verified})"
+                  onclick="toggleLicenseVerified('${w.id}', ${!!w.license_verified})"
                   style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--fg-muted); cursor:pointer; font-family:inherit;">
-                  ${w.license_verified ? "Unverify" : "Verify"}
+                  ${w.license_verified ? "Unverify license" : "Verify license"}
+                </button>
+                <button
+                  onclick="toggleIdentityVerified('${w.id}', ${!!w.identity_verified})"
+                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--fg-muted); cursor:pointer; font-family:inherit; margin-left:4px;">
+                  ${w.identity_verified ? "Unverify identity" : "Verify identity"}
                 </button>
                 <button
                   onclick="resetAccount('${escapeHtml(w.email)}', 'worker')"
@@ -161,6 +166,24 @@ function filterWorkers() {
 // ── Toggle license verified ──
 async function toggleLicenseVerified(workerId, currentStatus) {
   const { data: result } = await ccFetch("/admin/toggle-license", {
+    method: "POST",
+    body: JSON.stringify({
+      worker_id: workerId,
+      current_status: currentStatus
+    })
+  });
+
+  if (!result?.success) {
+    ccToast("Failed to update worker. Please try again.", "error");
+    return;
+  }
+
+  await loadWorkers();
+}
+
+// ── Toggle identity verified ──
+async function toggleIdentityVerified(workerId, currentStatus) {
+  const { data: result } = await ccFetch("/admin/toggle-identity", {
     method: "POST",
     body: JSON.stringify({
       worker_id: workerId,
@@ -212,12 +235,12 @@ async function loadFacilities() {
         <tbody>
           ${data.map(f => `
             <tr>
-              <td style="color:var(--fg-primary); font-weight:500; cursor:pointer;" onclick="viewFacilityById('${f.id}')">${f.facility_name || "—"}</td>
-              <td>${f.facility_type || "—"}</td>
-              <td>${f.city || "—"}</td>
-              <td>${f.contact_name || "—"}</td>
-              <td>${f.email || "—"}</td>
-              <td>${f.staff_needs || "—"}</td>
+              <td style="color:var(--fg-primary); font-weight:500; cursor:pointer;" onclick="viewFacilityById('${escapeHtml(f.id)}')">${escapeHtml(f.facility_name || "—")}</td>
+              <td>${escapeHtml(f.facility_type || "—")}</td>
+              <td>${escapeHtml(f.city || "—")}</td>
+              <td>${escapeHtml(f.contact_name || "—")}</td>
+              <td>${escapeHtml(f.email || "—")}</td>
+              <td>${escapeHtml(f.staff_needs || "—")}</td>
               <td>
                 ${f.billing_model === "postpaid"
                   ? '<span class="badge badge-accent">Postpaid</span>'
@@ -1103,7 +1126,7 @@ async function resetAccount(email, type) {
   const labels = { worker: "worker", facility: "facility", client: "client" };
   const label = labels[type] || "account";
   if (!confirm(`Permanently reset this ${label} account? All their data will be deleted. This cannot be undone.`)) return;
-  if (!prompt(`Type "${email}" to confirm reset:`) === email) {
+  if (prompt(`Type "${email}" to confirm reset:`) !== email) {
     ccToast("Email did not match. Reset cancelled.", "error");
     return;
   }

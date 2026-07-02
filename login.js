@@ -8,11 +8,10 @@ async function resolveUserType(email) {
   ];
   for (const { table, type } of tables) {
     try {
-      const resp = await fetch(CC_CONFIG.API_BASE + "/" + table + "/by-email", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+      const { data } = await ccFetch("/" + table + "/by-email", {
+        method: "POST",
         body: JSON.stringify({ email })
       });
-      const data = await resp.json();
       if (data?.success) return type;
     } catch (_) {}
   }
