@@ -28,9 +28,6 @@ async function init() {
   facilityEmail = user.email;
   document.getElementById("navUser").textContent = meta.full_name || user.email;
 
-  const firstName = meta.full_name ? meta.full_name.split(" ")[0] : "there";
-  document.getElementById("welcomeMsg").textContent = `Welcome back, ${firstName}`;
-
   await loadShifts(facilityEmail);
   await loadApplications(facilityEmail);
   await loadCompletedShifts();
@@ -432,6 +429,12 @@ async function loadFacilityProfile() {
   if (!error && data) {
     facilityProfile = data;
     renderDocumentStatus(data);
+    // Show facility name instead of contact name
+    if (data.facility_name) {
+      document.getElementById("navUser").textContent = data.facility_name;
+      const firstName = data.facility_name.split(" ")[0];
+      document.getElementById("welcomeMsg").textContent = `Welcome back, ${firstName}`;
+    }
   }
 }
 
@@ -1039,7 +1042,7 @@ function toggleSidebar() {
 
 // ── Section navigation ──
 function showSection(name) {
-  ["dashboard", "finance", "settings"].forEach(s => {
+  ["dashboard", "branches", "finance", "settings"].forEach(s => {
     const sec = document.getElementById("section-" + s);
     if (sec) sec.style.display = s === name ? "block" : "none";
     const tab = document.getElementById("tab-" + s);
@@ -1050,6 +1053,7 @@ function showSection(name) {
     const nav = document.getElementById("nav-" + s);
     if (nav) nav.classList.toggle("btn-sidebar-active", s === name);
   });
+  if (name === "branches") loadBranches();
   if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFacilityInvoices(); loadWalletBalance(); loadWalletTransactions(); }
   if (name === "settings") loadSettingsPage();
 }
@@ -1266,5 +1270,115 @@ async function saveSettings() {
     if (btn) { btn.disabled = false; btn.textContent = "Save changes"; }
   }
 }
+
+// ── Branch management ──
+async function loadBranches() {
+  const container = document.getElementById("branchesContainer");
+  if (!container) return;
+  container.innerHTML = '<div class="empty-state"><p>Loading branches...</p></div>';
+  const { data: result } = await ccFetch("/facility/branches", { method: "GET" });
+  if (!result?.success) { container.innerHTML = '<div class="empty-state"><p>Could not load branches.</p></div>'; return; }
+  const branches = result.data || [];
+  if (branches.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>No branches yet.</p>
+        <p style="font-size:13px;">Add your facility locations so workers can find you.</p>
+      </div>`;
+    return;
+  }
+  container.innerHTML = branches.map(b => `
+    <div class="profile-card" style="margin-bottom:10px; flex-wrap:wrap;">
+      <div class="profile-info" style="flex:1; min-width:200px;">
+        <h3 style="margin:0 0 2px;">${escapeHtml(b.name)}</h3>
+        <p style="font-size:13px;color:var(--fg-muted);">${escapeHtml(b.city)}${b.address ? " · " + escapeHtml(b.address) : ""}</p>
+        ${b.phone ? `<p style="font-size:12px;color:var(--fg-muted);">${escapeHtml(b.phone)}</p>` : ""}
+        ${b.latitude && b.longitude ? `<p style="font-size:11px;color:#6b7280;">📍 ${b.latitude}, ${b.longitude}</p>` : ""}
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button onclick="editBranch('${b.id}')" style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;font-family:inherit;">Edit</button>
+        <button onclick="deleteBranch('${b.id}','${escapeHtml(b.name)}')" style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid rgba(226,75,74,0.3);background:transparent;color:#E24B4A;cursor:pointer;font-family:inherit;">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function openAddBranchModal() {
+  document.getElementById("branchModalTitle").textContent = "Add branch";
+  document.getElementById("branchId").value = "";
+  document.getElementById("branchForm").reset();
+  populateBranchCityDropdown("");
+  document.getElementById("branchModal").style.display = "flex";
+}
+
+function closeBranchModal() {
+  document.getElementById("branchModal").style.display = "none";
+}
+
+function populateBranchCityDropdown(selected) {
+  const sel = document.getElementById("branchCity");
+  const country = AFRICAN_COUNTRIES.find(c => c.code === (facilityProfile?.country || "GH"));
+  sel.innerHTML = '<option value="">Select city</option>';
+  if (country) {
+    country.cities.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.value; opt.textContent = c.label;
+      if (c.value === selected) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+function editBranch(id) {
+  const branches = Array.from(document.querySelectorAll("#branchesContainer .profile-card"));
+  // Find branch data from the loaded list — re-fetch from server for simplicity
+  ccFetch("/facility/branches", { method: "GET" }).then(result => {
+    if (!result?.success) return;
+    const b = (result.data || []).find(x => String(x.id) === String(id));
+    if (!b) { ccToast("Branch not found.", "error"); return; }
+    document.getElementById("branchModalTitle").textContent = "Edit branch";
+    document.getElementById("branchId").value = b.id;
+    document.getElementById("branchName").value = b.name || "";
+    populateBranchCityDropdown(b.city);
+    document.getElementById("branchAddress").value = b.address || "";
+    document.getElementById("branchLat").value = b.latitude || "";
+    document.getElementById("branchLng").value = b.longitude || "";
+    document.getElementById("branchPhone").value = b.phone || "";
+    document.getElementById("branchModal").style.display = "flex";
+  });
+}
+
+async function deleteBranch(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  const { data: result } = await ccFetch("/facility/branches/" + id, { method: "DELETE" });
+  if (result?.success) { ccToast("Branch deleted.", "success"); loadBranches(); }
+  else { ccToast(result?.message || "Failed to delete branch.", "error"); }
+}
+
+document.getElementById("branchForm")?.addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const btn = this.querySelector("button[type='submit']");
+  btn.disabled = true; btn.textContent = "Saving...";
+  const id = document.getElementById("branchId").value;
+  const body = {
+    name: document.getElementById("branchName").value.trim(),
+    city: document.getElementById("branchCity").value,
+    address: document.getElementById("branchAddress").value.trim(),
+    latitude: parseFloat(document.getElementById("branchLat").value) || null,
+    longitude: parseFloat(document.getElementById("branchLng").value) || null,
+    phone: document.getElementById("branchPhone").value.trim()
+  };
+  const method = id ? "PUT" : "POST";
+  const url = id ? "/facility/branches/" + id : "/facility/branches";
+  const { data: result } = await ccFetch(url, { method, body: JSON.stringify(body) });
+  if (result?.success) {
+    ccToast(id ? "Branch updated!" : "Branch added!", "success");
+    closeBranchModal();
+    loadBranches();
+  } else {
+    ccToast(result?.message || "Failed to save branch.", "error");
+  }
+  btn.disabled = false; btn.textContent = "Save branch";
+});
 
 init();

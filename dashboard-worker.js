@@ -104,8 +104,10 @@ function renderShifts(shifts) {
     return;
   }
   container.innerHTML = shifts.map(shift => {
-    const hasPoster = shift._poster_photo || shift._poster_name;
     const posterInitials = shift._poster_name ? shift._poster_name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() : (shift.role_needed ? shift.role_needed.substring(0, 2).toUpperCase() : "SH");
+    const branchInfo = shift._branch_name ? `<p style="font-size:12px;color:#6b7280;">📍 ${escapeHtml(shift._branch_name)}${shift._branch_address ? " · " + escapeHtml(shift._branch_address) : ""}</p>` : "";
+    const directionsBtn = (shift._branch_lat && shift._branch_lng) ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${shift._branch_lat},${shift._branch_lng}" target="_blank" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:#111827;cursor:pointer;text-decoration:none;display:inline-block;">🗺 Directions</a>` : "";
+    const assignedBadge = shift._is_assigned ? `<span class="badge" style="background:#111827;color:#fff;font-size:11px;">Assigned to you</span>` : "";
     return `
     <div class="profile-card" style="margin-bottom:12px;">
       <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px; overflow:hidden;">
@@ -116,10 +118,13 @@ function renderShifts(shifts) {
         <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift._poster_city || shift.city) || "—"}</p>
         <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
         <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
-        <div style="margin-top:8px;">
+        ${branchInfo}
+        <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
           <span class="badge badge-accent">
             ${shift.urgency === "today" ? "🔴 Urgent" : "Open"}
           </span>
+          ${assignedBadge}
+          ${directionsBtn}
         </div>
       </div>
       <div>
@@ -127,7 +132,7 @@ function renderShifts(shifts) {
           onclick="applyToShift('${escapeHtml(shift.id)}', this)"
           class="btn-primary-sm"
           style="font-size:13px; padding:8px 16px;">
-          Apply
+          ${shift._is_assigned && shift.status === "open" ? "Accept" : "Apply"}
         </button>
       </div>
     </div>`;
@@ -176,7 +181,9 @@ function normalizeRole(role) {
 
 async function loadShifts() {
   const workerRole = currentWorker ? normalizeRole(currentWorker.role) : null;
+  const workerId = currentWorker?.id;
 
+  // Fetch open shifts matching role
   let query = _supabase
     .from("shifts")
     .select("*")
@@ -186,11 +193,28 @@ async function loadShifts() {
     query = query.eq("role_needed", workerRole);
   }
 
-  const { data, error } = await query
+  const { data: openShifts, error } = await query
     .order("created_at", { ascending: false })
     .limit(20);
 
-  if (error || !data) {
+  // Also fetch shifts preassigned to this worker
+  let assignedShifts = [];
+  if (workerId) {
+    const { data: as } = await _supabase
+      .from("shifts")
+      .select("*")
+      .eq("assigned_to_worker_id", workerId)
+      .in("status", ["open", "accepted", "in_progress"])
+      .order("created_at", { ascending: false });
+    if (as) assignedShifts = as;
+  }
+
+  let allData = [...(openShifts || []), ...assignedShifts];
+  // Deduplicate
+  const seen = new Set();
+  allData = allData.filter(s => { if (seen.has(s.id)) return false; seen.add(s.id); return true; });
+
+  if (allData.length === 0) {
     document.getElementById("shiftsContainer").innerHTML = `
       <div class="empty-state"><p>No shifts available in your area right now.</p></div>`;
     return;
@@ -206,8 +230,11 @@ async function loadShifts() {
     if (apps) apps.forEach(a => appliedIds.add(a.shift_id));
   }
 
+  // Also exclude assigned shifts that are accepted (they'll show in active section)
+  // but keep assigned open shifts visible
+
   // Fetch poster details (clients) for shifts
-  const clientEmails = [...new Set((data || [])
+  const clientEmails = [...new Set(allData
     .filter(s => !appliedIds.has(s.id))
     .map(s => s.contact_email?.toLowerCase())
     .filter(Boolean))];
@@ -222,13 +249,34 @@ async function loadShifts() {
     }
   }
 
-  _allShifts = (data || []).filter(s => !appliedIds.has(s.id)).map(s => {
+  // Fetch branch locations for shifts that have branch_id
+  const branchIds = [...new Set(allData.map(s => s.branch_id).filter(Boolean))];
+  const branchMap = {};
+  if (branchIds.length > 0) {
+    const { data: branches } = await _supabase
+      .from("facility_branches")
+      .select("*")
+      .in("id", branchIds);
+    if (branches) {
+      branches.forEach(b => { branchMap[b.id] = b; });
+    }
+  }
+
+  _allShifts = allData.filter(s => !appliedIds.has(s.id) || assignedShifts.some(a => a.id === s.id)).map(s => {
     const poster = posterMap[s.contact_email?.toLowerCase()];
     if (poster) {
       s._poster_name = poster.full_name;
       s._poster_photo = poster.profile_photo_url;
       s._poster_city = poster.city;
     }
+    const branch = branchMap[s.branch_id];
+    if (branch) {
+      s._branch_name = branch.name;
+      s._branch_address = branch.address;
+      s._branch_lat = branch.latitude;
+      s._branch_lng = branch.longitude;
+    }
+    s._is_assigned = assignedShifts.some(a => a.id === s.id);
     return s;
   });
   applyFilters();
@@ -300,9 +348,18 @@ async function loadMyShifts() {
     return;
   }
 
+  // Fetch branch info for active shifts
+  const branchIds = [...new Set(data.map(s => s.branch_id).filter(Boolean))];
+  const branchMap = {};
+  if (branchIds.length > 0) {
+    const { data: branches } = await _supabase.from("facility_branches").select("*").in("id", branchIds);
+    if (branches) branches.forEach(b => { branchMap[b.id] = b; });
+  }
+
   container.innerHTML = data.map(shift => {
     const safeId = escapeHtml(shift.id);
     const safeWorkerId = escapeHtml(currentWorker.id);
+    const branch = shift.branch_id ? branchMap[shift.branch_id] : null;
     const endTime = calcShiftEndTime(shift);
     const expired = endTime && Date.now() > endTime.getTime();
 
@@ -354,19 +411,21 @@ async function loadMyShifts() {
             ${shift.role_needed ? escapeHtml(shift.role_needed.substring(0, 2).toUpperCase()) : "SH"}
           </div>
           <div class="profile-info" style="flex:1;">
-            <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
-            <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
-            <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"}</p>
-            <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
-            ${lateInfo}
-            <div style="margin-top:6px;">
-              ${shift.status === "in_progress"
-                ? expired
-                  ? `<span class="badge" style="background:rgba(226,75,74,0.1); color:#E24B4A; border:1px solid rgba(226,75,74,0.2);">Shift ended</span>`
-                  : `<span class="badge badge-accent">In progress · <strong id="${countdownId}">${endTime && endTime > new Date() ? "—" : "Ended"}</strong></span>`
-                : `<span class="badge badge-yellow">Accepted — show QR on arrival</span>`
-              }
-            </div>
+              <h3>${escapeHtml(shift.facility_name) || "—"}</h3>
+              <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift.city) || "—"}</p>
+              <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"}</p>
+              <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
+              ${branch ? `<p style="font-size:12px;color:#6b7280;">📍 ${escapeHtml(branch.name)}${branch.address ? " · " + escapeHtml(branch.address) : ""}</p>` : ""}
+              ${lateInfo}
+              <div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                ${shift.status === "in_progress"
+                  ? expired
+                    ? `<span class="badge" style="background:rgba(226,75,74,0.1); color:#E24B4A; border:1px solid rgba(226,75,74,0.2);">Shift ended</span>`
+                    : `<span class="badge badge-accent">In progress · <strong id="${countdownId}">${endTime && endTime > new Date() ? "—" : "Ended"}</strong></span>`
+                  : `<span class="badge badge-yellow">Accepted — show QR on arrival</span>`
+                }
+                ${branch?.latitude && branch?.longitude ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${branch.latitude},${branch.longitude}" target="_blank" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:#111827;cursor:pointer;text-decoration:none;">🗺 Directions</a>` : ""}
+              </div>
           </div>
         </div>
         ${qrImg}
@@ -404,6 +463,14 @@ async function applyToShift(shiftId, btn) {
     });
 
     if (result.success) {
+      if (result.auto_accepted) {
+        ccToast("Shift accepted! Show the QR code on arrival.", "success");
+        if (btn) { btn.disabled = true; btn.textContent = "Accepted ✓"; }
+        const card = btn?.closest(".profile-card");
+        if (card) card.remove();
+        loadMyShifts();
+        return;
+      }
       if (btn) { btn.disabled = true; btn.textContent = "Applied ✓"; }
       const card = btn?.closest(".profile-card");
       if (card) card.remove();

@@ -97,6 +97,22 @@ document.addEventListener("DOMContentLoaded", async function() {
 
   fetchSuggestedRates();
 
+  // ── Load facility branches ──
+  (async () => {
+    try {
+      const { data: branchesData } = await ccFetch("/facility/branches", { method: "GET" });
+      if (branchesData?.success && branchesData.data?.length > 0) {
+        const group = document.getElementById("branchGroup");
+        const sel = document.getElementById("branch");
+        if (group) group.style.display = "block";
+        if (sel) {
+          sel.innerHTML = '<option value="">Main location</option>' +
+            branchesData.data.map(b => `<option value="${b.id}">${escapeHtml(b.name)} (${escapeHtml(b.city)})</option>`).join("");
+        }
+      }
+    } catch (_) {}
+  })();
+
   // ── Check if facility is trusted (postpaid billing) ──
   (async () => {
     try {
@@ -236,6 +252,8 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     return;
   }
 
+  var branchId = document.getElementById("branch")?.value || null;
+  var assignedWorkerId = document.getElementById("assignedWorkerId")?.value || null;
   var shift = {
     facility_name: document.getElementById("facilityName").value.trim(),
     facility_type: document.getElementById("facilityType").value,
@@ -254,7 +272,9 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     total_pay: "GHS " + (parseFloat(payRateVal) * parseFloat(durationVal) * parseInt(daysVal, 10) * parseInt(workersVal, 10)).toLocaleString(),
     experience_required: document.getElementById("experience").value,
     urgency: document.getElementById("urgency").value,
-    notes: document.getElementById("notes").value.trim()
+    notes: document.getElementById("notes").value.trim(),
+    branch_id: branchId ? parseInt(branchId) : null,
+    assigned_to_worker_id: assignedWorkerId ? parseInt(assignedWorkerId) : null
   };
 
   var totalPay = parseFloat(payRateVal) * parseFloat(durationVal) * parseInt(daysVal, 10) * parseInt(workersVal, 10);
@@ -342,3 +362,70 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     ccToast("Something went wrong. Please try again.", "error");
   }
 });
+
+// ── Worker search for direct assignment ──
+function toggleWorkerSearch() {
+  const checked = document.getElementById("assignSpecific").checked;
+  document.getElementById("workerSearchSection").style.display = checked ? "block" : "none";
+  if (!checked) {
+    document.getElementById("assignedWorkerId").value = "";
+    document.getElementById("assignedWorkerInfo").style.display = "none";
+  }
+}
+
+let _workerSearchTimer = null;
+function searchWorkers() {
+  clearTimeout(_workerSearchTimer);
+  _workerSearchTimer = setTimeout(async () => {
+    const q = document.getElementById("workerSearchInput").value.trim();
+    const role = document.getElementById("workerSearchRole").value;
+    const container = document.getElementById("workerSearchResults");
+    if (!q && !role) { container.innerHTML = '<div class="empty-state"><p>Type a name or select a role to search.</p></div>'; return; }
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (role) params.set("role", role);
+    const { data: result } = await ccFetch("/workers/search?" + params.toString(), { method: "GET" });
+    if (!result?.success || !result.data?.length) {
+      container.innerHTML = '<div class="empty-state"><p>No workers found.</p></div>'; return;
+    }
+    container.innerHTML = result.data.map(w => `
+      <div class="profile-card" style="margin-bottom:8px; cursor:pointer;" onclick="selectWorker('${w.id}','${escapeHtml(w.full_name)}')">
+        <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px; overflow:hidden;">
+          ${w.profile_photo_url ? `<img src="${escapeHtml(w.profile_photo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;" />` : (w.full_name ? escapeHtml(w.full_name.substring(0,2).toUpperCase()) : "?")}
+        </div>
+        <div class="profile-info" style="flex:1;">
+          <h3 style="margin:0 0 2px;">${escapeHtml(w.full_name)}</h3>
+          <p style="font-size:13px;color:var(--fg-muted);">${escapeHtml(w.role) || "—"} · ${escapeHtml(w.city) || "—"}${w.experience ? " · " + escapeHtml(w.experience) + " yrs exp" : ""}</p>
+        </div>
+        <div style="font-size:12px;color:#059669;">Select</div>
+      </div>
+    `).join("");
+  }, 300);
+}
+
+function selectWorker(id, name) {
+  document.getElementById("assignedWorkerId").value = id;
+  const info = document.getElementById("assignedWorkerInfo");
+  info.innerHTML = "✓ Assigned: <strong>" + escapeHtml(name) + "</strong> <button type='button' onclick='clearAssignedWorker()' style='font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #e5e7eb;background:transparent;cursor:pointer;margin-left:8px;'>Remove</button>";
+  info.style.display = "block";
+  closeWorkerSearch();
+}
+
+function clearAssignedWorker() {
+  document.getElementById("assignedWorkerId").value = "";
+  document.getElementById("assignedWorkerInfo").style.display = "none";
+  document.getElementById("assignSpecific").checked = false;
+  document.getElementById("workerSearchSection").style.display = "none";
+}
+
+function openWorkerSearch() {
+  document.getElementById("workerSearchModal").style.display = "flex";
+  document.getElementById("workerSearchInput").value = "";
+  document.getElementById("workerSearchRole").value = "";
+  document.getElementById("workerSearchResults").innerHTML = '<div class="empty-state"><p>Search for workers to assign.</p></div>';
+  setTimeout(() => document.getElementById("workerSearchInput").focus(), 200);
+}
+
+function closeWorkerSearch() {
+  document.getElementById("workerSearchModal").style.display = "none";
+}
