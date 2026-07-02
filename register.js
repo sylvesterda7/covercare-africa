@@ -99,11 +99,11 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     if (CC_CONFIG.ADMIN_EMAILS.includes(email)) {
       window.location.href = "admin.html";
     } else if (userType === "worker") {
-      window.location.href = "worker-signup.html";
+      window.location.href = "dashboard-worker.html";
     } else if (userType === "facility" || userType === "homecare") {
-      window.location.href = "facility-signup.html";
+      window.location.href = "dashboard-facility.html";
     } else if (userType === "public" || userType === "client") {
-      window.location.href = "client-signup.html";
+      window.location.href = "index.html";
     } else {
       window.location.href = "index.html";
     }
