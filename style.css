@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-deep: #F9FAFB;
+  --bg-deep: #ffffff;
   --bg-card: #FFFFFF;
   --bg-elevated: #F3F4F6;
   --border: #E5E7EB;
@@ -18,7 +18,7 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --shadow-card: none;
-  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04);
+  --shadow-lg: none;
   --shadow-sm: none;
   --font-heading: 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
