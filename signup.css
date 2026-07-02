@@ -110,7 +110,7 @@ input[type="file"]:hover {
   background: var(--accent);
   color: #fff;
   border: none;
-  padding: 0 24px;
+  padding: 0 16px;
   min-height: 44px;
   border-radius: 9999px;
   font-size: 16px;
@@ -276,9 +276,10 @@ input[type="file"]:hover {
 .btn-home {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   background: var(--accent);
   color: #fff;
-  padding: 0 24px;
+  padding: 0 16px;
   min-height: 44px;
   border-radius: 9999px;
   font-size: 16px;

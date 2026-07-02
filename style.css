@@ -41,16 +41,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Subtle background pattern ── */
-.bg-wrap {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-
 /* ── Content layer ── */
 .content-layer {
   position: relative;
@@ -116,7 +106,6 @@ body {
 
 .nav-btn:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
 }
 
 /* ── Cards ── */
@@ -132,11 +121,11 @@ body {
 .btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: var(--accent);
   color: #fff;
-  padding: 0 24px;
-  min-width: 158px;
+  padding: 0 16px;
   min-height: 44px;
   border-radius: 9999px;
   font-size: 16px;
@@ -161,11 +150,11 @@ body {
 .btn-ghost {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: transparent;
   color: var(--accent);
-  padding: 0 24px;
-  min-width: 158px;
+  padding: 0 16px;
   min-height: 44px;
   border-radius: 9999px;
   font-size: 16px;
@@ -181,7 +170,6 @@ body {
 
 .btn-ghost:hover {
   box-shadow: inset 0 0 0 1px var(--accent);
-  background: var(--accent-dim);
 }
 
 .btn-ghost:disabled {
@@ -217,10 +205,11 @@ body {
 .btn-primary-sm {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: var(--accent);
   color: #fff;
-  padding: 0 16px;
+  padding: 0 12px;
   min-height: 36px;
   border-radius: 9999px;
   font-size: 13px;
@@ -238,7 +227,7 @@ body {
 }
 
 .btn-sm {
-  padding: 0 18px;
+  padding: 0 14px;
   min-height: 36px;
   font-size: 13px;
   border-radius: 9999px;
@@ -458,7 +447,7 @@ footer {
 .hero-title {
   font-family: var(--font-heading);
   font-size: 54px;
-  font-weight: 900;
+  font-weight: 650;
   line-height: 1.05;
   color: var(--fg-primary);
   margin-bottom: 1.25rem;
@@ -1055,16 +1044,6 @@ footer {
   color: var(--fg-muted);
   font-weight: 500;
   letter-spacing: 0.3px;
-}
-
-/* ── Smooth page fade-in ── */
-body {
-  animation: page-fade 0.3s ease;
-}
-
-@keyframes page-fade {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Glass input file (for document uploads) ── */
