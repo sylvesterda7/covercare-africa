@@ -367,6 +367,21 @@ document.getElementById("workerForm").addEventListener("submit", async function(
   let licenseFileUrl = null;
   const licFileInput = document.getElementById("licenseFile");
   if (licFileInput?.files?.[0]) {
+    const licFile = licFileInput.files[0];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    const maxBytes = 8 * 1024 * 1024; // 8MB
+    if (!allowedTypes.includes(licFile.type)) {
+      ccToast("License document must be a JPG, PNG, WEBP, or PDF file.", "error");
+      btn.disabled = false;
+      btn.textContent = "Create my profile";
+      return;
+    }
+    if (licFile.size > maxBytes) {
+      ccToast("License document is too large. Maximum size is 8MB.", "error");
+      btn.disabled = false;
+      btn.textContent = "Create my profile";
+      return;
+    }
     try {
       const { data: uploadResult } = await ccFetch("/api/upload", {
         method: "POST",
@@ -375,7 +390,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
             reader.onerror = reject;
-            reader.readAsDataURL(licFileInput.files[0]);
+            reader.readAsDataURL(licFile);
           }),
           folder: "license-docs"
         })
@@ -396,7 +411,6 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         phone: worker.phone,
         role: worker.role,
         license_number: worker.license,
-        license_verified: licenseVerified,
         license_file_url: licenseFileUrl,
         country: worker.country,
         city: worker.city,

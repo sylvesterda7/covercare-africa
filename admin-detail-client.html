@@ -118,14 +118,14 @@
                 ["Gender", cl.gender],
                 ["Address", cl.address],
                 ["GPS code", cl.gps_code],
-                ["Bank", bankInfo],
-                ["Mobile Money", momoInfo],
-                ["Card", cardInfo],
+                ["Bank", bankInfo, true],
+                ["Mobile Money", momoInfo, true],
+                ["Card", cardInfo, true],
                 ["Joined", cl.created_at ? new Date(cl.created_at).toLocaleDateString() : "—"]
-              ].filter(f => f[1] && f[1] !== "—").map(([label, val]) => `
+              ].filter(f => f[1] && f[1] !== "—").map(([label, val, isHtml]) => `
                 <div style="padding:8px 0; border-bottom:1px solid #f3f4f6;">
                   <div style="font-size:11px; font-weight:500; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">${label}</div>
-                  <div style="font-size:14px; color:#111827;">${val}</div>
+                  <div style="font-size:14px; color:#111827;">${isHtml ? val : escapeHtml(String(val))}</div>
                 </div>
               `).join("")}
             </div>

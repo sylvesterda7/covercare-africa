@@ -194,7 +194,7 @@ async function loadWalletTransactions() {
       container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p>No wallet transactions yet.</p></div>';
       return;
     }
-    const typeLabels = { deposit: "Deposit", deduction: "Deduction", refund: "Refund", withdrawal: "Withdrawal", admin_credit: "Admin credit", admin_debit: "Admin debit" };
+    const typeLabels = { deposit: "Deposit", deduction: "Deduction", refund: "Refund", withdrawal: "Withdrawal", withdrawal_hold: "Withdrawal requested", admin_credit: "Admin credit", admin_debit: "Admin debit" };
     container.innerHTML = `
       <div style="overflow-x:auto;">
         <table class="admin-table">
