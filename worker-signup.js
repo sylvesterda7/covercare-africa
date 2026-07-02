@@ -309,8 +309,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
   }
 
   if (canAutoVerify(worker.country, worker.role) && !licenseVerified) {
-    ccToast("Please verify your license before submitting.", "error");
-    return;
+    ccToast("Please verify your license on the dashboard after signing up.", "info");
   }
 
   const btn = this.querySelector(".btn-submit");
@@ -362,7 +361,28 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     }
   }
 
-  // Step 2: Save profile
+  // Step 2: Upload license file if provided
+  let licenseFileUrl = null;
+  const licFileInput = document.getElementById("licenseFile");
+  if (licFileInput?.files?.[0]) {
+    try {
+      const { data: uploadResult } = await ccFetch("/api/upload", {
+        method: "POST",
+        body: JSON.stringify({
+          image: await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(licFileInput.files[0]);
+          }),
+          folder: "license-docs"
+        })
+      });
+      if (uploadResult?.success) licenseFileUrl = uploadResult.url;
+    } catch (e) { console.error("License upload error:", e); }
+  }
+
+  // Step 3: Save profile
   btn.textContent = "Saving profile...";
 
   try {
@@ -375,6 +395,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         role: worker.role,
         license_number: worker.license,
         license_verified: licenseVerified,
+        license_file_url: licenseFileUrl,
         country: worker.country,
         city: worker.city,
         experience: worker.experience

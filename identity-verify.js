@@ -227,6 +227,17 @@ async function markVerified() {
 
   document.getElementById("verifyLoading").style.display = "none";
   document.getElementById("verifySuccess").style.display = "block";
+  document.getElementById("verifySuccess").innerHTML = `
+    <div style="text-align:center; padding:1rem;">
+      <div style="font-size:48px; margin-bottom:12px;">✓</div>
+      <h3 style="margin:0 0 8px;">Identity verified!</h3>
+      <p style="color:var(--fg-muted); font-size:14px; margin:0;">
+        Your documents have been submitted for review. Your account will be activated
+        by our team once all checks are complete — usually within 24 hours.
+      </p>
+      <a href="dashboard-worker.html" style="display:inline-block; margin-top:1rem; padding:10px 24px; background:#111827; color:#fff; border-radius:8px; text-decoration:none; font-size:14px;">Go to dashboard</a>
+    </div>
+  `;
 }
 
 function showFailed(message) {

@@ -87,7 +87,105 @@ async function loadProfile(email) {
 
   document.getElementById("profileBadges").innerHTML = badges;
   document.getElementById("verifiedBadge").textContent = data.license_verified ? "✓" : "Pending";
+
+  // ── Activation status banner ──
+  renderActivationStatus(data);
+
   updateAvailBtn(true);
+}
+
+// ── Render activation status banner ──
+function renderActivationStatus(worker) {
+  const banner = document.getElementById("activationBanner");
+  if (!banner) return;
+
+  if (worker.activated) {
+    banner.style.display = "none";
+    return;
+  }
+
+  const canAutoVer = canAutoVerify(worker.country || "", worker.role || "");
+  const licenseDone = worker.license_verified || (worker.license_file_url);
+  const identityDone = worker.identity_verified;
+
+  let steps = "";
+
+  // Step 1: License
+  if (canAutoVer && !worker.license_verified) {
+    steps += `
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;">
+        <span style="width:24px; height:24px; border-radius:50%; border:2px solid #d1d5db; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; color:#9ca3af; font-weight:600;">1</span>
+        <div>
+          <strong style="font-size:14px;">Verify your license</strong>
+          <p style="font-size:13px; color:#6b7280; margin:4px 0 0;">Click "Verify" next to your license number above to check against the regulatory body database.</p>
+        </div>
+      </div>
+    `;
+  } else if (!canAutoVer && !licenseDone) {
+    steps += `
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;">
+        <span style="width:24px; height:24px; border-radius:50%; border:2px solid #d1d5db; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; color:#9ca3af; font-weight:600;">1</span>
+        <div>
+          <strong style="font-size:14px;">Upload your license document</strong>
+          <p style="font-size:13px; color:#6b7280; margin:4px 0 0;">Upload a copy of your professional license for manual review. <button onclick="openProfileSettings()" style="background:none; border:none; color:#111827; font-weight:600; cursor:pointer; padding:0; font-family:inherit; font-size:13px; text-decoration:underline;">Upload now</button></p>
+        </div>
+      </div>
+    `;
+  } else {
+    steps += `
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;">
+        <span style="width:24px; height:24px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-weight:600;">✓</span>
+        <div>
+          <strong style="font-size:14px;">License</strong>
+          <p style="font-size:13px; color:#059669; margin:4px 0 0;">${worker.license_verified ? "Verified" : "Document received — pending review"}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  // Step 2: Identity
+  if (!identityDone) {
+    steps += `
+      <div style="display:flex; align-items:flex-start; gap:12px;">
+        <span style="width:24px; height:24px; border-radius:50%; border:2px solid #d1d5db; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; color:#9ca3af; font-weight:600;">2</span>
+        <div>
+          <strong style="font-size:14px;">Verify your identity</strong>
+          <p style="font-size:13px; color:#6b7280; margin:4px 0 0;">Upload a government-issued ID and take a selfie to confirm your identity. <a href="identity-verify.html" style="color:#111827; font-weight:600;">Start verification</a></p>
+        </div>
+      </div>
+    `;
+  } else {
+    steps += `
+      <div style="display:flex; align-items:flex-start; gap:12px;">
+        <span style="width:24px; height:24px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-weight:600;">✓</span>
+        <div>
+          <strong style="font-size:14px;">Identity verified</strong>
+          <p style="font-size:13px; color:#059669; margin:4px 0 0;">Your ID and selfie have been submitted.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  const allDone = licenseDone && identityDone;
+
+  const title = allDone
+    ? "Account under review"
+    : "Complete your account to start working";
+  const subtitle = allDone
+    ? "Your documents have been submitted. Our team will review and activate your account — usually within 24 hours."
+    : "Complete these steps to unlock all features and start accepting shifts.";
+
+  banner.style.display = "block";
+  banner.innerHTML = `
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:1rem;">
+        <span style="width:8px; height:8px; border-radius:50%; background:${allDone ? '#f59e0b' : '#E24B4A'};"></span>
+        <h3 style="margin:0; font-size:15px;">${title}</h3>
+      </div>
+      <p style="font-size:13px; color:#6b7280; margin:0 0 1rem;">${subtitle}</p>
+      ${steps}
+    </div>
+  `;
 }
 
 // ── Available shifts data store ──

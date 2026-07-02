@@ -77,6 +77,7 @@
       // Documents section
       const docs = [
         { label: "Profile photo", url: w.profile_photo_url },
+        { label: "License document", url: w.license_file_url },
         { label: "Selfie (ID verification)", url: w.selfie_url },
         { label: "ID document", url: w.id_document_url }
       ].filter(d => d.url);
@@ -89,6 +90,10 @@
           </a>
         </div>
       `).join("") : '<p style="font-size:13px; color:var(--fg-muted);">No documents uploaded.</p>';
+
+      const activationStatus = w.activated
+        ? '<span style="color:#059669;">✓ Active</span>'
+        : '<span style="color:#E24B4A;">Pending activation</span>';
 
       c.innerHTML = `
         <div class="section-title">Worker Details</div>
@@ -104,6 +109,7 @@
               <div>
                 <h2 style="margin:0 0 4px; font-size:20px;">${escapeHtml(w.full_name || "—")}</h2>
                 <p style="margin:0; color:var(--fg-muted); font-size:14px;">${escapeHtml(w.role || "—")}</p>
+                <div style="margin-top:4px; font-size:13px;">Account: ${activationStatus}</div>
               </div>
             </div>
 
@@ -130,6 +136,20 @@
                 </div>
               `).join("")}
             </div>
+
+            ${!w.activated ? `
+              <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
+                <button onclick="activateWorker('${w.id}')" style="background:#111827; color:#fff; border:none; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit;">
+                  Activate account
+                </button>
+                <p style="font-size:12px; color:#6b7280; margin-top:8px;">Activate this worker after verifying their documents. They will be notified and can start accepting shifts.</p>
+              </div>
+            ` : `
+              <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
+                <span style="color:#059669; font-size:14px; font-weight:500;">✓ Account is active</span>
+                ${w.activated_at ? `<p style="font-size:12px; color:#6b7280; margin:4px 0 0;">Activated on ${new Date(w.activated_at).toLocaleDateString()}</p>` : ""}
+              </div>
+            `}
           </div>
 
           <!-- Right: Stats + Documents -->
@@ -151,6 +171,25 @@
           </div>
         </div>
       `;
+    }
+
+    async function activateWorker(workerId) {
+      if (!confirm("Activate this worker? They will be notified and can start accepting shifts.")) return;
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = "Activating...";
+      const { data: result } = await ccFetch("/admin/activate-worker", {
+        method: "POST",
+        body: JSON.stringify({ worker_id: workerId })
+      });
+      if (result?.success) {
+        ccToast("Worker activated successfully.", "success");
+        await loadWorkerDetail(workerId);
+      } else {
+        ccToast(result?.message || "Failed to activate.", "error");
+        btn.disabled = false;
+        btn.textContent = "Activate account";
+      }
     }
 
     async function logout() {
