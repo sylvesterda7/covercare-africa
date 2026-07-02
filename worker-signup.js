@@ -223,7 +223,9 @@ async function verifyLicense() {
 
     if (data.success === true) {
       licenseVerified = true;
-      uploadGroup.style.display = "none";
+      uploadGroup.style.display = "block";
+      const label = document.querySelector("#uploadGroup label");
+      if (label) label.innerHTML = 'Upload license certificate <span style="font-weight:400;color:#6b7280;">(required for account activation — PDF or image)</span>';
       resultBox.className = "verify-result success";
       resultBox.innerHTML = `
         <strong>Verified — Active and in good standing</strong><br>

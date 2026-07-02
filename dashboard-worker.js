@@ -104,40 +104,32 @@ function renderActivationStatus(worker) {
     return;
   }
 
-  const canAutoVer = canAutoVerify(worker.country || "", worker.role || "");
-  const licenseDone = worker.license_verified || (worker.license_file_url);
+  // Activation requires: license document upload + identity verification
+  // (license_verified is a bonus, but the doc upload is mandatory for admin review)
+  const docUploaded = !!worker.license_file_url;
   const identityDone = worker.identity_verified;
 
   let steps = "";
 
-  // Step 1: License
-  if (canAutoVer && !worker.license_verified) {
+  // Step 1: License document
+  if (!docUploaded) {
     steps += `
       <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;">
         <span style="width:24px; height:24px; border-radius:50%; border:2px solid #d1d5db; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; color:#9ca3af; font-weight:600;">1</span>
         <div>
-          <strong style="font-size:14px;">Verify your license</strong>
-          <p style="font-size:13px; color:#6b7280; margin:4px 0 0;">Click "Verify" next to your license number above to check against the regulatory body database.</p>
-        </div>
-      </div>
-    `;
-  } else if (!canAutoVer && !licenseDone) {
-    steps += `
-      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;">
-        <span style="width:24px; height:24px; border-radius:50%; border:2px solid #d1d5db; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; color:#9ca3af; font-weight:600;">1</span>
-        <div>
-          <strong style="font-size:14px;">Upload your license document</strong>
-          <p style="font-size:13px; color:#6b7280; margin:4px 0 0;">Upload a copy of your professional license for manual review. <button onclick="openProfileSettings()" style="background:none; border:none; color:#111827; font-weight:600; cursor:pointer; padding:0; font-family:inherit; font-size:13px; text-decoration:underline;">Upload now</button></p>
+          <strong style="font-size:14px;">Upload your professional license document</strong>
+          <p style="font-size:13px; color:#6b7280; margin:4px 0 0;">Upload a copy of your license certificate (PDF or image). Our admin team needs this to verify and activate your account. <button onclick="openProfileSettings()" style="background:none; border:none; color:#111827; font-weight:600; cursor:pointer; padding:0; font-family:inherit; font-size:13px; text-decoration:underline;">Upload now</button></p>
         </div>
       </div>
     `;
   } else {
+    const statusText = worker.license_verified ? "Verified" : "Document received — pending admin review";
     steps += `
       <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;">
         <span style="width:24px; height:24px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-weight:600;">✓</span>
         <div>
-          <strong style="font-size:14px;">License</strong>
-          <p style="font-size:13px; color:#059669; margin:4px 0 0;">${worker.license_verified ? "Verified" : "Document received — pending review"}</p>
+          <strong style="font-size:14px;">License document</strong>
+          <p style="font-size:13px; color:#059669; margin:4px 0 0;">${statusText}</p>
         </div>
       </div>
     `;
@@ -166,7 +158,7 @@ function renderActivationStatus(worker) {
     `;
   }
 
-  const allDone = licenseDone && identityDone;
+  const allDone = docUploaded && identityDone;
 
   const title = allDone
     ? "Account under review"
@@ -781,6 +773,27 @@ document.getElementById("profileForm").addEventListener("submit", async function
     } catch (e) { console.error("Photo upload error:", e); }
   }
 
+  // Upload license document if provided
+  let licenseFileUrl = currentWorker.license_file_url || null;
+  const licFileInput = document.getElementById("editLicenseFile");
+  if (licFileInput?.files?.[0]) {
+    try {
+      const { data: licResult } = await ccFetch("/api/upload", {
+        method: "POST",
+        body: JSON.stringify({
+          image: await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(licFileInput.files[0]);
+          }),
+          folder: "license-docs"
+        })
+      });
+      if (licResult?.success) licenseFileUrl = licResult.url;
+    } catch (e) { console.error("License upload error:", e); }
+  }
+
   try {
     const { data: result } = await ccFetch("/worker", {
       method: "PUT",
@@ -789,6 +802,7 @@ document.getElementById("profileForm").addEventListener("submit", async function
         phone: document.getElementById("editPhone").value.trim(),
         role: document.getElementById("editRole").value,
         license_number: document.getElementById("editLicense").value.trim(),
+        license_file_url: licenseFileUrl,
         city: document.getElementById("editCity").value,
         experience: document.getElementById("editExperience").value,
         bio: document.getElementById("editBio").value.trim(),
