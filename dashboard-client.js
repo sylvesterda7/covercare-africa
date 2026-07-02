@@ -167,7 +167,7 @@ async function loadShifts() {
       <td>${s.status === "in_progress" ? '<span class="badge badge-accent" style="background:#111827;color:#fff;">● In progress</span>' : s.status === "open" ? '<span class="badge badge-accent">Open</span>' : s.status === "accepted" ? '<span class="badge badge-accent">Accepted</span>' : s.status === "completed" ? '<span class="badge badge-grey">Completed</span>' : s.status === "cancelled" ? '<span class="badge badge-grey">Cancelled</span>' : '<span class="badge badge-grey">' + (s.status || "—") + '</span>'}</td>
       <td>${s.pay_rate || "—"}</td>
       <td style="color:#111827;">${s.total_pay || "—"}</td>
-      <td>${s.payment_status === "paid" ? '<span style="color:#059669;font-size:13px;">Paid</span>' : s.payment_status === "pending" || !s.payment_status ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>' : '<span style="font-size:13px;">' + (s.payment_status || "—") + '</span>'}</td>
+      <td>${s.payment_status === "paid" ? '<span style="color:#141414;font-size:13px;">Paid</span>' : s.payment_status === "pending" || !s.payment_status ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>' : '<span style="font-size:13px;">' + (s.payment_status || "—") + '</span>'}</td>
       <td style="color:var(--fg-muted);">${s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}</td>
     </tr>`).join("")}
   </tbody></table></div>`;
@@ -237,7 +237,7 @@ async function loadFinanceTransactions() {
       <td style="color:var(--fg-primary);font-weight:500;">${t.role_needed || "—"}</td>
       <td>${t.shift_date || "—"}</td>
       <td style="color:#111827;">GHS ${(t.total_pay || 0).toLocaleString()}</td>
-      <td>${t.payment_status === "paid" ? '<span style="color:#059669;font-size:13px;">Paid</span>' : t.payment_status === "pending" || !t.payment_status ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>' : '<span style="font-size:13px;">' + (t.payment_status || "—") + '</span>'}</td>
+      <td>${t.payment_status === "paid" ? '<span style="color:#141414;font-size:13px;">Paid</span>' : t.payment_status === "pending" || !t.payment_status ? '<span style="color:#f59e0b;font-size:13px;">Pending</span>' : '<span style="font-size:13px;">' + (t.payment_status || "—") + '</span>'}</td>
     </tr>`).join("")}
   </tbody></table></div>`;
 }

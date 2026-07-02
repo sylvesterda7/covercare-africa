@@ -155,8 +155,8 @@ async function loadShifts(email) {
         <p style="font-size:12px;color:#b45309;margin-top:4px;">
           ⏰ ${shift.late_minutes} min late · Pay: ${escapeHtml(shift.adjusted_pay || shift.total_pay)}
           ${shift.facility_credit > 0 ? `· Facility saved: <strong>GHS ${parseFloat(shift.facility_credit).toLocaleString()}</strong>` : ''}
-          ${shift.made_up ? '· <span style="color:#059669;">Made up time</span>' : ''}
-          ${shift.waived ? '· <span style="color:#059669;">Deduction waived</span>' : ''}
+          ${shift.made_up ? '· <span style="color:#141414;">Made up time</span>' : ''}
+          ${shift.waived ? '· <span style="color:#141414;">Deduction waived</span>' : ''}
         </p>` : "";
       const showWaive = shift.late_minutes > 0 && !shift.made_up && !shift.waived;
       return `
@@ -174,7 +174,7 @@ async function loadShifts(email) {
               ${shift.status === "in_progress" ? "⏱ In progress" : shift.status === "completed" ? "✓ Completed" : "✓ Filled"}
             </span>
             ${w ? `<button data-worker-id="${escapeHtml(w.id)}" onclick="showWorkerDetailsById(this.dataset.workerId)" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--fg-muted);cursor:pointer;font-family:inherit;">View worker</button>` : ""}
-            ${showWaive ? `<button onclick="waiveDeduction('${escapeHtml(shift.id)}')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;">Waive deduction</button>` : ""}
+            ${showWaive ? `<button onclick="waiveDeduction('${escapeHtml(shift.id)}')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #141414;background:transparent;color:#141414;cursor:pointer;font-family:inherit;">Waive deduction</button>` : ""}
           </div>
         </div>
       </div>`;
@@ -1106,7 +1106,7 @@ async function loadFinanceTransactions() {
         <tbody>
           ${txns.map((t, i) => {
             const statusLabel = t.payment_status === "paid" ? "Paid" : t.payment_status === "postpaid" ? "Postpaid" : t.payment_status === "pending" ? "Pending" : t.payment_status || "—";
-            const statusColor = t.payment_status === "paid" ? "#059669" : t.payment_status === "postpaid" ? "#F0B429" : "#6b7280";
+            const statusColor = t.payment_status === "paid" ? "#141414" : t.payment_status === "postpaid" ? "#F0B429" : "#6b7280";
             const workerName = t.worker_name || "—";
             const txnJson = escapeHtml(JSON.stringify(t));
             return `
@@ -1198,7 +1198,7 @@ async function loadFacilityInvoices() {
         </thead>
         <tbody>
           ${_facilityInvoices.map(inv => {
-            const statusColor = inv.status === "paid" ? "#059669" : inv.status === "overdue" ? "#E24B4A" : "#F0B429";
+            const statusColor = inv.status === "paid" ? "#141414" : inv.status === "overdue" ? "#E24B4A" : "#F0B429";
             return `<tr>
               <td style="font-weight:500;color:var(--fg-primary);">${monthNames[inv.month - 1] || inv.month} ${inv.year}</td>
               <td style="color:#111827;font-weight:500;">GHS ${Number(inv.total_amount).toLocaleString()}</td>

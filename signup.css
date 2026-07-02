@@ -110,27 +110,24 @@ input[type="file"]:hover {
   background: var(--accent);
   color: #fff;
   border: none;
-  padding: 14px;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
+  padding: 0 24px;
+  min-height: 44px;
+  border-radius: 9999px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 0 30px var(--accent-glow);
   transition: var(--transition);
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 .btn-submit:hover {
-  opacity: 0.9;
-  box-shadow: 0 0 40px var(--accent-glow);
-  transform: translateY(-1px);
+  background: var(--accent-hover);
 }
 
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 /* ── Verify row ── */
@@ -144,17 +141,20 @@ input[type="file"]:hover {
 }
 
 .btn-verify {
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--accent);
-  border: 1px solid var(--border);
-  padding: 12px 18px;
-  border-radius: var(--radius-sm);
+  border: none;
+  box-shadow: inset 0 0 0 1px rgba(20,20,20,0.16);
+  padding: 0 16px;
+  min-height: 44px;
+  border-radius: 9999px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition: var(--transition);
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 .btn-verify.loading {
@@ -175,7 +175,8 @@ input[type="file"]:hover {
 }
 
 .btn-verify:hover {
-  background: var(--border);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--accent-dim);
 }
 
 .btn-verify:disabled {
@@ -273,20 +274,22 @@ input[type="file"]:hover {
 }
 
 .btn-home {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   background: var(--accent);
   color: #fff;
-  padding: 12px 28px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
+  padding: 0 24px;
+  min-height: 44px;
+  border-radius: 9999px;
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
   transition: var(--transition);
+  box-sizing: border-box;
 }
 
 .btn-home:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  background: var(--accent-hover);
 }
 
 /* ── Progress bar ── */

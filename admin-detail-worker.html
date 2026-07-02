@@ -92,7 +92,7 @@
       `).join("") : '<p style="font-size:13px; color:var(--fg-muted);">No documents uploaded.</p>';
 
       const activationStatus = w.activated
-        ? '<span style="color:#059669;">✓ Active</span>'
+        ? '<span style="color:#141414;">✓ Active</span>'
         : '<span style="color:#E24B4A;">Pending activation</span>';
 
       c.innerHTML = `
@@ -121,8 +121,8 @@
                 ["Experience", w.experience],
                 ["Bio", w.bio],
                 ["License number", w.license_number],
-                ["License verified", w.license_verified ? '<span style="color:#059669;">✓ Verified</span>' : '<span style="color:#E24B4A;">Not verified</span>'],
-                ["Identity verified", w.identity_verified ? '<span style="color:#059669;">✓ Verified</span>' : '<span style="color:#E24B4A;">Not verified</span>'],
+                ["License verified", w.license_verified ? '<span style="color:#141414;">✓ Verified</span>' : '<span style="color:#E24B4A;">Not verified</span>'],
+                ["Identity verified", w.identity_verified ? '<span style="color:#141414;">✓ Verified</span>' : '<span style="color:#E24B4A;">Not verified</span>'],
                 ["Available for work", w.available_for_work ? "Yes" : "No"],
                 ["Bank", w.bank_name],
                 ["Bank account", w.bank_account_number],
@@ -146,7 +146,7 @@
               </div>
             ` : `
               <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
-                <span style="color:#059669; font-size:14px; font-weight:500;">✓ Account is active</span>
+                <span style="color:#141414; font-size:14px; font-weight:500;">✓ Account is active</span>
                 ${w.activated_at ? `<p style="font-size:12px; color:#6b7280; margin:4px 0 0;">Activated on ${new Date(w.activated_at).toLocaleDateString()}</p>` : ""}
               </div>
             `}

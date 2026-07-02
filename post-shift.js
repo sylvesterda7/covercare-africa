@@ -397,7 +397,7 @@ function searchWorkers() {
           <h3 style="margin:0 0 2px;">${escapeHtml(w.full_name)}</h3>
           <p style="font-size:13px;color:var(--fg-muted);">${escapeHtml(w.role) || "—"} · ${escapeHtml(w.city) || "—"}${w.experience ? " · " + escapeHtml(w.experience) + " yrs exp" : ""}</p>
         </div>
-        <div style="font-size:12px;color:#059669;">Select</div>
+        <div style="font-size:12px;color:#141414;">Select</div>
       </div>
     `).join("");
   }, 300);

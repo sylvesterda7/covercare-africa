@@ -550,7 +550,7 @@ function ccToast(message, type = "info", duration = 4000) {
   const existing = document.getElementById("cc-toast");
   if (existing) existing.remove();
 
-  const bg = type === "error" ? "#DC2626" : type === "success" ? "#059669" : "#111827";
+  const bg = type === "error" ? "#DC2626" : "#141414";
 
   const el = document.createElement("div");
   el.id = "cc-toast";
@@ -600,7 +600,7 @@ function ccShowInactivityWarning() {
       <div style="background:#fff; border:1px solid var(--border); border-radius:16px; padding:2.5rem; max-width:400px; width:90%; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.12);">
         <h3 style="color:var(--fg-primary); font-size:18px; margin-bottom:0.75rem;">Session expiring</h3>
         <p style="color:var(--fg-muted); font-size:14px; line-height:1.6; margin-bottom:1.5rem;">You've been inactive for a while. You'll be logged out in 30 seconds to protect your account.</p>
-        <button onclick="ccStayLoggedIn()" style="background:#111827; color:var(--fg-primary); border:none; padding:11px 24px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;">Stay logged in</button>
+        <button onclick="ccStayLoggedIn()" class="btn-primary" style="padding:0 24px; font-size:14px; min-height:44px;">Stay logged in</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);

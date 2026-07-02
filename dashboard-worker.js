@@ -129,7 +129,7 @@ function renderActivationStatus(worker) {
         <span style="width:24px; height:24px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-weight:600;">✓</span>
         <div>
           <strong style="font-size:14px;">License document</strong>
-          <p style="font-size:13px; color:#059669; margin:4px 0 0;">${statusText}</p>
+          <p style="font-size:13px; color:#141414; margin:4px 0 0;">${statusText}</p>
         </div>
       </div>
     `;
@@ -152,7 +152,7 @@ function renderActivationStatus(worker) {
         <span style="width:24px; height:24px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-weight:600;">✓</span>
         <div>
           <strong style="font-size:14px;">Identity verified</strong>
-          <p style="font-size:13px; color:#059669; margin:4px 0 0;">Your ID and selfie have been submitted.</p>
+          <p style="font-size:13px; color:#141414; margin:4px 0 0;">Your ID and selfie have been submitted.</p>
         </div>
       </div>
     `;
@@ -683,7 +683,7 @@ async function loadCompletedShifts() {
     ${result.data.map(s => {
       const lateInfo = s.late_minutes > 0 ? `
         <p style="font-size:12px;color:#b45309;margin-top:4px;">
-          ⏰ ${s.late_minutes} min late${s.adjusted_pay ? ` · Paid: ${escapeHtml(s.adjusted_pay)}` : ''}${s.made_up ? ' · <span style="color:#059669;">Made up time</span>' : ''}
+          ⏰ ${s.late_minutes} min late${s.adjusted_pay ? ` · Paid: ${escapeHtml(s.adjusted_pay)}` : ''}${s.made_up ? ' · <span style="color:#141414;">Made up time</span>' : ''}
         </p>` : "";
       return `
       <div class="profile-card" style="margin-bottom:10px;">

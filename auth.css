@@ -89,25 +89,25 @@
   background: var(--accent);
   color: #fff;
   border: none;
-  padding: 11px;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
+  padding: 0 24px;
+  min-height: 44px;
+  border-radius: 9999px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   margin-top: 0.5rem;
   transition: var(--transition);
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 .btn-auth:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
 }
 
 .btn-auth:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 
 .auth-switch {
@@ -141,7 +141,7 @@
 
 .auth-success {
   background: var(--accent-dim);
-  border: 1px solid rgba(17,24,39,0.15);
+  border: 1px solid var(--accent-border);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   font-size: 13px;
@@ -519,8 +519,8 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(17,24,39,0.08);
-  border: 1px solid rgba(17,24,39,0.15);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -623,13 +623,13 @@
   transition: all 0.15s;
 }
 .pill-filter:hover {
-  border-color: #111827;
-  color: #111827;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .pill-filter.pill-active {
-  background: #111827;
+  background: var(--accent);
   color: #fff;
-  border-color: #111827;
+  border-color: var(--accent);
 }
 
 /* ── Post choice cards ── */
@@ -638,16 +638,15 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-card);
   text-decoration: none;
   transition: all 0.15s;
   cursor: pointer;
 }
 .post-choice-card:hover {
-  border-color: #111827;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border-color: var(--accent);
 }
 
 /* ── QR arrival page ── */
@@ -708,13 +707,13 @@
 }
 
 .arrive-icon-pending {
-  background: rgba(17,24,39,0.08);
-  border: 1px solid rgba(17,24,39,0.2);
+  background: rgba(20,20,20,0.08);
+  border: 1px solid rgba(20,20,20,0.2);
 }
 
 .arrive-icon-success {
-  background: rgba(17,24,39,0.12);
-  border: 1px solid rgba(17,24,39,0.3);
+  background: rgba(20,20,20,0.12);
+  border: 1px solid rgba(20,20,20,0.3);
   color: var(--accent);
   font-weight: 600;
 }
@@ -774,7 +773,7 @@
 .arrive-spinner {
   width: 40px;
   height: 40px;
-  border: 2px solid rgba(17,24,39,0.15);
+  border: 2px solid rgba(20,20,20,0.15);
   border-top-color: var(--accent);
   border-radius: 50%;
   margin: 0 auto 1.25rem;
@@ -867,7 +866,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(17,24,39,0.5);
+  box-shadow: 0 0 10px rgba(20,20,20,0.5);
   animation: live-pulse 2s ease-in-out infinite;
   flex-shrink: 0;
 }
@@ -939,8 +938,8 @@
 }
 
 #qrReader button {
-  background: rgba(17,24,39,0.12) !important;
-  border: 1px solid rgba(17,24,39,0.25) !important;
+  background: rgba(20,20,20,0.12) !important;
+  border: 1px solid rgba(20,20,20,0.25) !important;
   color: var(--accent) !important;
   border-radius: 8px !important;
   font-family: inherit !important;
@@ -948,7 +947,7 @@
 }
 
 #qrReader button:hover {
-  background: rgba(17,24,39,0.18) !important;
+  background: rgba(20,20,20,0.18) !important;
 }
 
 #qrReader select {
@@ -1055,7 +1054,7 @@
 
 .notif-item.unread {
   border-left: 3px solid var(--accent);
-  background: rgba(17,24,39,0.03);
+  background: rgba(20,20,20,0.03);
 }
 
 .notif-item .notif-time {
@@ -1133,8 +1132,8 @@
 }
 
 .checkin-card-live {
-  border-color: rgba(17,24,39,0.2);
-  box-shadow: 0 0 24px rgba(17,24,39,0.05);
+  border-color: rgba(20,20,20,0.2);
+  box-shadow: 0 0 24px rgba(20,20,20,0.05);
 }
 
 .checkin-card-done {
@@ -1270,7 +1269,7 @@
 }
 .cc-combobox-item:hover,
 .cc-combobox-item.focused {
-  background: rgba(17,24,39,0.1);
+  background: rgba(20,20,20,0.1);
 }
 .cc-combobox-code {
   font-size: 13px;

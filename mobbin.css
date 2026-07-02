@@ -1,308 +1,96 @@
 /* ── Mobbin Light Theme ── */
+/* Base design now matches Mobbin tokens directly in style.css.
+   This file provides the `.mobbin-theme` scoped overrides for pages
+   that still reference the old dark-glass theme. */
 .mobbin-theme {
-  --bg-deep: #FFFFFF;
-  --bg-card: #F8F9FA;
-  --bg-elevated: #F0F1F3;
+  --bg-deep: #F9FAFB;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #F3F4F6;
   --border: #E5E7EB;
-  --fg-primary: #0A0A0B;
+  --fg-primary: #141414;
   --fg-muted: #374151;
-  --accent: #111827;
-  --accent-dim: rgba(17,24,39,0.08);
-  --accent-border: rgba(17,24,39,0.15);
+  --accent: #141414;
+  --accent-dim: rgba(20,20,20,0.06);
+  --accent-border: rgba(20,20,20,0.12);
   --glass-opacity: 1;
   --glass-border: #E5E7EB;
   --glass-bg: #FFFFFF;
   --blur-amount: 0px;
-  --radius-card: 12px;
-  --radius-sm: 8px;
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
-}
-
-.mobbin-theme body,
-.mobbin-theme .content-layer {
-  background: var(--bg-deep);
-  color: var(--fg-primary);
+  --radius-card: 8px;
+  --shadow-card: none;
 }
 
 .mobbin-theme .orb { display: none; }
 
 .mobbin-theme .nav {
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-card);
-}
-
-.mobbin-theme .nav-link {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .nav-link:hover {
-  color: var(--accent);
+  border-bottom: 1px solid var(--border);
 }
 
 .mobbin-theme .nav-btn {
   background: var(--accent);
   color: #fff;
-  box-shadow: none;
+  border-radius: 9999px;
+  padding: 0 20px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
 }
 
-.mobbin-theme .hero-title {
-  color: var(--fg-primary);
+.mobbin-theme .next-steps {
+  background: rgba(20,20,20,0.05);
+  border: 1px solid rgba(20,20,20,0.12);
 }
 
-.mobbin-theme .hero-sub {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .hero-badge {
-  background: var(--accent-dim);
-  border-color: var(--accent-border);
+.mobbin-theme .next-num {
+  background: rgba(20,20,20,0.15);
+  border: 1px solid rgba(20,20,20,0.25);
   color: var(--accent);
 }
 
-.mobbin-theme .badge-accent {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-color: var(--accent-border);
-}
-
-.mobbin-theme .stat-card,
-.mobbin-theme .stat-big-item,
-.mobbin-theme .glass-card,
-.mobbin-theme .category-card,
-.mobbin-theme .flow-step,
-.mobbin-theme .detail-card,
-.mobbin-theme .testimonial-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-card);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.mobbin-theme .glass-card:hover,
-.mobbin-theme .category-card:hover,
-.mobbin-theme .detail-card:hover {
-  border-color: var(--accent-border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
-.mobbin-theme .section-tag {
+.mobbin-theme .profile-avatar {
+  background: rgba(20,20,20,0.08);
+  border: 1px solid rgba(20,20,20,0.15);
   color: var(--accent);
 }
 
-.mobbin-theme .section-title {
-  color: var(--fg-primary);
+.mobbin-theme .arrive-icon-pending {
+  background: rgba(20,20,20,0.08);
+  border: 1px solid rgba(20,20,20,0.2);
 }
 
-.mobbin-theme .section-subtitle {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .stat-big-num {
+.mobbin-theme .arrive-icon-success {
+  background: rgba(20,20,20,0.12);
+  border: 1px solid rgba(20,20,20,0.3);
   color: var(--accent);
 }
 
-.mobbin-theme .stat-big-label {
-  color: var(--fg-muted);
+.mobbin-theme .arrive-spinner {
+  border: 2px solid rgba(20,20,20,0.15);
+  border-top-color: var(--accent);
 }
 
-.mobbin-theme .category-card h3,
-.mobbin-theme .detail-card h3,
-.mobbin-theme .flow-content h3,
-.mobbin-theme .testimonial-name,
-.mobbin-theme .cta-title {
-  color: var(--fg-primary);
-}
-
-.mobbin-theme .category-card p,
-.mobbin-theme .detail-card p,
-.mobbin-theme .flow-content p,
-.mobbin-theme .testimonial-card > p,
-.mobbin-theme .cta-sub {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .testimonial-stars {
-  color: var(--accent);
-}
-
-.mobbin-theme .testimonial-avatar {
-  background: var(--accent-dim);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-.mobbin-theme .category-arrow {
-  color: var(--accent);
-}
-
-.mobbin-theme .btn-primary {
-  box-shadow: none;
-}
-
-.mobbin-theme .btn-ghost {
-  background: transparent;
-  border-color: var(--border);
-  color: var(--fg-primary);
-}
-
-.mobbin-theme .btn-ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.mobbin-theme .trusted-bar {
-  border-top: 1px solid var(--glass-border);
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.mobbin-theme .trusted-item {
-  color: var(--fg-muted);
-  opacity: 1;
-}
-
-.mobbin-theme .trusted-label {
-  color: var(--fg-muted);
+.mobbin-theme .btn-ghost,
+.mobbin-theme .btn-back,
+.mobbin-theme .btn-verify {
+  box-shadow: inset 0 0 0 1px rgba(20,20,20,0.16);
 }
 
 .mobbin-theme .cta-section {
-  background: var(--glass-bg);
-  border-color: var(--accent-border);
-  box-shadow: var(--shadow-card);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.mobbin-theme .app-cta {
-  background: var(--bg-card);
-  border-top: 1px solid var(--glass-border);
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.mobbin-theme .app-cta h2 {
-  color: var(--fg-primary);
-}
-
-.mobbin-theme .app-cta > p {
-  color: var(--fg-muted);
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 
 .mobbin-theme .app-btn-dark {
-  background: var(--bg-elevated);
-  color: var(--fg-primary);
-  box-shadow: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 9999px;
 }
 
 .mobbin-theme .app-btn-dark:hover {
-  background: var(--border);
-}
-
-.mobbin-theme .footer-brand {
-  color: var(--accent);
-}
-
-.mobbin-theme .footer-col-title {
-  color: var(--fg-primary);
-}
-
-.mobbin-theme .footer-link {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .footer-link:hover {
-  color: var(--accent);
-}
-
-.mobbin-theme .footer-bottom {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .faq-item {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-card);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.mobbin-theme .faq-q {
-  color: var(--fg-primary);
-}
-
-.mobbin-theme .faq-a {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .faq-arrow {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .pricing-col {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-card);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.mobbin-theme .pricing-col:hover {
-  border-color: var(--accent-border);
-}
-
-.mobbin-theme .pricing-col.featured {
-  border-color: var(--accent-border);
-  background: var(--accent-dim);
-}
-
-.mobbin-theme .pricing-price {
-  color: var(--fg-primary);
-}
-
-.mobbin-theme .pricing-price span {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .pricing-label {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .pricing-features li {
-  color: var(--fg-muted);
-}
-
-.mobbin-theme .pricing-features li i {
-  color: var(--accent);
-}
-
-.mobbin-theme .section-tag[style*="text-align:center"] {
-  text-align: center;
-}
-
-.mobbin-theme .flow-num {
-  background: var(--accent-dim);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-.mobbin-theme .category-icon,
-.mobbin-theme .detail-card-icon {
-  background: var(--accent-dim);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-.mobbin-theme .btn-auth {
-  box-shadow: none;
+  background: var(--accent-hover);
 }
 
 .mobbin-theme footer {
   color: var(--fg-muted);
-  border-top-color: var(--glass-border);
-}
-
-.mobbin-theme::-webkit-scrollbar-track {
-  background: var(--bg-deep);
+  border-top-color: var(--border);
 }

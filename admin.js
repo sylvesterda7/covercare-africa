@@ -223,7 +223,7 @@ async function loadFacilities() {
                 }
                 ${f.billing_model !== "postpaid" ? `
                   <button onclick="approveFacility('${escapeHtml(f.email)}')"
-                    style="font-size:10px; padding:2px 8px; border-radius:4px; border:1px solid #059669; background:transparent; color:#059669; cursor:pointer; font-family:inherit; margin-left:4px;">
+                    style="font-size:10px; padding:2px 8px; border-radius:4px; border:1px solid #141414; background:transparent; color:#141414; cursor:pointer; font-family:inherit; margin-left:4px;">
                     Approve
                   </button>
                 ` : ""}
@@ -686,7 +686,7 @@ async function loadAdminFinanceTransactions() {
           ${txns.map(t => {
             const amount = t.facility_total || 0;
             const workerPay = t.total_pay || 0;
-            const statusColor = t.payment_status === "paid" || t.payment_status === "completed" ? "#059669" : t.payment_status === "postpaid" ? "#F0B429" : t.payment_status === "held" ? "#E24B4A" : t.payment_status === "refunded" ? "#9ca3af" : "#6b7280";
+            const statusColor = t.payment_status === "paid" || t.payment_status === "completed" ? "#141414" : t.payment_status === "postpaid" ? "#F0B429" : t.payment_status === "held" ? "#E24B4A" : t.payment_status === "refunded" ? "#9ca3af" : "#6b7280";
             const statusLabel = (t.payment_status || "—").charAt(0).toUpperCase() + (t.payment_status || "—").slice(1);
             const actions = paymentActions(t.id, t.payment_status);
             const txnJson = escapeHtml(JSON.stringify(t));
@@ -770,13 +770,13 @@ function paymentActions(shiftId, status) {
     case "paid": case "completed":
       return btn("Refund", "refund", "#E24B4A") + btn("Hold", "hold", "#F0B429");
     case "postpaid": case "pending":
-      return btn("Complete", "complete", "#059669") + btn("Hold", "hold", "#F0B429");
+      return btn("Complete", "complete", "#141414") + btn("Hold", "hold", "#F0B429");
     case "held":
-      return btn("Release", "release", "#059669") + btn("Refund", "refund", "#E24B4A");
+      return btn("Release", "release", "#141414") + btn("Refund", "refund", "#E24B4A");
     case "refunded":
       return '<span style="font-size:11px;color:#9ca3af;">Final</span>';
     default:
-      return btn("Complete", "complete", "#059669");
+      return btn("Complete", "complete", "#141414");
   }
 }
 
@@ -823,7 +823,7 @@ async function loadAdminInvoices() {
         </thead>
         <tbody>
           ${invoices.map(inv => {
-            const statusColor = inv.status === "paid" ? "#059669" : inv.status === "overdue" ? "#E24B4A" : "#F0B429";
+            const statusColor = inv.status === "paid" ? "#141414" : inv.status === "overdue" ? "#E24B4A" : "#F0B429";
             return `<tr>
               <td style="font-weight:500;color:var(--fg-primary);">${monthNames[inv.month - 1] || inv.month} ${inv.year}</td>
               <td style="color:#111827;">${escapeHtml(inv.facility_name)}</td>
@@ -832,7 +832,7 @@ async function loadAdminInvoices() {
               <td>${inv.shift_count}</td>
               <td><span style="color:${statusColor};font-weight:500;">${inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
               <td>${inv.due_date ? new Date(inv.due_date).toLocaleDateString() : "—"}</td>
-              <td>${inv.status !== "paid" ? `<button onclick="markInvoicePaid(${inv.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;white-space:nowrap;">Mark paid</button>` : '<span style="font-size:11px;color:#9ca3af;">Paid</span>'}</td>
+              <td>${inv.status !== "paid" ? `<button onclick="markInvoicePaid(${inv.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #141414;background:transparent;color:#141414;cursor:pointer;font-family:inherit;white-space:nowrap;">Mark paid</button>` : '<span style="font-size:11px;color:#9ca3af;">Paid</span>'}</td>
             </tr>`;
           }).join("")}
         </tbody>
@@ -904,10 +904,10 @@ async function loadAdminWithdrawals() {
             <td style="color:#111827;font-weight:500;">GHS ${Number(r.amount).toLocaleString()}</td>
             <td style="font-size:12px;">${r.bank_name ? escapeHtml(r.bank_name) + "<br>" + escapeHtml(r.bank_account_number || "") : "—"}</td>
             <td style="font-size:12px;">${r.momo_provider ? escapeHtml(r.momo_provider) + "<br>" + escapeHtml(r.momo_number || "") : "—"}</td>
-            <td><span style="color:${r.status === "pending" ? "#F0B429" : r.status === "approved" ? "#059669" : "#9ca3af"};">${r.status}</span></td>
+            <td><span style="color:${r.status === "pending" ? "#F0B429" : r.status === "approved" ? "#141414" : "#9ca3af"};">${r.status}</span></td>
             <td>${r.status === "pending" ? `
               <div style="display:flex;gap:4px;">
-                <button onclick="adminApproveWithdrawal(${r.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #059669;background:transparent;color:#059669;cursor:pointer;font-family:inherit;">Approve</button>
+                <button onclick="adminApproveWithdrawal(${r.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #141414;background:transparent;color:#141414;cursor:pointer;font-family:inherit;">Approve</button>
                 <button onclick="adminRejectWithdrawal(${r.id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #E24B4A;background:transparent;color:#E24B4A;cursor:pointer;font-family:inherit;">Reject</button>
               </div>
             ` : '<span style="font-size:11px;color:#9ca3af;">Processed</span>'}</td>
