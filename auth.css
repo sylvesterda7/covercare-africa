@@ -444,14 +444,6 @@
   border-radius: var(--radius-card);
   padding: 1.5rem 1.25rem;
   text-align: center;
-  box-shadow: var(--shadow-card);
-  transition: var(--transition);
-}
-
-.stat-box:hover {
-  border-color: var(--accent-border);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
 }
 
 .stat-box .num {
@@ -507,12 +499,6 @@
   margin-bottom: 10px;
   box-shadow: var(--shadow-card);
   transition: var(--transition);
-}
-
-.profile-card:hover {
-  border-color: var(--accent-border);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
 }
 
 .profile-avatar {

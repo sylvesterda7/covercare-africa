@@ -75,12 +75,12 @@ body {
 }
 
 .nav-link {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--fg-muted);
   text-decoration: none;
-  padding: 8px 14px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
   transition: var(--transition);
 }
 
@@ -94,12 +94,15 @@ body {
 }
 
 .nav-btn {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
   background: var(--accent);
-  padding: 9px 20px;
-  border-radius: 8px;
+  padding: 0 20px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
   text-decoration: none;
   transition: var(--transition);
 }
@@ -301,13 +304,13 @@ textarea.glass-input {
 }
 
 .section-title {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 33px;
+  font-weight: 400;
   color: var(--fg-primary);
   margin-bottom: 0.75rem;
   font-family: var(--font-heading);
   letter-spacing: -0.02em;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 
 .section-subtitle {
@@ -422,7 +425,7 @@ footer {
 
 /* ── Hero section ── */
 .hero-section {
-  padding: 6rem 2rem 3rem;
+  padding: 5rem 2rem 3rem;
   text-align: center;
   max-width: 760px;
   margin: 0 auto;
@@ -815,7 +818,6 @@ footer {
 
 .app-btn-dark:hover {
   opacity: 0.9;
-  transform: translateY(-1px);
 }
 
 /* ── Footer (organized columns) ── */
