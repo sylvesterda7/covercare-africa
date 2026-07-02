@@ -780,4 +780,53 @@ function ccGetCurrencyComboboxValue(containerId) {
   return input ? input.value.trim().toUpperCase() : "";
 }
 
+// ── License format hints per country + role ──
+// Key: "COUNTRYCODE_ROLE" → { format, autoVerify }
+// autoVerify=true means we can check the license automatically via the regulatory body's website
+const LICENSE_FORMATS = {
+  "GH_pharmacist":      { format: "e.g. HPA 5057",           autoVerify: true },
+  "GH_pharmacy-tech":   { format: "e.g. HPA 3343",           autoVerify: false },
+  "GH_nurse":           { format: "e.g. NMC/GH/12345",       autoVerify: false },
+  "GH_medical-doctor":  { format: "e.g. MDPC 12345",         autoVerify: false },
+  "GH_lab-technician":  { format: "e.g. ALLS 12345",         autoVerify: false },
+  "NG_pharmacist":      { format: "e.g. PCN 12345",          autoVerify: false },
+  "NG_nurse":           { format: "e.g. NMCN 12345",         autoVerify: false },
+  "NG_medical-doctor":  { format: "e.g. MDCN 12345",         autoVerify: false },
+  "NG_pharmacy-tech":   { format: "e.g. PCN/TECH/12345",     autoVerify: false },
+  "NG_lab-technician":  { format: "e.g. MLSCN 12345",        autoVerify: false },
+  "ZA_pharmacist":      { format: "e.g. P48564",             autoVerify: false },
+  "ZA_pharmacy-tech":   { format: "e.g. PT 12345",           autoVerify: false },
+  "ZA_nurse":           { format: "e.g. SANC 12345",         autoVerify: false },
+  "ZA_medical-doctor":  { format: "e.g. HPCSA 12345",        autoVerify: false },
+  "ZA_lab-technician":  { format: "e.g. HPCSA/MLS 12345",    autoVerify: false },
+  "KE_pharmacist":      { format: "e.g. KPPB 12345",         autoVerify: false },
+  "KE_nurse":           { format: "e.g. NCK 12345",          autoVerify: false },
+  "KE_medical-doctor":  { format: "e.g. KMPDC 12345",        autoVerify: false },
+  "KE_pharmacy-tech":   { format: "e.g. KPPB/TECH 12345",    autoVerify: false },
+  "UG_pharmacist":      { format: "e.g. NPC 12345",          autoVerify: false },
+  "UG_nurse":           { format: "e.g. UGNMC 12345",        autoVerify: false },
+  "TZ_pharmacist":      { format: "e.g. TPC 12345",          autoVerify: false },
+  "TZ_nurse":           { format: "e.g. TNMC 12345",         autoVerify: false },
+  "RW_pharmacist":      { format: "e.g. RPC 12345",          autoVerify: false },
+  "RW_nurse":           { format: "e.g. RNMC 12345",         autoVerify: false },
+  "ZM_pharmacist":      { format: "e.g. HPCZ 12345",         autoVerify: false },
+  "ET_pharmacist":      { format: "e.g. EPC 12345",          autoVerify: false },
+  "EG_pharmacist":      { format: "e.g. EPC 12345",          autoVerify: false },
+};
+
+function getLicenseFormat(countryCode, role) {
+  const key = `${countryCode}_${role}`;
+  return LICENSE_FORMATS[key] || null;
+}
+
+function getLicenseHint(countryCode, role) {
+  const fmt = getLicenseFormat(countryCode, role);
+  return fmt ? fmt.format : "License / registration number";
+}
+
+function canAutoVerify(countryCode, role) {
+  const fmt = getLicenseFormat(countryCode, role);
+  return fmt ? fmt.autoVerify : false;
+}
+
 

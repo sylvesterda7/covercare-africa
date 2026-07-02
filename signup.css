@@ -210,6 +210,12 @@ input[type="file"]:hover {
   color: #E24B4A;
 }
 
+.verify-result.info {
+  background: rgba(107,114,128,0.08);
+  border: 1px solid rgba(107,114,128,0.15);
+  color: #374151;
+}
+
 @keyframes cc-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
