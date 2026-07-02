@@ -101,10 +101,6 @@
   box-sizing: border-box;
 }
 
-.btn-auth:hover {
-  background: var(--accent-hover);
-}
-
 .btn-auth:disabled {
   opacity: 0.5;
   cursor: not-allowed;

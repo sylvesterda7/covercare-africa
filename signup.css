@@ -121,10 +121,6 @@ input[type="file"]:hover {
   box-sizing: border-box;
 }
 
-.btn-submit:hover {
-  background: var(--accent-hover);
-}
-
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -289,9 +285,6 @@ input[type="file"]:hover {
   box-sizing: border-box;
 }
 
-.btn-home:hover {
-  background: var(--accent-hover);
-}
 
 /* ── Progress bar ── */
 .progress-wrap {
