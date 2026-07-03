@@ -12,7 +12,7 @@ FROM auth.users u
 WHERE f.user_id IS NULL
   AND lower(f.email) = lower(u.email);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_facilities_user_id ON facilities (user_id);
+CREATE INDEX IF NOT EXISTS idx_facilities_user_id ON facilities (user_id);
 
 -- NOTE: after this is backfilled and the backend is updated to set user_id on
 -- new facility rows (POST /facility), email-based lookups can migrate to
