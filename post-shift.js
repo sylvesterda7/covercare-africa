@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     try {
       const { data: facility } = await window._supabase
         .from("facilities")
-        .select("facility_name, facility_type, city, contact_name, phone, billing_model, trusted_by")
+        .select("facility_name, facility_type, city, contact_name, phone")
         .eq("email", session.user.email)
         .maybeSingle();
 
@@ -157,12 +157,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         lockSelect("city", facility.city);
         lockInput("contactName", facility.contact_name);
         lockInput("contactPhone", facility.phone);
-
-        window._canPostpaid = facility.billing_model === "postpaid" && !!facility.trusted_by;
-        if (window._canPostpaid) {
-          const el = document.getElementById("paymentMethodToggle");
-          if (el) el.style.display = "block";
-        }
         return;
       }
 
@@ -179,6 +173,23 @@ document.addEventListener("DOMContentLoaded", async function() {
         lockSelect("facilityType", "individual");
         lockInput("contactName", client.full_name);
         lockInput("contactPhone", client.phone);
+      }
+    } catch (_) {}
+  })();
+
+  // ── Check if facility is trusted (postpaid billing) — isolated so a schema
+  //    mismatch here can't take down the identity-lock logic above ──
+  (async () => {
+    try {
+      const { data: fac } = await window._supabase
+        .from("facilities")
+        .select("billing_model, trusted_by")
+        .eq("email", session.user.email)
+        .maybeSingle();
+      window._canPostpaid = fac?.billing_model === "postpaid" && !!fac?.trusted_by;
+      if (window._canPostpaid) {
+        const el = document.getElementById("paymentMethodToggle");
+        if (el) el.style.display = "block";
       }
     } catch (_) {}
   })();
