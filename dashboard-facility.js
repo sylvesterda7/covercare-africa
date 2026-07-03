@@ -109,8 +109,9 @@ async function loadShifts(email) {
   if (liveContainer) {
     if (inProgress.length > 0) {
       const workerIds = [...new Set(inProgress.map(s => s.worker_id).filter(Boolean))];
-      const { data: workers } = await _supabase.from("workers").select("id, full_name, role").in("id", workerIds);
-      const workerMap = Object.fromEntries((workers || []).map(w => [w.id, w]));
+      const { data: wResult } = await ccFetch("/facility/shift-workers", { method: "POST", body: JSON.stringify({ worker_ids: workerIds }) });
+      const workers = wResult?.data || [];
+      const workerMap = Object.fromEntries(workers.map(w => [w.id, w]));
       liveContainer.innerHTML = inProgress.map(s => `
         <div class="profile-card" style="margin-bottom:10px;">
           <div class="profile-info" style="flex:1;">
@@ -147,8 +148,9 @@ async function loadShifts(email) {
   const filledContainer = document.getElementById("filledShiftsContainer");
   if (filledShifts.length > 0) {
     const workerIds = [...new Set(filledShifts.map(s => s.worker_id).filter(Boolean))];
-    const { data: workers } = workerIds.length > 0 ? await _supabase.from("workers").select("id, full_name, role, phone, email, city, experience, bio, profile_photo_url, license_verified, identity_verified").in("id", workerIds) : { data: [] };
-    const workerMap = Object.fromEntries((workers || []).map(w => [w.id, w]));
+    const { data: wResult } = workerIds.length > 0 ? await ccFetch("/facility/shift-workers", { method: "POST", body: JSON.stringify({ worker_ids: workerIds }) }) : { data: { data: [] } };
+    const workers = wResult?.data || [];
+    const workerMap = Object.fromEntries(workers.map(w => [w.id, w]));
 
     filledContainer.innerHTML = filledShifts.map(shift => {
       const w = shift.worker_id ? workerMap[shift.worker_id] : null;
