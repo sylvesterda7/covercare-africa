@@ -1,18 +1,7 @@
 /* ── Mobbin Light Theme ── */
 .mobbin-theme {
-  --bg-deep: #ffffff;
-  --bg-card: #FFFFFF;
-  --bg-elevated: #f5f5f5;
-  --border: rgba(64,64,64,0.08);
-  --fg-primary: #141414;
-  --fg-muted: #707070;
-  --accent: #141414;
-  --accent-dim: rgba(64,64,64,0.06);
-  --accent-border: rgba(64,64,64,0.12);
   --glass-opacity: 1;
   --blur-amount: 0px;
-  --radius-card: 8px;
-  --shadow-card: none;
 }
 
 .mobbin-theme .orb { display: none; }
