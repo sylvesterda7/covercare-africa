@@ -250,59 +250,9 @@ function applyFilters() {
   renderShifts(filtered);
 }
 
-function normalizeRole(role) {
-  const map = {
-    "medical-doctor": "medical-doctor",
-    "lab-technician": "lab-technician",
-    "pharmacist": "pharmacist",
-    "pharmacy-tech": "pharmacy-tech",
-    "nurse": "nurse",
-    "doctor": "medical-doctor",
-    "lab-tech": "lab-technician",
-    "caregiver": "caregiver",
-    "midwife": "midwife",
-    "community health worker": "community health worker",
-    "other": null
-  };
-  if (!role) return null;
-  const key = role.toLowerCase();
-  return map[key] || null;
-}
-
 async function loadShifts() {
-  const workerRole = currentWorker ? normalizeRole(currentWorker.role) : null;
-  const workerId = currentWorker?.id;
-
-  // Fetch open shifts matching role
-  let query = _supabase
-    .from("shifts")
-    .select("*")
-    .eq("status", "open");
-
-  if (workerRole) {
-    query = query.eq("role_needed", workerRole);
-  }
-
-  const { data: openShifts, error } = await query
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  // Also fetch shifts preassigned to this worker
-  let assignedShifts = [];
-  if (workerId) {
-    const { data: as } = await _supabase
-      .from("shifts")
-      .select("*")
-      .eq("assigned_to_worker_id", workerId)
-      .in("status", ["open", "accepted", "in_progress"])
-      .order("created_at", { ascending: false });
-    if (as) assignedShifts = as;
-  }
-
-  let allData = [...(openShifts || []), ...assignedShifts];
-  // Deduplicate
-  const seen = new Set();
-  allData = allData.filter(s => { if (seen.has(s.id)) return false; seen.add(s.id); return true; });
+  const { data: result } = await ccFetch("/shifts/open", { method: "GET" });
+  const allData = result?.success ? (result.data || []) : [];
 
   if (allData.length === 0) {
     document.getElementById("shiftsContainer").innerHTML = `
@@ -322,53 +272,7 @@ async function loadShifts() {
 
   // Also exclude assigned shifts that are accepted (they'll show in active section)
   // but keep assigned open shifts visible
-
-  // Fetch poster details (clients) for shifts
-  const clientEmails = [...new Set(allData
-    .filter(s => !appliedIds.has(s.id))
-    .map(s => s.contact_email?.toLowerCase())
-    .filter(Boolean))];
-  const posterMap = {};
-  if (clientEmails.length > 0) {
-    const { data: clients } = await _supabase
-      .from("clients")
-      .select("email, full_name, profile_photo_url, city")
-      .in("email", clientEmails);
-    if (clients) {
-      clients.forEach(c => { posterMap[c.email.toLowerCase()] = c; });
-    }
-  }
-
-  // Fetch branch locations for shifts that have branch_id
-  const branchIds = [...new Set(allData.map(s => s.branch_id).filter(Boolean))];
-  const branchMap = {};
-  if (branchIds.length > 0) {
-    const { data: branches } = await _supabase
-      .from("facility_branches")
-      .select("*")
-      .in("id", branchIds);
-    if (branches) {
-      branches.forEach(b => { branchMap[b.id] = b; });
-    }
-  }
-
-  _allShifts = allData.filter(s => !appliedIds.has(s.id) || assignedShifts.some(a => a.id === s.id)).map(s => {
-    const poster = posterMap[s.contact_email?.toLowerCase()];
-    if (poster) {
-      s._poster_name = poster.full_name;
-      s._poster_photo = poster.profile_photo_url;
-      s._poster_city = poster.city;
-    }
-    const branch = branchMap[s.branch_id];
-    if (branch) {
-      s._branch_name = branch.name;
-      s._branch_address = branch.address;
-      s._branch_lat = branch.latitude;
-      s._branch_lng = branch.longitude;
-    }
-    s._is_assigned = assignedShifts.some(a => a.id === s.id);
-    return s;
-  });
+  _allShifts = allData.filter(s => !appliedIds.has(s.id) || s._is_assigned);
   applyFilters();
 }
 
