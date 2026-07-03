@@ -83,17 +83,46 @@ async function fetchSuggestedRates() {
   }
 }
 
+// ── Lock a text/tel input to a value from the caller's account profile ──
+function lockInput(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = value || "";
+  el.readOnly = true;
+  el.style.opacity = "0.7";
+  el.style.cursor = "not-allowed";
+  el.title = "Uses your account profile";
+}
+
+// ── Lock a <select> to a value from the account profile, adding the option if the
+//    hardcoded list doesn't already contain it (so the field never locks in blank) ──
+function lockSelect(id, value) {
+  const el = document.getElementById(id);
+  if (!el || !value) return;
+  let match = Array.from(el.options).find(o => o.value === value);
+  if (!match) {
+    match = document.createElement("option");
+    match.value = value;
+    match.textContent = value;
+    el.appendChild(match);
+  }
+  el.value = value;
+  el.disabled = true;
+  el.style.opacity = "0.7";
+  el.style.cursor = "not-allowed";
+  el.title = "Uses your account profile";
+}
+
 document.addEventListener("DOMContentLoaded", async function() {
   window._supabase = window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY);
   const { data: { session } } = await window._supabase.auth.getSession();
-  if (session) {
-    const emailField = document.getElementById("contactEmail");
-    emailField.value = session.user.email;
-    emailField.readOnly = true;
-    emailField.style.opacity = "0.7";
-    emailField.style.cursor = "not-allowed";
-    emailField.title = "Uses your account email";
+  if (!session) {
+    window.location.href = "login.html";
+    return;
   }
+
+  lockInput("contactEmail", session.user.email);
+  document.getElementById("contactEmail").title = "Uses your account email";
 
   fetchSuggestedRates();
 
@@ -113,37 +142,43 @@ document.addEventListener("DOMContentLoaded", async function() {
     } catch (_) {}
   })();
 
-  // ── Check if facility is trusted (postpaid billing) ──
+  // ── Lock identity fields to the logged-in facility or individual client profile ──
   (async () => {
     try {
-      const { data: fac } = await window._supabase
+      const { data: facility } = await window._supabase
         .from("facilities")
-        .select("billing_model, trusted_by")
-        .eq("email", session?.user?.email)
+        .select("facility_name, facility_type, city, contact_name, phone, billing_model, trusted_by")
+        .eq("email", session.user.email)
         .maybeSingle();
-      window._canPostpaid = fac?.billing_model === "postpaid" && !!fac?.trusted_by;
-      if (window._canPostpaid) {
-        const el = document.getElementById("paymentMethodToggle");
-        if (el) el.style.display = "block";
-      }
-    } catch (_) {}
-  })();
 
-  // ── Pre-fill client info if user is an individual ──
-  (async () => {
-    try {
+      if (facility) {
+        lockInput("facilityName", facility.facility_name);
+        lockSelect("facilityType", facility.facility_type);
+        lockSelect("city", facility.city);
+        lockInput("contactName", facility.contact_name);
+        lockInput("contactPhone", facility.phone);
+
+        window._canPostpaid = facility.billing_model === "postpaid" && !!facility.trusted_by;
+        if (window._canPostpaid) {
+          const el = document.getElementById("paymentMethodToggle");
+          if (el) el.style.display = "block";
+        }
+        return;
+      }
+
+      // Not a facility account — check for an individual client profile
       const { data: client } = await window._supabase
         .from("clients")
-        .select("full_name, city")
-        .eq("email", session?.user?.email)
+        .select("full_name, city, phone")
+        .eq("email", session.user.email)
         .maybeSingle();
+
       if (client) {
-        const nameEl = document.getElementById("facilityName");
-        if (nameEl && !nameEl.value) nameEl.value = client.full_name || "";
-        const cityEl = document.getElementById("city");
-        if (cityEl && !cityEl.value && client.city) cityEl.value = client.city;
-        const typeEl = document.getElementById("facilityType");
-        if (typeEl && !typeEl.value) typeEl.value = "individual";
+        lockInput("facilityName", client.full_name);
+        lockSelect("city", client.city);
+        lockSelect("facilityType", "individual");
+        lockInput("contactName", client.full_name);
+        lockInput("contactPhone", client.phone);
       }
     } catch (_) {}
   })();
