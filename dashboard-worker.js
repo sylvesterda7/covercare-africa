@@ -198,6 +198,7 @@ function renderShifts(shifts) {
     const branchInfo = shift._branch_name ? `<p style="font-size:12px;color:#6b7280;">📍 ${escapeHtml(shift._branch_name)}${shift._branch_address ? " · " + escapeHtml(shift._branch_address) : ""}</p>` : "";
     const directionsBtn = (shift._branch_lat && shift._branch_lng) ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${shift._branch_lat},${shift._branch_lng}" target="_blank" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:#111827;cursor:pointer;text-decoration:none;display:inline-block;">🗺 Directions</a>` : "";
     const assignedBadge = shift._is_assigned ? `<span class="badge" style="background:#111827;color:#fff;font-size:11px;">Assigned to you</span>` : "";
+    const workersBadge = (shift.workers_needed || 1) > 1 ? `<span class="badge badge-grey" style="font-size:11px;">${shift.workers_needed} spots</span>` : "";
     return `
     <div class="profile-card" style="margin-bottom:12px;">
       <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px; overflow:hidden;">
@@ -206,7 +207,7 @@ function renderShifts(shifts) {
       <div class="profile-info" style="flex:1;">
         <h3>${escapeHtml(shift._poster_name || shift.facility_name) || "—"}</h3>
         <p>${escapeHtml(shift.role_needed) || "—"} · ${escapeHtml(shift._poster_city || shift.city) || "—"}</p>
-        <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
+        <p>${escapeHtml(ccShiftDateRange(shift.shift_date, shift.days_needed)) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
         <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
         ${branchInfo}
         <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
@@ -214,6 +215,7 @@ function renderShifts(shifts) {
             ${shift.urgency === "today" ? "🔴 Urgent" : "Open"}
           </span>
           ${assignedBadge}
+          ${workersBadge}
           ${directionsBtn}
         </div>
       </div>

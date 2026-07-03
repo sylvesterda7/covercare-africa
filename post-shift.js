@@ -59,6 +59,10 @@ function validateStep2() {
     ccToast("Please choose at least 1 professional.", "error");
     return false;
   }
+  if (workersNeeded > 20) {
+    ccToast("Maximum 20 professionals per shift. For larger needs, post multiple shifts or contact support.", "error");
+    return false;
+  }
 
   const payRateInput = document.getElementById("payRate");
   if (!payRateInput.value) {
@@ -254,6 +258,25 @@ document.addEventListener("DOMContentLoaded", async function() {
   durationHoursEl.addEventListener("input", updateEstimate);
   daysNeededEl.addEventListener("input", updateEstimate);
   workersNeededEl.addEventListener("input", updateEstimate);
+
+  // ── Auto-calculated end date for multi-day shifts ──
+  const shiftDateEl = document.getElementById("shiftDate");
+  function updateEndDate() {
+    const hint = document.getElementById("endDateHint");
+    if (!hint) return;
+    const start = shiftDateEl.value;
+    const days = parseInt(daysNeededEl.value, 10) || 1;
+    if (start && days > 1) {
+      const d = new Date(start + "T00:00:00");
+      d.setDate(d.getDate() + days - 1);
+      hint.textContent = `Runs ${start} → ${d.toISOString().slice(0, 10)} (${days} days)`;
+      hint.style.display = "block";
+    } else {
+      hint.style.display = "none";
+    }
+  }
+  shiftDateEl.addEventListener("input", updateEndDate);
+  daysNeededEl.addEventListener("input", updateEndDate);
 });
 
 // ── Show shift summary on step 3 ──
@@ -274,7 +297,7 @@ function showSummary() {
     "<strong>Facility:</strong> " + facility + "<br>" +
     "<strong>City:</strong> " + city + "<br>" +
     "<strong>Role needed:</strong> " + role + "<br>" +
-    "<strong>Date:</strong> " + date + "<br>" +
+    "<strong>Date:</strong> " + ccShiftDateRange(date, daysNeeded) + "<br>" +
     "<strong>Start time:</strong> " + time + "<br>" +
     "<strong>Hours per day:</strong> " + durationHours + " hours<br>" +
     "<strong>Days needed:</strong> " + daysNeeded + "<br>" +
@@ -311,6 +334,10 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
   }
   if (parseInt(workersVal, 10) < 1) {
     ccToast("Please choose at least 1 professional.", "error");
+    return;
+  }
+  if (parseInt(workersVal, 10) > 20) {
+    ccToast("Maximum 20 professionals per shift. For larger needs, post multiple shifts or contact support.", "error");
     return;
   }
 
