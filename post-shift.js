@@ -48,7 +48,7 @@ function validateStep2() {
   const workersNeeded = parseInt(document.getElementById("workersNeeded").value, 10);
 
   if (Number.isNaN(durationHours) || durationHours < 4) {
-    ccToast("Shift duration must be at least 4 hours.", "error");
+    ccToast("Minimum shift duration is 4 hours. This protects our professionals and ensures quality care.", "error");
     return false;
   }
   if (Number.isNaN(daysNeeded) || daysNeeded < 1) {
@@ -198,6 +198,22 @@ document.addEventListener("DOMContentLoaded", async function() {
   const payRateEl = document.getElementById("payRate");
   const rateHintEl = document.getElementById("rateHint");
   const durationHoursEl = document.getElementById("durationHours");
+
+  // ── Duration preset buttons ──
+  document.querySelectorAll("#durationPresets .duration-preset").forEach(btn => {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#durationPresets .duration-preset").forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+      if (this.dataset.hours === "custom") {
+        durationHoursEl.style.display = "block";
+        durationHoursEl.focus();
+      } else {
+        durationHoursEl.style.display = "none";
+        durationHoursEl.value = this.dataset.hours;
+        durationHoursEl.dispatchEvent(new Event("input"));
+      }
+    });
+  });
   const daysNeededEl = document.getElementById("daysNeeded");
   const workersNeededEl = document.getElementById("workersNeeded");
 
@@ -286,7 +302,7 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
   var workersVal = document.getElementById("workersNeeded").value;
 
   if (parseFloat(durationVal) < 4) {
-    ccToast("Shift duration must be at least 4 hours.", "error");
+    ccToast("Minimum shift duration is 4 hours. This protects our professionals and ensures quality care.", "error");
     return;
   }
   if (parseInt(daysVal, 10) < 1) {

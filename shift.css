@@ -16,6 +16,38 @@
   margin-bottom: 0.25rem;
 }
 
+/* ── Duration preset buttons ── */
+.duration-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.duration-preset {
+  padding: 9px 18px;
+  border-radius: 9999px;
+  border: none;
+  box-shadow: inset 0 0 0 1px rgba(64,64,64,0.16);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.duration-preset:hover {
+  box-shadow: inset 0 0 0 1px var(--accent);
+  color: var(--fg-primary);
+}
+
+.duration-preset.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
 /* ── Pay estimate ── */
 .pay-estimate {
   background: var(--bg-elevated);
