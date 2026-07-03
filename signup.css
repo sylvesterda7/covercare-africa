@@ -107,7 +107,9 @@ input[type="file"]:hover {
 }
 
 .btn-submit {
-  background: var(--accent);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 45%),
+    var(--accent);
   color: #fff;
   border: none;
   padding: 0 16px;
@@ -116,14 +118,27 @@ input[type="file"]:hover {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
   transition: var(--transition);
   font-family: inherit;
   box-sizing: border-box;
 }
 
+.btn-submit:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* ── Verify row ── */
@@ -238,6 +253,7 @@ input[type="file"]:hover {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
 }
 
 .success-icon {
@@ -252,6 +268,7 @@ input[type="file"]:hover {
   align-items: center;
   justify-content: center;
   margin: 0 auto 1.25rem;
+  box-shadow: var(--shadow-card);
 }
 
 .success-card h2 {
@@ -273,7 +290,9 @@ input[type="file"]:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 45%),
+    var(--accent);
   color: #fff;
   padding: 0 16px;
   min-height: 44px;
@@ -281,8 +300,14 @@ input[type="file"]:hover {
   font-size: 16px;
   font-weight: 600;
   text-decoration: none;
+  box-shadow: var(--shadow-sm);
   transition: var(--transition);
   box-sizing: border-box;
+}
+
+.btn-home:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
 }
 
 

@@ -86,7 +86,9 @@
 }
 
 .btn-auth {
-  background: var(--accent);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 45%),
+    var(--accent);
   color: #fff;
   border: none;
   padding: 0 16px;
@@ -96,14 +98,27 @@
   font-weight: 600;
   cursor: pointer;
   margin-top: 0.5rem;
+  box-shadow: var(--shadow-sm);
   transition: var(--transition);
   font-family: inherit;
   box-sizing: border-box;
 }
 
+.btn-auth:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.btn-auth:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
 .btn-auth:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .auth-switch {
@@ -623,12 +638,15 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--bg-card);
+  box-shadow: var(--shadow-card);
   text-decoration: none;
-  transition: all 0.15s;
+  transition: var(--transition);
   cursor: pointer;
 }
 .post-choice-card:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
 }
 
 /* ── QR arrival page ── */
