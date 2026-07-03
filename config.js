@@ -496,6 +496,19 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
+// ── Shift date range: "2026-07-10" + 3 days → "2026-07-10 → 2026-07-12" ──
+// Returns just the start date when the shift is a single day.
+function ccShiftDateRange(startDate, daysNeeded) {
+  if (!startDate) return "";
+  const days = parseInt(daysNeeded, 10) || 1;
+  if (days <= 1) return startDate;
+  const d = new Date(startDate + "T00:00:00");
+  if (isNaN(d.getTime())) return startDate;
+  d.setDate(d.getDate() + days - 1);
+  const end = d.toISOString().slice(0, 10);
+  return startDate + " → " + end;
+}
+
 function downloadCSV(rows, headers, filename) {
   const csv = [headers.join(","), ...rows.map(r => r.map(cell => {
     const val = String(cell ?? "");
@@ -794,7 +807,7 @@ const LICENSE_FORMATS = {
   "NG_medical-doctor":  { format: "e.g. MDCN 12345",         autoVerify: false },
   "NG_pharmacy-tech":   { format: "e.g. PCN/TECH/12345",     autoVerify: false },
   "NG_lab-technician":  { format: "e.g. MLSCN 12345",        autoVerify: false },
-  "ZA_pharmacist":      { format: "e.g. P48564",             autoVerify: false },
+  "ZA_pharmacist":      { format: "e.g. P48564",             autoVerify: true },
   "ZA_pharmacy-tech":   { format: "e.g. PT 12345",           autoVerify: false },
   "ZA_nurse":           { format: "e.g. SANC 12345",         autoVerify: false },
   "ZA_medical-doctor":  { format: "e.g. HPCSA 12345",        autoVerify: false },

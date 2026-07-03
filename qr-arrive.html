@@ -67,8 +67,13 @@
 
           <div id="verifyBadges" class="arrive-badges"></div>
 
+          <div id="geoStatus" style="display:none; font-size:13px; padding:10px 14px; border-radius:8px; margin-bottom:12px; background:var(--bg-elevated); border:1px solid var(--border); color:var(--fg-muted);"></div>
+
           <button class="btn-auth" id="confirmArriveBtn" onclick="confirmArrival()">
             Confirm arrival
+          </button>
+          <button type="button" id="geoOverrideBtn" onclick="overrideGeoCheck()" style="display:none; margin-top:8px; background:transparent; border:none; box-shadow:inset 0 0 0 1px rgba(64,64,64,0.16); padding:10px 16px; border-radius:9999px; font-size:13px; font-weight:500; color:var(--fg-muted); cursor:pointer; font-family:inherit; width:100%;">
+            Can't verify location? Manual override
           </button>
           <p class="arrive-hint">Facility manager: tap to log this worker's arrival time.</p>
         </div>

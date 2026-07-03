@@ -80,10 +80,11 @@ async function loadShifts(email) {
         </div>
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(shift.role_needed) || "—"}</h3>
-          <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
+          <p>${escapeHtml(ccShiftDateRange(shift.shift_date, shift.days_needed)) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(shift.pay_rate) || "—"}</p>
-          <div style="margin-top:8px;">
+          <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
             <span class="badge badge-yellow">Awaiting applicants</span>
+            ${(shift.workers_needed || 1) > 1 ? `<span class="badge badge-grey">${shift.workers_needed} professionals needed</span>` : ""}
           </div>
         </div>
         <div>
@@ -132,7 +133,7 @@ async function loadShifts(email) {
         <div class="profile-card" style="margin-bottom:10px;">
           <div class="profile-info" style="flex:1;">
             <p style="font-weight:500;">${escapeHtml(s.role_needed) || "—"}</p>
-            <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
+            <p>${escapeHtml(ccShiftDateRange(s.shift_date, s.days_needed)) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
             <p style="font-size:12px;color:#6b7280;">Worker: ${s.worker_name || "Assigned"}</p>
           </div>
         </div>
@@ -166,7 +167,7 @@ async function loadShifts(email) {
         </div>
         <div class="profile-info" style="flex:1;">
           <h3>${w ? escapeHtml(w.full_name) : escapeHtml(shift.role_needed) || "—"}</h3>
-          <p>${escapeHtml(shift.shift_date) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
+          <p>${escapeHtml(ccShiftDateRange(shift.shift_date, shift.days_needed)) || "—"} · ${escapeHtml(shift.start_time) || "—"} · ${escapeHtml(shift.duration) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(shift.total_pay) || "—"}</p>
           ${lateInfo}
           <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
@@ -407,7 +408,7 @@ async function loadCompletedShifts() {
         <div class="profile-info" style="flex:1;">
           <h3>${escapeHtml(s.role_needed) || "—"}</h3>
           <p>${escapeHtml(s.facility_name) || "—"} · ${escapeHtml(s.city) || "—"}</p>
-          <p>${escapeHtml(s.shift_date) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
+          <p>${escapeHtml(ccShiftDateRange(s.shift_date, s.days_needed)) || "—"} · ${escapeHtml(s.start_time) || "—"} · ${escapeHtml(s.duration) || "—"}</p>
           <p style="color:#111827; font-weight:500;">${escapeHtml(s.total_pay) || "—"}</p>
         </div>
         <button onclick="openFacilityRatingModal('${escapeHtml(s.id)}', '${escapeHtml(s.worker_id || "")}')" class="btn-primary-sm" style="font-size:12px; padding:7px 14px; flex-shrink:0;">Rate</button>

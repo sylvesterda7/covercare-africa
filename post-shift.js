@@ -48,7 +48,7 @@ function validateStep2() {
   const workersNeeded = parseInt(document.getElementById("workersNeeded").value, 10);
 
   if (Number.isNaN(durationHours) || durationHours < 4) {
-    ccToast("Shift duration must be at least 4 hours.", "error");
+    ccToast("Minimum shift duration is 4 hours. This protects our professionals and ensures quality care.", "error");
     return false;
   }
   if (Number.isNaN(daysNeeded) || daysNeeded < 1) {
@@ -57,6 +57,10 @@ function validateStep2() {
   }
   if (Number.isNaN(workersNeeded) || workersNeeded < 1) {
     ccToast("Please choose at least 1 professional.", "error");
+    return false;
+  }
+  if (workersNeeded > 20) {
+    ccToast("Maximum 20 professionals per shift. For larger needs, post multiple shifts or contact support.", "error");
     return false;
   }
 
@@ -198,6 +202,22 @@ document.addEventListener("DOMContentLoaded", async function() {
   const payRateEl = document.getElementById("payRate");
   const rateHintEl = document.getElementById("rateHint");
   const durationHoursEl = document.getElementById("durationHours");
+
+  // ── Duration preset buttons ──
+  document.querySelectorAll("#durationPresets .duration-preset").forEach(btn => {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#durationPresets .duration-preset").forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+      if (this.dataset.hours === "custom") {
+        durationHoursEl.style.display = "block";
+        durationHoursEl.focus();
+      } else {
+        durationHoursEl.style.display = "none";
+        durationHoursEl.value = this.dataset.hours;
+        durationHoursEl.dispatchEvent(new Event("input"));
+      }
+    });
+  });
   const daysNeededEl = document.getElementById("daysNeeded");
   const workersNeededEl = document.getElementById("workersNeeded");
 
@@ -238,6 +258,25 @@ document.addEventListener("DOMContentLoaded", async function() {
   durationHoursEl.addEventListener("input", updateEstimate);
   daysNeededEl.addEventListener("input", updateEstimate);
   workersNeededEl.addEventListener("input", updateEstimate);
+
+  // ── Auto-calculated end date for multi-day shifts ──
+  const shiftDateEl = document.getElementById("shiftDate");
+  function updateEndDate() {
+    const hint = document.getElementById("endDateHint");
+    if (!hint) return;
+    const start = shiftDateEl.value;
+    const days = parseInt(daysNeededEl.value, 10) || 1;
+    if (start && days > 1) {
+      const d = new Date(start + "T00:00:00");
+      d.setDate(d.getDate() + days - 1);
+      hint.textContent = `Runs ${start} → ${d.toISOString().slice(0, 10)} (${days} days)`;
+      hint.style.display = "block";
+    } else {
+      hint.style.display = "none";
+    }
+  }
+  shiftDateEl.addEventListener("input", updateEndDate);
+  daysNeededEl.addEventListener("input", updateEndDate);
 });
 
 // ── Show shift summary on step 3 ──
@@ -258,7 +297,7 @@ function showSummary() {
     "<strong>Facility:</strong> " + facility + "<br>" +
     "<strong>City:</strong> " + city + "<br>" +
     "<strong>Role needed:</strong> " + role + "<br>" +
-    "<strong>Date:</strong> " + date + "<br>" +
+    "<strong>Date:</strong> " + ccShiftDateRange(date, daysNeeded) + "<br>" +
     "<strong>Start time:</strong> " + time + "<br>" +
     "<strong>Hours per day:</strong> " + durationHours + " hours<br>" +
     "<strong>Days needed:</strong> " + daysNeeded + "<br>" +
@@ -286,7 +325,7 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
   var workersVal = document.getElementById("workersNeeded").value;
 
   if (parseFloat(durationVal) < 4) {
-    ccToast("Shift duration must be at least 4 hours.", "error");
+    ccToast("Minimum shift duration is 4 hours. This protects our professionals and ensures quality care.", "error");
     return;
   }
   if (parseInt(daysVal, 10) < 1) {
@@ -295,6 +334,10 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
   }
   if (parseInt(workersVal, 10) < 1) {
     ccToast("Please choose at least 1 professional.", "error");
+    return;
+  }
+  if (parseInt(workersVal, 10) > 20) {
+    ccToast("Maximum 20 professionals per shift. For larger needs, post multiple shifts or contact support.", "error");
     return;
   }
 
@@ -346,6 +389,13 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     console.log("Payment init:", initData);
 
     if (!initData.success) {
+      if (initData.credit_limit_exceeded) {
+        // Credit limit reached — switch back to upfront payment
+        var instantRadio = document.querySelector('input[name="paymentMethod"][value="instant"]');
+        if (instantRadio) instantRadio.checked = true;
+        ccToast(initData.message || "Monthly credit limit reached. Please pay upfront for this shift.", "error", 8000);
+        return;
+      }
       ccToast("Payment initialization failed. Please try again.", "error");
       return;
     }
