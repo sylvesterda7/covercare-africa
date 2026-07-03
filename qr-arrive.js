@@ -37,29 +37,20 @@ async function init() {
   }
 
   try {
-    const [{ data: shift, error: shiftError }, { data: worker, error: workerError }] =
-      await Promise.all([
-        _supabase.from("shifts").select("*").eq("id", shiftId).single(),
-        _supabase.from("workers").select("*").eq("id", workerId).single()
-      ]);
+    // Safe check-in view from the backend (token-authorized). Avoids exposing
+    // full worker PII and shift contact/payment fields via the public read policy.
+    const { data: result } = await ccFetch(
+      `/shift/checkin-info?shift_id=${encodeURIComponent(shiftId)}&worker_id=${encodeURIComponent(workerId)}&token=${encodeURIComponent(token)}`,
+      { method: "GET" }
+    );
 
-    if (shiftError || !shift) {
-      showError("Shift not found.");
+    if (!result || !result.success) {
+      showError(result?.message || "This QR code is invalid or has expired.");
       return;
     }
 
-    if (workerError || !worker) {
-      showError("Worker not found.");
-      return;
-    }
-
-    if (shift.worker_id !== workerId || shift.qr_token !== token) {
-      showError("This QR code is invalid or has expired.");
-      return;
-    }
-
-    shiftData = shift;
-    workerData = worker;
+    shiftData = result.shift;
+    workerData = result.worker || {};
 
     if (shift.status === "completed") {
       document.getElementById("alreadyCompletionTime").textContent =
