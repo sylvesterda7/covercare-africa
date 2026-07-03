@@ -807,7 +807,7 @@ const LICENSE_FORMATS = {
   "NG_medical-doctor":  { format: "e.g. MDCN 12345",         autoVerify: false },
   "NG_pharmacy-tech":   { format: "e.g. PCN/TECH/12345",     autoVerify: false },
   "NG_lab-technician":  { format: "e.g. MLSCN 12345",        autoVerify: false },
-  "ZA_pharmacist":      { format: "e.g. P48564",             autoVerify: false },
+  "ZA_pharmacist":      { format: "e.g. P48564",             autoVerify: true },
   "ZA_pharmacy-tech":   { format: "e.g. PT 12345",           autoVerify: false },
   "ZA_nurse":           { format: "e.g. SANC 12345",         autoVerify: false },
   "ZA_medical-doctor":  { format: "e.g. HPCSA 12345",        autoVerify: false },
