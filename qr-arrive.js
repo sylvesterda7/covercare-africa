@@ -85,7 +85,57 @@ async function init() {
   }
 }
 
+// ── Geo confirmation state ──
+let _geoPosition = null;
+let _geoError = null;
+
+function setGeoStatus(text, tone) {
+  const el = document.getElementById("geoStatus");
+  if (!el) return;
+  el.style.display = "block";
+  el.textContent = text;
+  el.style.color = tone === "ok" ? "#141414" : tone === "warn" ? "#b45309" : "var(--fg-muted)";
+}
+
+function requestGeoLocation() {
+  if (!navigator.geolocation) {
+    _geoError = "unsupported";
+    setGeoStatus("Location not supported on this device — use manual override if check-in is blocked.", "warn");
+    return;
+  }
+  setGeoStatus("Confirming you're at the facility…");
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      _geoPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      _geoError = null;
+      setGeoStatus("Location acquired ✓", "ok");
+    },
+    (err) => {
+      _geoError = err.code === 1 ? "denied" : "unavailable";
+      setGeoStatus(
+        _geoError === "denied"
+          ? "Location access denied. Enable location services to check in, or use manual override."
+          : "Could not determine your location. Try again, or use manual override.",
+        "warn"
+      );
+      document.getElementById("geoOverrideBtn").style.display = "block";
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+  );
+}
+
+function overrideGeoCheck() {
+  const reason = prompt("Manual override is logged and reviewed. Why can't location be verified?");
+  if (reason === null) return;
+  if (!reason.trim()) {
+    ccToast("A reason is required for manual override.", "error");
+    return;
+  }
+  confirmArrival({ geo_override: true, geo_override_reason: reason.trim() });
+}
+
 function showArriveConfirm() {
+  requestGeoLocation();
   document.getElementById("workerName").textContent = escapeHtml(workerData.full_name);
   document.getElementById("workerRole").textContent = escapeHtml(workerData.role);
   document.getElementById("facilityName").textContent = escapeHtml(shiftData.facility_name);
@@ -147,18 +197,36 @@ function toggleMakeUp(checked) {
   }
 }
 
-async function confirmArrival() {
+async function confirmArrival(overrideOpts) {
   const btn = document.getElementById("confirmArriveBtn");
   btn.disabled = true;
   btn.textContent = "Confirming...";
 
   try {
+    const body = { shift_id: shiftId, worker_id: workerId, token };
+    if (_geoPosition) {
+      body.checkin_latitude = _geoPosition.lat;
+      body.checkin_longitude = _geoPosition.lng;
+    }
+    if (overrideOpts?.geo_override) {
+      body.geo_override = true;
+      body.geo_override_reason = overrideOpts.geo_override_reason;
+    }
+
     const { data: result } = await ccFetch("/shift/arrive", {
       method: "POST",
-      body: JSON.stringify({ shift_id: shiftId, worker_id: workerId, token })
+      body: JSON.stringify(body)
     });
 
     if (!result.success) {
+      // Geo failures keep the confirm screen up with an override path,
+      // rather than dead-ending on the error state.
+      if (result.geo_required || result.geo_blocked) {
+        setGeoStatus(result.message, "warn");
+        document.getElementById("geoOverrideBtn").style.display = "block";
+        if (result.geo_required && !_geoPosition) requestGeoLocation();
+        return;
+      }
       showError(result.message || "Could not confirm arrival.");
       return;
     }

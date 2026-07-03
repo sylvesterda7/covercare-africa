@@ -85,6 +85,13 @@ async function loadProfile(email) {
     ? `<span class="badge badge-accent">✓ Identity verified</span>`
     : `<span class="badge badge-yellow">Identity pending</span>`;
 
+  // Punctuality score from arrival counters (only shown once there's history)
+  const totalArrivals = (parseInt(data.on_time_arrivals, 10) || 0) + (parseInt(data.late_arrivals, 10) || 0);
+  if (totalArrivals > 0) {
+    const punctualityPct = Math.round(((parseInt(data.on_time_arrivals, 10) || 0) / totalArrivals) * 100);
+    badges += ` <span class="badge badge-grey" style="margin-left:6px;">⏱ ${punctualityPct}% on-time</span>`;
+  }
+
   document.getElementById("profileBadges").innerHTML = badges;
   document.getElementById("verifiedBadge").textContent = data.license_verified ? "✓" : "Pending";
 
