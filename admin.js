@@ -1073,7 +1073,7 @@ async function loadAdminSettings() {
 
   const rates = s.suggested_rates || {
     pharmacist: 80, "pharmacy-tech": 40, "medical-doctor": 120,
-    nurse: 60, "lab-technician": 50
+    nurse: 60, "lab-technician": 50, "medicine-counter-assistant": 30
   };
   const ratesContainer = document.getElementById("adminSuggestedRates");
   if (ratesContainer) {

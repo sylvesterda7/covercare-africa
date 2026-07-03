@@ -41,6 +41,7 @@ document.getElementById("country").addEventListener("change", function() {
 const ROLES = [
   { value: "pharmacist", label: "Pharmacist" },
   { value: "pharmacy-tech", label: "Pharmacy Technician" },
+  { value: "medicine-counter-assistant", label: "Medicine Counter Assistant" },
   { value: "medical-doctor", label: "Medical Doctor" },
   { value: "nurse", label: "Nurse" },
   { value: "lab-technician", label: "Lab Technician" },
