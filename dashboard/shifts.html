@@ -124,61 +124,23 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <table id="shiftsTable" class="table table-hover">
+                                <div id="shiftsLoading" class="text-muted py-3">Loading shifts…</div>
+                                <div id="shiftsError" class="alert alert-danger d-none" role="alert"></div>
+                                <table id="shiftsTable" class="table table-hover d-none">
                                     <thead>
                                         <tr>
                                             <th>Facility</th>
                                             <th>Role</th>
                                             <th>Date</th>
-                                            <th>Time</th>
-                                            <th>Rate (GHS)</th>
-                                            <th>Verification</th>
+                                            <th>Start</th>
+                                            <th>Duration</th>
+                                            <th>Pay</th>
+                                            <th>Urgency</th>
                                             <th>Status</th>
                                             <th></th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Ridge Community Pharmacy</td>
-                                            <td>Pharmacist</td>
-                                            <td>08 Jul 2026</td>
-                                            <td>08:00 – 16:00</td>
-                                            <td>GHS 450</td>
-                                            <td><span class="badge badge-verified">PC Verified</span></td>
-                                            <td><span class="badge bg-success">Open</span></td>
-                                            <td><button class="btn btn-sm btn-primary">Apply</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Legon Family Clinic</td>
-                                            <td>Nurse</td>
-                                            <td>09 Jul 2026</td>
-                                            <td>20:00 – 06:00</td>
-                                            <td>GHS 380</td>
-                                            <td><span class="badge badge-pending">Manual Review</span></td>
-                                            <td><span class="badge bg-success">Open</span></td>
-                                            <td><button class="btn btn-sm btn-primary">Apply</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>East Legon Diagnostics</td>
-                                            <td>Lab Technician</td>
-                                            <td>10 Jul 2026</td>
-                                            <td>08:00 – 14:00</td>
-                                            <td>GHS 300</td>
-                                            <td><span class="badge badge-pending">Manual Review</span></td>
-                                            <td><span class="badge badge-full">Filled</span></td>
-                                            <td><button class="btn btn-sm btn-secondary" disabled>Full</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Tema Central Hospital</td>
-                                            <td>Pharmacist</td>
-                                            <td>11 Jul 2026</td>
-                                            <td>16:00 – 00:00</td>
-                                            <td>GHS 500</td>
-                                            <td><span class="badge badge-verified">PC Verified</span></td>
-                                            <td><span class="badge bg-success">Open</span></td>
-                                            <td><button class="btn btn-sm btn-primary">Apply</button></td>
-                                        </tr>
-                                    </tbody>
+                                    <tbody id="shiftsBody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -198,8 +160,130 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
         <script src="js/scripts.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.js" crossorigin="anonymous"></script>
-        <script>
-            const shiftsTable = new simpleDatatables.DataTable("#shiftsTable");
+
+        <!-- Supabase client — replace with your existing import if config.js already sets this up elsewhere -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script type="module">
+            // Matches the real `shifts` table schema (confirmed via information_schema).
+            import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+            // Pull these from your existing config.js / env setup rather than hardcoding.
+            const SUPABASE_URL = window.COVERCARE_SUPABASE_URL || "https://ifmpbrpcnnswqlwdytfy.supabase.co";
+            const SUPABASE_ANON_KEY = window.COVERCARE_SUPABASE_ANON_KEY || "sb_publishable_KT7yIGNSWn0DcKADLC0HtA_z9kaCoOB";
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const loadingEl = document.getElementById("shiftsLoading");
+            const errorEl = document.getElementById("shiftsError");
+            const tableEl = document.getElementById("shiftsTable");
+            const bodyEl = document.getElementById("shiftsBody");
+
+            function urgencyBadge(urgency) {
+                const map = {
+                    urgent: "bg-danger",
+                    high: "bg-warning text-dark",
+                    normal: "bg-secondary",
+                };
+                const cls = map[(urgency || "").toLowerCase()] || "bg-secondary";
+                return `<span class="badge ${cls}">${urgency || "—"}</span>`;
+            }
+
+            function statusCell(status) {
+                const isOpen = (status || "").toLowerCase() === "open";
+                const cls = isOpen ? "bg-success" : "badge-full";
+                return `<span class="badge ${cls}">${status || "unknown"}</span>`;
+            }
+
+            function actionCell(shift) {
+                const status = (shift.status || "").toLowerCase();
+                const isFilled = status !== "open" || shift.assigned_to_worker_id;
+                if (isFilled) {
+                    return '<button class="btn btn-sm btn-secondary" disabled>Filled</button>';
+                }
+                return `<button class="btn btn-sm btn-primary apply-btn" data-shift-id="${shift.id}">Apply</button>`;
+            }
+
+            function renderRow(shift) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${shift.facility_name}</td>
+                    <td>${shift.role_needed}</td>
+                    <td>${shift.shift_date}</td>
+                    <td>${shift.start_time}</td>
+                    <td>${shift.duration}</td>
+                    <td>${shift.pay_rate}</td>
+                    <td>${urgencyBadge(shift.urgency)}</td>
+                    <td>${statusCell(shift.status)}</td>
+                    <td>${actionCell(shift)}</td>
+                `;
+                return tr;
+            }
+
+            async function loadShifts() {
+                const { data, error } = await supabase
+                    .from("shifts")
+                    .select(
+                        "id, facility_name, facility_type, city, role_needed, shift_date, start_time, duration, pay_rate, urgency, status, assigned_to_worker_id"
+                    )
+                    .order("shift_date", { ascending: true });
+
+                if (error) {
+                    loadingEl.classList.add("d-none");
+                    errorEl.textContent = "Couldn't load shifts: " + error.message;
+                    errorEl.classList.remove("d-none");
+                    return;
+                }
+
+                loadingEl.classList.add("d-none");
+
+                if (!data || data.length === 0) {
+                    errorEl.textContent = "No shifts posted yet.";
+                    errorEl.classList.remove("d-none", "alert-danger");
+                    errorEl.classList.add("alert-info");
+                    return;
+                }
+
+                data.forEach((shift) => bodyEl.appendChild(renderRow(shift)));
+                tableEl.classList.remove("d-none");
+
+                // Only initialize the sortable/searchable table AFTER rows exist
+                new simpleDatatables.DataTable("#shiftsTable");
+
+                // Wire up Apply buttons now that they exist in the DOM
+                document.querySelectorAll(".apply-btn").forEach((btn) => {
+                    btn.addEventListener("click", () => applyToShift(btn.dataset.shiftId, btn));
+                });
+            }
+
+            async function applyToShift(shiftId, btnEl) {
+                btnEl.disabled = true;
+                btnEl.textContent = "Applying…";
+                try {
+                    // Replace this URL with your actual Railway backend endpoint that
+                    // assigns worker_id / assigned_to_worker_id and kicks off Paystack escrow.
+                    const response = await fetch(`/api/shifts/${shiftId}/apply`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        // Include auth header / session token as your backend expects
+                    });
+
+                    if (!response.ok) throw new Error("Application failed");
+
+                    const result = await response.json();
+
+                    if (result.paystackUrl) {
+                        window.location.href = result.paystackUrl;
+                    } else {
+                        btnEl.textContent = "Applied";
+                        btnEl.classList.replace("btn-primary", "btn-success");
+                    }
+                } catch (err) {
+                    btnEl.disabled = false;
+                    btnEl.textContent = "Apply";
+                    alert("Something went wrong applying to this shift. Please try again.");
+                }
+            }
+
+            loadShifts();
         </script>
     </body>
 </html>
