@@ -32,6 +32,11 @@ document.getElementById("country").addEventListener("change", function() {
       citySel.appendChild(opt);
     });
     document.getElementById("phone").placeholder = country.phonePrefix + " XX XXX XXXX";
+    const currencyNote = document.getElementById("currencyNote");
+    if (currencyNote) {
+      currencyNote.textContent = `You'll be paid in ${country.currency} (${country.name}).`;
+      currencyNote.style.display = "block";
+    }
   }
   document.getElementById("restOfForm").style.display = "block";
   updateLicenseHint();

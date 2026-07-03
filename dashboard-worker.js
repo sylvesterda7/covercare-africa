@@ -205,7 +205,12 @@ function renderShifts(shifts) {
     const branchInfo = shift._branch_name ? `<p style="font-size:12px;color:#6b7280;">📍 ${escapeHtml(shift._branch_name)}${shift._branch_address ? " · " + escapeHtml(shift._branch_address) : ""}</p>` : "";
     const directionsBtn = (shift._branch_lat && shift._branch_lng) ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${shift._branch_lat},${shift._branch_lng}" target="_blank" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:#111827;cursor:pointer;text-decoration:none;display:inline-block;">🗺 Directions</a>` : "";
     const assignedBadge = shift._is_assigned ? `<span class="badge" style="background:#111827;color:#fff;font-size:11px;">Assigned to you</span>` : "";
-    const workersBadge = (shift.workers_needed || 1) > 1 ? `<span class="badge badge-grey" style="font-size:11px;">${shift.workers_needed} spots</span>` : "";
+    const spotsOpen = shift._spots_open || 1;
+    const workersBadge = spotsOpen > 1
+      ? `<span class="badge badge-grey" style="font-size:11px;">${spotsOpen} spots open</span>`
+      : (shift.workers_needed || 1) > 1
+        ? `<span class="badge badge-grey" style="font-size:11px;">${shift.workers_needed}-professional shift</span>`
+        : "";
     return `
     <div class="profile-card" style="margin-bottom:12px;">
       <div class="profile-avatar" style="background:rgba(17,24,39,0.1); font-size:14px; overflow:hidden;">
