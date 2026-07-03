@@ -679,7 +679,8 @@ async function loadTrustedFacilities() {
             <th>Email</th>
             <th>Approved by</th>
             <th>Shifts this month</th>
-            <th>Monthly charge (GHS)</th>
+            <th>Credit used (GHS)</th>
+            <th>Credit limit (GHS)</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -692,7 +693,12 @@ async function loadTrustedFacilities() {
               <td>${escapeHtml(f.trusted_by || "—")}</td>
               <td>${f.shift_count || 0}</td>
               <td style="color:#111827; font-weight:500;">${f.monthly_charge ? f.monthly_charge.toLocaleString() : "0"}</td>
-              <td>
+              <td>${parseFloat(f.credit_limit) > 0 ? parseFloat(f.credit_limit).toLocaleString() : '<span style="color:var(--fg-muted);">No limit</span>'}</td>
+              <td style="white-space:nowrap;">
+                <button onclick="setCreditLimit('${escapeHtml(f.email)}', ${parseFloat(f.credit_limit) || 0})"
+                  style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--fg-primary); cursor:pointer; font-family:inherit; margin-right:4px;">
+                  Set limit
+                </button>
                 <button onclick="revokeFacility('${escapeHtml(f.email)}')"
                   style="font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid rgba(226,75,74,0.3); background:transparent; color:#E24B4A; cursor:pointer; font-family:inherit;">
                   Revoke
@@ -724,6 +730,29 @@ async function approveFacility(email) {
 }
 
 // ── Revoke facility ──
+async function setCreditLimit(email, currentLimit) {
+  const input = prompt(
+    `Set monthly credit limit (GHS) for ${email}.\nEnter 0 for no limit.`,
+    currentLimit || 0
+  );
+  if (input === null) return;
+  const limit = parseFloat(input);
+  if (Number.isNaN(limit) || limit < 0) {
+    ccToast("Please enter a valid non-negative amount.", "error");
+    return;
+  }
+  const { data: result } = await ccFetch("/admin/set-credit-limit", {
+    method: "POST",
+    body: JSON.stringify({ email, credit_limit: limit })
+  });
+  if (result?.success) {
+    ccToast(result.message || "Credit limit updated.", "success");
+    loadTrustedFacilities();
+  } else {
+    ccToast(result?.message || "Failed to set credit limit.", "error");
+  }
+}
+
 async function revokeFacility(email) {
   const confirmed = confirm(`Revoke postpaid billing for ${email}? They will need to pay upfront.`);
   if (!confirmed) return;

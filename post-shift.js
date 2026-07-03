@@ -389,6 +389,13 @@ document.getElementById("shiftForm").addEventListener("submit", async function(e
     console.log("Payment init:", initData);
 
     if (!initData.success) {
+      if (initData.credit_limit_exceeded) {
+        // Credit limit reached — switch back to upfront payment
+        var instantRadio = document.querySelector('input[name="paymentMethod"][value="instant"]');
+        if (instantRadio) instantRadio.checked = true;
+        ccToast(initData.message || "Monthly credit limit reached. Please pay upfront for this shift.", "error", 8000);
+        return;
+      }
       ccToast("Payment initialization failed. Please try again.", "error");
       return;
     }
