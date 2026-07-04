@@ -21,9 +21,24 @@ function goToStep(step) {
   document.querySelector(".progress-wrap").scrollIntoView({ behavior: "smooth" });
 }
 
+// ── Populate cities for a given country code, keeping the placeholder option ──
+function populateCitiesForCountry(countryCode) {
+  const citySel = document.getElementById("city");
+  const country = AFRICAN_COUNTRIES.find(c => c.code === countryCode);
+  citySel.innerHTML = '<option value="" disabled selected>Select city</option>';
+  if (country) {
+    country.cities.forEach(city => {
+      const opt = document.createElement("option");
+      opt.value = city.value;
+      opt.textContent = city.label;
+      citySel.appendChild(opt);
+    });
+  }
+}
+
 // ── Validate step 1 ──
 function validateStep1() {
-  const fields = ["facilityName", "facilityType", "city", "contactName", "contactEmail", "contactPhone"];
+  const fields = ["country", "facilityName", "facilityType", "city", "contactName", "contactEmail", "contactPhone"];
   for (let field of fields) {
     if (!document.getElementById(field).value.trim()) {
       ccToast("Please fill in all fields before continuing.", "error");
@@ -128,6 +143,18 @@ document.addEventListener("DOMContentLoaded", async function() {
   lockInput("contactEmail", session.user.email);
   document.getElementById("contactEmail").title = "Uses your account email";
 
+  // ── Populate country dropdown, cascading the city list on change ──
+  const countrySel = document.getElementById("country");
+  AFRICAN_COUNTRIES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.code;
+    opt.textContent = c.name;
+    countrySel.appendChild(opt);
+  });
+  countrySel.addEventListener("change", function() {
+    populateCitiesForCountry(this.value);
+  });
+
   fetchSuggestedRates();
 
   // ── Load facility branches ──
@@ -151,13 +178,15 @@ document.addEventListener("DOMContentLoaded", async function() {
     try {
       const { data: facility } = await window._supabase
         .from("facilities")
-        .select("facility_name, facility_type, city, contact_name, phone")
+        .select("facility_name, facility_type, city, country, contact_name, phone")
         .eq("email", session.user.email)
         .maybeSingle();
 
       if (facility) {
         lockInput("facilityName", facility.facility_name);
         lockSelect("facilityType", facility.facility_type);
+        if (facility.country) populateCitiesForCountry(facility.country);
+        lockSelect("country", facility.country);
         lockSelect("city", facility.city);
         lockInput("contactName", facility.contact_name);
         lockInput("contactPhone", facility.phone);
@@ -167,12 +196,14 @@ document.addEventListener("DOMContentLoaded", async function() {
       // Not a facility account — check for an individual client profile
       const { data: client } = await window._supabase
         .from("clients")
-        .select("full_name, city, phone")
+        .select("full_name, city, country, phone")
         .eq("email", session.user.email)
         .maybeSingle();
 
       if (client) {
         lockInput("facilityName", client.full_name);
+        if (client.country) populateCitiesForCountry(client.country);
+        lockSelect("country", client.country);
         lockSelect("city", client.city);
         lockSelect("facilityType", "individual");
         lockInput("contactName", client.full_name);

@@ -87,25 +87,37 @@
 
       <!-- WORKERS TABLE -->
       <div id="panel-workers" style="display:none;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:8px; flex-wrap:wrap;">
           <div class="section-title" style="border:none; margin:0; padding:0;">All Workers</div>
-          <input id="workerSearch" class="glass-input" type="text" placeholder="Search by name or email..." style="max-width:250px; padding:8px 12px; font-size:13px;" oninput="filterWorkers()" />
+          <div style="display:flex; gap:8px;">
+            <select id="workerCountryFilter" class="glass-input" style="padding:8px 12px; font-size:13px;" onchange="filterWorkers()"></select>
+            <input id="workerSearch" class="glass-input" type="text" placeholder="Search by name or email..." style="max-width:250px; padding:8px 12px; font-size:13px;" oninput="filterWorkers()" />
+          </div>
         </div>
+        <div id="workerCountrySummary" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem;"></div>
         <div id="workersTable"></div>
       </div>
 
       <!-- FACILITIES TABLE -->
       <div id="panel-facilities" style="display:none;">
-        <div class="section-title">All Facilities</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:8px; flex-wrap:wrap;">
+          <div class="section-title" style="border:none; margin:0; padding:0;">All Facilities</div>
+          <select id="facilityCountryFilter" class="glass-input" style="padding:8px 12px; font-size:13px;" onchange="filterFacilities()"></select>
+        </div>
+        <div id="facilityCountrySummary" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem;"></div>
         <div id="facilitiesTable"></div>
       </div>
 
       <!-- CLIENTS TABLE -->
       <div id="panel-clients" style="display:none;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:8px; flex-wrap:wrap;">
           <div class="section-title" style="border:none; margin:0; padding:0;">All Clients</div>
-          <input id="clientSearch" class="glass-input" type="text" placeholder="Search by name or email..." style="max-width:250px; padding:8px 12px; font-size:13px;" oninput="filterClients()" />
+          <div style="display:flex; gap:8px;">
+            <select id="clientCountryFilter" class="glass-input" style="padding:8px 12px; font-size:13px;" onchange="filterClients()"></select>
+            <input id="clientSearch" class="glass-input" type="text" placeholder="Search by name or email..." style="max-width:250px; padding:8px 12px; font-size:13px;" oninput="filterClients()" />
+          </div>
         </div>
+        <div id="clientCountrySummary" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem;"></div>
         <div id="clientsTable"></div>
       </div>
 
@@ -213,7 +225,10 @@
 
       <!-- FINANCE -->
       <div id="panel-finance" style="display:none;">
-        <div class="section-title">Finance Overview</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:8px; flex-wrap:wrap;">
+          <div class="section-title" style="border:none; margin:0; padding:0;">Finance Overview</div>
+          <select id="financeCountryFilter" class="glass-input" style="padding:8px 12px; font-size:13px;" onchange="onFinanceCountryChange()"></select>
+        </div>
         <div class="stats-row" id="adminFinanceSummary">
           <div class="stat-box"><div class="num">—</div><div class="label">Total revenue</div></div>
           <div class="stat-box"><div class="num">—</div><div class="label">Pending postpaid</div></div>
