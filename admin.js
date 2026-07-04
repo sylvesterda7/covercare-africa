@@ -40,6 +40,11 @@ async function init() {
 
   document.getElementById("navUser").textContent = email;
 
+  // ── Country filters (Workers/Facilities/Clients/Finance) ──
+  ["workerCountryFilter", "facilityCountryFilter", "clientCountryFilter", "financeCountryFilter"].forEach(id => {
+    populateCountrySelect(document.getElementById(id));
+  });
+
   // ── Load all data ──
   await Promise.all([
     loadWorkers(),
@@ -67,6 +72,43 @@ async function init() {
   });
 }
 
+// ── Country filters: shared helpers ──
+function populateCountrySelect(select) {
+  if (!select) return;
+  select.innerHTML = '<option value="">All countries</option>' +
+    AFRICAN_COUNTRIES.map(c => `<option value="${c.code}">${escapeHtml(c.name)}</option>`).join("") +
+    '<option value="unknown">No country on file</option>';
+}
+
+function countryLabel(code) {
+  if (!code || code === "unknown") return "No country";
+  return (AFRICAN_COUNTRIES.find(c => c.code === code) || {}).name || code;
+}
+
+// Renders clickable "Country · count" chips from a list of items, letting
+// admins jump straight to a country without hunting through the dropdown.
+function renderCountryChips(containerId, items, selectId, rerenderFnName) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const counts = {};
+  items.forEach(item => {
+    const key = item.country || "unknown";
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  const codes = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  container.innerHTML = codes.map(code => `
+    <span onclick="document.getElementById('${selectId}').value='${escapeHtml(code)}'; ${rerenderFnName}();"
+      style="cursor:pointer; font-size:12px; padding:4px 10px; border-radius:999px; background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; white-space:nowrap;">
+      ${escapeHtml(countryLabel(code))} · ${counts[code]}
+    </span>
+  `).join("");
+}
+
+function filterByCountry(items, countryFilterValue) {
+  if (!countryFilterValue) return items;
+  return items.filter(item => (item.country || "unknown") === countryFilterValue);
+}
+
 // ── Load workers ──
 async function loadWorkers() {
   const { data, error } = await _supabase
@@ -77,6 +119,7 @@ async function loadWorkers() {
   if (error || !data) return;
   allWorkers = data;
 
+  renderCountryChips("workerCountrySummary", allWorkers, "workerCountryFilter", "filterWorkers");
   renderWorkers(data);
 }
 
@@ -98,6 +141,7 @@ function renderWorkers(workers) {
             <th>Email</th>
             <th>Role</th>
             <th>City</th>
+            <th>Country</th>
             <th>License</th>
             <th>Identity</th>
             <th>Joined</th>
@@ -112,6 +156,7 @@ function renderWorkers(workers) {
               <td>${escapeHtml(w.email || "—")}</td>
               <td>${escapeHtml(w.role || "—")}</td>
               <td>${escapeHtml(w.city || "—")}</td>
+              <td>${escapeHtml(countryLabel(w.country))}</td>
               <td>
                 ${w.license_verified
                   ? '<span class="badge badge-accent">✓ Verified</span>'
@@ -155,7 +200,8 @@ function renderWorkers(workers) {
 // ── Filter workers ──
 function filterWorkers() {
   const query = document.getElementById("workerSearch").value.toLowerCase();
-  const filtered = allWorkers.filter(w =>
+  const countryFilter = document.getElementById("workerCountryFilter")?.value || "";
+  const filtered = filterByCountry(allWorkers, countryFilter).filter(w =>
     (w.full_name || "").toLowerCase().includes(query) ||
     (w.email || "").toLowerCase().includes(query) ||
     (w.role || "").toLowerCase().includes(query)
@@ -209,10 +255,16 @@ async function loadFacilities() {
   if (error || !data) return;
   allFacilities = data;
 
+  renderCountryChips("facilityCountrySummary", allFacilities, "facilityCountryFilter", "filterFacilities");
+  renderFacilities(data);
+}
+
+// ── Render facilities table ──
+function renderFacilities(data) {
   const container = document.getElementById("facilitiesTable");
 
   if (data.length === 0) {
-    container.innerHTML = `<div class="empty-state"><p>No facilities registered yet.</p></div>`;
+    container.innerHTML = `<div class="empty-state"><p>No facilities found.</p></div>`;
     return;
   }
 
@@ -224,6 +276,7 @@ async function loadFacilities() {
             <th>Facility name</th>
             <th>Type</th>
             <th>City</th>
+            <th>Country</th>
             <th>Contact</th>
             <th>Email</th>
             <th>Staff needs</th>
@@ -238,6 +291,7 @@ async function loadFacilities() {
               <td style="color:var(--fg-primary); font-weight:500; cursor:pointer;" onclick="viewFacilityById('${escapeHtml(f.id)}')">${escapeHtml(f.facility_name || "—")}</td>
               <td>${escapeHtml(f.facility_type || "—")}</td>
               <td>${escapeHtml(f.city || "—")}</td>
+              <td>${escapeHtml(countryLabel(f.country))}</td>
               <td>${escapeHtml(f.contact_name || "—")}</td>
               <td>${escapeHtml(f.email || "—")}</td>
               <td>${escapeHtml(f.staff_needs || "—")}</td>
@@ -271,6 +325,12 @@ async function loadFacilities() {
   `;
 }
 
+// ── Filter facilities ──
+function filterFacilities() {
+  const countryFilter = document.getElementById("facilityCountryFilter")?.value || "";
+  renderFacilities(filterByCountry(allFacilities, countryFilter));
+}
+
 // ── Load clients ──
 async function loadClients() {
   const { data: result } = await ccFetch("/admin/clients", { method: "GET" });
@@ -283,6 +343,7 @@ async function loadClients() {
   }
 
   allClients = result.clients || [];
+  renderCountryChips("clientCountrySummary", allClients, "clientCountryFilter", "filterClients");
   renderClients(allClients);
 }
 
@@ -316,7 +377,7 @@ function renderClients(clients) {
               <td>${escapeHtml(c.email || "—")}</td>
               <td>${escapeHtml(c.phone || "—")}</td>
               <td>${escapeHtml(c.city || "—")}</td>
-              <td>${escapeHtml(c.country || "—")}</td>
+              <td>${escapeHtml(countryLabel(c.country))}</td>
               <td style="color:var(--fg-muted);">
                 ${c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
               </td>
@@ -338,7 +399,8 @@ function renderClients(clients) {
 // ── Filter clients ──
 function filterClients() {
   const query = document.getElementById("clientSearch").value.toLowerCase();
-  const filtered = allClients.filter(c =>
+  const countryFilter = document.getElementById("clientCountryFilter")?.value || "";
+  const filtered = filterByCountry(allClients, countryFilter).filter(c =>
     (c.full_name || "").toLowerCase().includes(query) ||
     (c.email || "").toLowerCase().includes(query)
   );
@@ -375,6 +437,7 @@ function renderShifts(filter) {
             <th>Facility</th>
             <th>Role</th>
             <th>City</th>
+            <th>Country</th>
             <th>Date</th>
             <th>Duration</th>
             <th>Pay rate</th>
@@ -390,6 +453,7 @@ function renderShifts(filter) {
               <td style="color:var(--fg-primary); font-weight:500;">${s.facility_name || "—"}</td>
               <td>${s.role_needed || "—"}</td>
               <td>${s.city || "—"}</td>
+              <td>${escapeHtml(countryLabel(s.country))}</td>
               <td>${s.shift_date || "—"}</td>
               <td>${s.duration || "—"}</td>
               <td>${s.pay_rate || "—"}</td>
@@ -771,12 +835,11 @@ async function revokeFacility(email) {
 }
 
 // ── Admin Finance: summary ──
-async function loadAdminFinanceSummary() {
+let _financeSummaryData = null;
+
+function renderFinanceSummaryBoxes(d) {
   const container = document.getElementById("adminFinanceSummary");
-  if (!container) return;
-  const { data: result } = await ccFetch("/finance/admin/summary", { method: "GET" });
-  if (!result?.success || !result.data) return;
-  const d = result.data;
+  if (!container || !d) return;
   const boxes = container.querySelectorAll(".stat-box .num");
   if (boxes[0]) boxes[0].textContent = "GHS " + (d.total_revenue || 0).toLocaleString();
   if (boxes[1]) boxes[1].textContent = "GHS " + (d.pending_postpaid || 0).toLocaleString();
@@ -784,17 +847,33 @@ async function loadAdminFinanceSummary() {
   if (boxes[3]) boxes[3].textContent = "GHS " + (d.total_credits || 0).toLocaleString();
 }
 
+async function loadAdminFinanceSummary() {
+  const container = document.getElementById("adminFinanceSummary");
+  if (!container) return;
+  const { data: result } = await ccFetch("/finance/admin/summary", { method: "GET" });
+  if (!result?.success || !result.data) return;
+  _financeSummaryData = result.data;
+  onFinanceCountryChange();
+}
+
+// Switches the summary boxes between the overall totals and a single
+// country's breakdown, based on the finance panel's country filter.
+function onFinanceCountryChange() {
+  if (!_financeSummaryData) return;
+  const countryFilter = document.getElementById("financeCountryFilter")?.value || "";
+  const d = countryFilter ? (_financeSummaryData.by_country?.[countryFilter] || {}) : _financeSummaryData;
+  renderFinanceSummaryBoxes(d);
+  renderAdminTransactionsTable(filterByCountry(_adminTransactions, countryFilter));
+}
+
 // ── Admin Finance: transactions ──
-async function loadAdminFinanceTransactions() {
+function renderAdminTransactionsTable(txns) {
   const container = document.getElementById("adminFinanceTransactions");
   if (!container) return;
-  const { data: result } = await ccFetch("/admin/payments", { method: "GET" });
-  if (!result?.success || !result.data?.length) {
+  if (!txns.length) {
     container.innerHTML = '<div class="empty-state"><p>No transactions found.</p></div>';
     return;
   }
-  const txns = result.data;
-  _adminTransactions = txns;
   container.innerHTML = `
     <p style="font-size:13px; color:var(--fg-muted); margin-bottom:12px;">${txns.length} transactions (click a row for details)</p>
     <div style="overflow-x:auto;">
@@ -804,6 +883,7 @@ async function loadAdminFinanceTransactions() {
             <th>Date</th>
             <th>Facility</th>
             <th>Shift</th>
+            <th>Country</th>
             <th>Worker pay</th>
             <th>Facility total</th>
             <th>Status</th>
@@ -823,6 +903,7 @@ async function loadAdminFinanceTransactions() {
                 <td style="color:var(--fg-muted); white-space:nowrap;">${t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}</td>
                 <td style="color:var(--fg-primary); font-weight:500;">${escapeHtml(t.facility_name) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);font-weight:400;">${escapeHtml(t.contact_email) || ""}</span></td>
                 <td>${escapeHtml(t.role_needed) || "—"}<br><span style="font-size:11px;color:var(--fg-muted);">${escapeHtml(t.shift_date) || ""}</span></td>
+                <td>${escapeHtml(countryLabel(t.country))}</td>
                 <td style="color:#111827;">GHS ${workerPay.toLocaleString()}</td>
                 <td style="color:#111827; font-weight:500;">GHS ${amount.toLocaleString()}</td>
                 <td><span style="color:${statusColor}; font-weight:500;">${statusLabel}</span></td>
@@ -833,6 +914,20 @@ async function loadAdminFinanceTransactions() {
         </tbody>
       </table>
     </div>`;
+}
+
+async function loadAdminFinanceTransactions() {
+  const container = document.getElementById("adminFinanceTransactions");
+  if (!container) return;
+  const { data: result } = await ccFetch("/admin/payments", { method: "GET" });
+  if (!result?.success || !result.data?.length) {
+    _adminTransactions = [];
+    container.innerHTML = '<div class="empty-state"><p>No transactions found.</p></div>';
+    return;
+  }
+  _adminTransactions = result.data;
+  const countryFilter = document.getElementById("financeCountryFilter")?.value || "";
+  renderAdminTransactionsTable(filterByCountry(_adminTransactions, countryFilter));
 }
 
 // ── Transaction preview ──
