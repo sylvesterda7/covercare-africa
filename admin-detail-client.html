@@ -91,6 +91,20 @@
         ? `${escapeHtml(cl.card_brand)} ···· ${escapeHtml(cl.card_last4)}`
         : "—";
 
+      const docTypeLabel = cl.id_document_type === "passport" ? "Passport" : "Government-issued ID";
+      const docHtml = cl.id_document_url ? `
+        <div style="margin-bottom:12px;">
+          <p style="font-size:12px; font-weight:500; color:#6b7280; margin:0 0 6px;">${escapeHtml(docTypeLabel)}</p>
+          <a href="${escapeHtml(cl.id_document_url)}" target="_blank" rel="noopener">
+            <img src="${escapeHtml(cl.id_document_url)}" alt="ID document" style="max-width:240px; max-height:160px; border-radius:8px; border:1px solid var(--border); object-fit:cover;" onerror="this.style.display='none'">
+          </a>
+          <br>
+          <a href="${escapeHtml(cl.id_document_url)}" target="_blank" rel="noopener" style="font-size:12px; color:#111827; margin-top:4px; display:inline-block;">
+            <i class="ti ti-external-link" style="font-size:12px;"></i> Open in new tab
+          </a>
+        </div>
+      ` : '<p style="font-size:13px; color:var(--fg-muted);">No document uploaded.</p>';
+
       c.innerHTML = `
         <div class="section-title">Client Details</div>
         <a href="admin.html" style="font-size:13px; color:#111827; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:1rem;">
@@ -129,9 +143,23 @@
                 </div>
               `).join("")}
             </div>
+
+            ${!cl.activated ? `
+              <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
+                <button onclick="activateClient('${cl.id}')" style="background:#111827; color:#fff; border:none; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit;">
+                  Activate account
+                </button>
+                <p style="font-size:12px; color:#6b7280; margin-top:8px;">Activate this client after reviewing their identity document. They will be notified and can start booking professionals.</p>
+              </div>
+            ` : `
+              <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
+                <span style="color:#141414; font-size:14px; font-weight:500;">✓ Account is active</span>
+                ${cl.activated_at ? `<p style="font-size:12px; color:#6b7280; margin:4px 0 0;">Activated on ${new Date(cl.activated_at).toLocaleDateString()}</p>` : ""}
+              </div>
+            `}
           </div>
 
-          <!-- Right: Stats -->
+          <!-- Right: Stats + Documents -->
           <div style="display:flex; flex-direction:column; gap:1.25rem;">
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
               <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Shift Stats</p>
@@ -143,9 +171,33 @@
                 <div class="stat-box"><div class="num">GHS ${(stats.total_spend || 0).toLocaleString()}</div><div class="label">Total spend</div></div>
               </div>
             </div>
+
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+              <p style="font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Identity Document</p>
+              ${docHtml}
+            </div>
           </div>
         </div>
       `;
+    }
+
+    async function activateClient(clientId) {
+      if (!confirm("Activate this client? They will be notified and can start booking professionals.")) return;
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = "Activating...";
+      const { data: result } = await ccFetch("/admin/activate-client", {
+        method: "POST",
+        body: JSON.stringify({ client_id: clientId })
+      });
+      if (result?.success) {
+        ccToast("Client activated successfully.", "success");
+        await loadClientDetail(clientId);
+      } else {
+        ccToast(result?.message || "Failed to activate.", "error");
+        btn.disabled = false;
+        btn.textContent = "Activate account";
+      }
     }
 
     async function logout() {

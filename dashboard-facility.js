@@ -433,6 +433,7 @@ async function loadFacilityProfile() {
   if (!error && data) {
     facilityProfile = data;
     renderDocumentStatus(data);
+    renderFacilityActivationStatus(data);
     // Show facility name instead of contact name
     if (data.facility_name) {
       document.getElementById("navUser").textContent = data.facility_name;
@@ -440,6 +441,34 @@ async function loadFacilityProfile() {
       document.getElementById("welcomeMsg").textContent = `Welcome back, ${firstName}`;
     }
   }
+}
+
+// ── Activation status banner (mirrors the worker dashboard's) ──
+function renderFacilityActivationStatus(profile) {
+  const banner = document.getElementById("facilityActivationBanner");
+  if (!banner) return;
+
+  if (profile.activated) {
+    banner.style.display = "none";
+    return;
+  }
+
+  const anyDocUploaded = !!(profile.incorporation_doc_url || profile.hefra_license_url || profile.pharmacy_council_url);
+
+  banner.style.display = "block";
+  banner.innerHTML = `
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+        <span style="width:8px; height:8px; border-radius:50%; background:${anyDocUploaded ? '#f59e0b' : '#E24B4A'};"></span>
+        <h3 style="margin:0; font-size:15px;">${anyDocUploaded ? "Account under review" : "Upload your documents to get activated"}</h3>
+      </div>
+      <p style="font-size:13px; color:#6b7280; margin:0;">
+        ${anyDocUploaded
+          ? "Your documents have been submitted. Our team will review and activate your account — usually within 24 hours."
+          : "Your facility can't post shifts until an admin reviews your regulatory documents and activates your account. Upload them below."}
+      </p>
+    </div>
+  `;
 }
 
 // ── Facility document status ──
@@ -504,12 +533,40 @@ async function uploadFacilityDoc(fileInputId, targetField) {
   reader.readAsDataURL(file);
 }
 
+// ── Country/city cascade (Edit facility profile modal) ──
+function populateFacilityCities(countryCode, selectedCity) {
+  const country = AFRICAN_COUNTRIES.find(c => c.code === countryCode);
+  const citySel = document.getElementById("editFacilityCity");
+  if (!citySel) return;
+  citySel.innerHTML = '<option value="">Select city</option>';
+  if (country) {
+    country.cities.forEach(city => {
+      const opt = document.createElement("option");
+      opt.value = city.value; opt.textContent = city.label;
+      if (city.value === selectedCity) opt.selected = true;
+      citySel.appendChild(opt);
+    });
+  }
+}
+
+document.getElementById("editFacilityCountry")?.addEventListener("change", function() {
+  populateFacilityCities(this.value, "");
+});
+
 // ── Facility settings modal ──
 function openFacilitySettings() {
   if (!facilityProfile) { ccToast("Complete your profile first.", "error"); return; }
   document.getElementById("editFacilityName").value = facilityProfile.facility_name || "";
   document.getElementById("editFacilityType").value = facilityProfile.facility_type || "";
-  document.getElementById("editFacilityCity").value = facilityProfile.city || "";
+  const countrySel = document.getElementById("editFacilityCountry");
+  countrySel.innerHTML = '<option value="">Select country</option>';
+  AFRICAN_COUNTRIES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.code; opt.textContent = c.name;
+    if (c.code === facilityProfile.country) opt.selected = true;
+    countrySel.appendChild(opt);
+  });
+  populateFacilityCities(facilityProfile.country, facilityProfile.city);
   document.getElementById("editContactName").value = facilityProfile.contact_name || "";
   document.getElementById("editContactRole").value = facilityProfile.contact_role || "";
   document.getElementById("editFacilityPhone").value = facilityProfile.phone || "";
@@ -534,6 +591,7 @@ document.getElementById("facilityProfileForm").addEventListener("submit", async 
       body: JSON.stringify({
         facility_name: document.getElementById("editFacilityName").value.trim(),
         facility_type: document.getElementById("editFacilityType").value,
+        country: document.getElementById("editFacilityCountry").value,
         city: document.getElementById("editFacilityCity").value,
         contact_name: document.getElementById("editContactName").value.trim(),
         contact_role: document.getElementById("editContactRole").value.trim(),
@@ -1238,7 +1296,7 @@ async function loadSettingsPage() {
     document.getElementById("setFacilityType").value = p.facility_type || "";
     document.getElementById("setFacilityCity").value = p.city || "";
     document.getElementById("setContactName").value = p.contact_name || "";
-    document.getElementById("setContactPhone").value = p.contact_phone || "";
+    document.getElementById("setContactPhone").value = p.phone || "";
     const billingEl = document.getElementById("settingsBillingInfo");
     if (billingEl) {
       const model = p.billing_model === "postpaid" ? "Postpaid (billed monthly)" : "Prepaid (pay per shift)";
@@ -1256,7 +1314,7 @@ async function saveSettings() {
     facility_type: document.getElementById("setFacilityType").value,
     city: document.getElementById("setFacilityCity").value,
     contact_name: document.getElementById("setContactName").value.trim(),
-    contact_phone: document.getElementById("setContactPhone").value.trim()
+    phone: document.getElementById("setContactPhone").value.trim()
   };
   const btn = document.querySelector("#section-settings .btn-auth");
   if (btn) { btn.disabled = true; btn.textContent = "Saving..."; }

@@ -43,7 +43,7 @@ function toggleSidebar() {
 
 // ── Section navigation ──
 function showSection(name) {
-  ["dashboard", "finance", "settings"].forEach(s => {
+  ["dashboard", "verification", "finance", "settings"].forEach(s => {
     const sec = document.getElementById("section-" + s);
     if (sec) sec.style.display = s === name ? "block" : "none";
     const tab = document.getElementById("tab-" + s);
@@ -54,6 +54,7 @@ function showSection(name) {
     const nav = document.getElementById("nav-" + s);
     if (nav) nav.classList.toggle("btn-sidebar-active", s === name);
   });
+  if (name === "verification") renderClientVerificationSection();
   if (name === "finance") { loadFinanceSummary(); loadFinanceTransactions(); loadFinanceProfile(); loadWalletBalance(); loadWalletTransactions(); }
   if (name === "settings") loadSettingsPage();
   const sidebar = document.querySelector(".dashboard-sidebar");
@@ -125,7 +126,124 @@ async function loadClientProfile() {
       photo.src = clientProfile.profile_photo_url;
       photo.style.display = "inline-block";
     }
+    renderClientVerificationSection();
   }
+}
+
+// ── Verification & Documents (client) ──
+function renderClientVerificationSection() {
+  if (!clientProfile) return;
+
+  const banner = document.getElementById("clientActivationBanner");
+  if (banner) {
+    if (clientProfile.activated) {
+      banner.style.display = "none";
+    } else {
+      const docUploaded = !!clientProfile.id_document_url;
+      banner.style.display = "block";
+      banner.innerHTML = `
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+            <span style="width:8px; height:8px; border-radius:50%; background:${docUploaded ? '#f59e0b' : '#E24B4A'};"></span>
+            <h3 style="margin:0; font-size:15px;">${docUploaded ? "Account under review" : "Submit your ID to get activated"}</h3>
+          </div>
+          <p style="font-size:13px; color:#6b7280; margin:0;">
+            ${docUploaded
+              ? "Your document has been submitted. Our team will review and activate your account — usually within 24 hours."
+              : "You can't book professionals until an admin reviews your identity document and activates your account."}
+          </p>
+        </div>
+      `;
+    }
+  }
+
+  const badge = document.getElementById("clientDocBadge");
+  if (badge) {
+    badge.innerHTML = clientProfile.activated
+      ? '<span class="badge badge-accent">✓ Activated</span>'
+      : clientProfile.id_document_url
+      ? '<span class="badge badge-yellow">Pending review</span>'
+      : '<span class="badge badge-yellow">Not submitted</span>';
+  }
+
+  if (clientProfile.id_document_type) {
+    const radio = document.querySelector(`input[name="clientIdDocType"][value="${clientProfile.id_document_type}"]`);
+    if (radio) radio.checked = true;
+  }
+}
+
+async function uploadClientIdDocument() {
+  const fileInput = document.getElementById("clientIdFile");
+  const file = fileInput?.files?.[0];
+  const resultEl = document.getElementById("clientIdUploadResult");
+  const btn = document.getElementById("clientIdUploadBtn");
+
+  if (!file) {
+    ccToast("Please choose a file to upload.", "error");
+    return;
+  }
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+  const maxBytes = 8 * 1024 * 1024;
+  if (!allowedTypes.includes(file.type)) {
+    ccToast("Please upload a JPG, PNG, WEBP, or PDF file.", "error");
+    return;
+  }
+  if (file.size > maxBytes) {
+    ccToast("File is too large. Maximum size is 8MB.", "error");
+    return;
+  }
+
+  const docType = document.querySelector('input[name="clientIdDocType"]:checked')?.value || "government_id";
+
+  btn.disabled = true;
+  btn.textContent = "Uploading...";
+  resultEl.innerHTML = "";
+
+  try {
+    const { data: uploadResult } = await ccFetch("/api/upload", {
+      method: "POST",
+      body: JSON.stringify({
+        image: await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        }),
+        folder: "client-id-docs"
+      })
+    });
+
+    if (!uploadResult?.success) {
+      resultEl.innerHTML = `<span style="color:#E24B4A;">Upload failed. Please try again.</span>`;
+      return;
+    }
+
+    const { data: saveResult } = await ccFetch("/client", {
+      method: "PUT",
+      body: JSON.stringify({
+        full_name: clientProfile.full_name,
+        phone: clientProfile.phone,
+        city: clientProfile.city,
+        country: clientProfile.country,
+        id_document_url: uploadResult.url,
+        id_document_type: docType
+      })
+    });
+
+    if (saveResult?.success) {
+      resultEl.innerHTML = `<strong style="color:#0F6E56;">Document submitted for review.</strong>`;
+      await loadClientProfile();
+    } else {
+      resultEl.innerHTML = `<span style="color:#E24B4A;">${escapeHtml(saveResult?.message || "Could not save document. Please try again.")}</span>`;
+    }
+  } catch (err) {
+    console.error("Client ID upload error:", err);
+    resultEl.innerHTML = `<span style="color:#E24B4A;">Something went wrong. Please try again.</span>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Submit for review";
 }
 
 // ── Shifts ──

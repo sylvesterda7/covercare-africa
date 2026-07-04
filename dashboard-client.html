@@ -47,6 +47,7 @@
       <div class="sidebar-card-title">Navigation</div>
       <div class="sidebar-actions">
         <button onclick="showSection('dashboard')" class="btn-sidebar btn-sidebar-active" id="nav-dashboard">Dashboard</button>
+        <button onclick="showSection('verification')" class="btn-sidebar" id="nav-verification">Verification</button>
         <button onclick="showSection('finance')" class="btn-sidebar" id="nav-finance">Finance</button>
         <button onclick="showSection('settings')" class="btn-sidebar" id="nav-settings">Settings</button>
       </div>
@@ -72,6 +73,7 @@
 
       <div class="dashboard-tabs" style="display:flex; gap:4px; margin-bottom:1.5rem; border-bottom:1px solid #e5e7eb; padding-bottom:0;">
         <button onclick="showSection('dashboard')" class="dashboard-tab dashboard-tab-active" id="tab-dashboard" style="padding:10px 16px; font-size:13px; font-weight:500; border:none; background:none; cursor:pointer; font-family:inherit; color:#111827; border-bottom:2px solid #111827; margin-bottom:-1px;">Dashboard</button>
+        <button onclick="showSection('verification')" class="dashboard-tab" id="tab-verification" style="padding:10px 16px; font-size:13px; font-weight:500; border:none; background:none; cursor:pointer; font-family:inherit; color:#6b7280; border-bottom:2px solid transparent; margin-bottom:-1px;">Verification</button>
         <button onclick="showSection('finance')" class="dashboard-tab" id="tab-finance" style="padding:10px 16px; font-size:13px; font-weight:500; border:none; background:none; cursor:pointer; font-family:inherit; color:#6b7280; border-bottom:2px solid transparent; margin-bottom:-1px;">Finance</button>
         <button onclick="showSection('settings')" class="dashboard-tab" id="tab-settings" style="padding:10px 16px; font-size:13px; font-weight:500; border:none; background:none; cursor:pointer; font-family:inherit; color:#6b7280; border-bottom:2px solid transparent; margin-bottom:-1px;">Settings</button>
       </div>
@@ -99,6 +101,33 @@
         </div>
 
       </div><!-- /section-dashboard -->
+
+      <!-- SECTION: VERIFICATION -->
+      <div id="section-verification" style="display:none;">
+        <div class="section-title">Verification &amp; Documents</div>
+        <div id="clientActivationBanner" style="display:none;"></div>
+
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem;">
+          <h3 style="font-size:15px; margin:0 0 4px;">Identity document <span id="clientDocBadge"></span></h3>
+          <p style="font-size:13px; color:#6b7280; margin:0 0 12px;">Upload a Government-issued ID or Passport so an admin can verify and activate your account before you can book professionals.</p>
+
+          <div class="form-group" style="margin-bottom:12px;">
+            <label style="font-size:13px; font-weight:500;">Which document are you submitting?</label>
+            <div style="display:flex; gap:16px; margin-top:6px;">
+              <label style="display:flex; align-items:center; gap:6px; font-weight:400; cursor:pointer; font-size:14px;">
+                <input type="radio" name="clientIdDocType" value="government_id" checked /> Government-issued ID
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:400; cursor:pointer; font-size:14px;">
+                <input type="radio" name="clientIdDocType" value="passport" /> Passport
+              </label>
+            </div>
+          </div>
+
+          <input type="file" id="clientIdFile" class="glass-input" accept=".pdf,.jpg,.jpeg,.png" />
+          <button type="button" class="btn-auth" style="margin-top:10px; padding:8px 16px; font-size:13px;" onclick="uploadClientIdDocument()" id="clientIdUploadBtn">Submit for review</button>
+          <div id="clientIdUploadResult" style="margin-top:10px; font-size:13px;"></div>
+        </div>
+      </div><!-- /section-verification -->
 
       <!-- SECTION: FINANCE -->
       <div id="section-finance" style="display:none;">

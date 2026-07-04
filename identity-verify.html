@@ -54,6 +54,18 @@
       </p>
 
       <div class="form-group">
+        <label>Which document are you submitting?</label>
+        <div style="display:flex; gap:16px; margin-top:4px;">
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400; cursor:pointer;">
+            <input type="radio" name="idDocType" value="government_id" checked /> Government-issued ID
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400; cursor:pointer;">
+            <input type="radio" name="idDocType" value="passport" /> Passport
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label>ID document (front)</label>
         <input type="file" id="idFile" accept="image/*" onchange="previewID(this)" />
       </div>

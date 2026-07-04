@@ -144,6 +144,7 @@ function renderWorkers(workers) {
             <th>Country</th>
             <th>License</th>
             <th>Identity</th>
+            <th>Activation</th>
             <th>Joined</th>
             <th>Action</th>
           </tr>
@@ -166,6 +167,12 @@ function renderWorkers(workers) {
               <td>
                 ${w.identity_verified
                   ? '<span class="badge badge-accent">✓ Verified</span>'
+                  : '<span class="badge badge-yellow">Pending</span>'
+                }
+              </td>
+              <td>
+                ${w.activated
+                  ? '<span class="badge badge-accent">✓ Activated</span>'
                   : '<span class="badge badge-yellow">Pending</span>'
                 }
               </td>
@@ -280,6 +287,7 @@ function renderFacilities(data) {
             <th>Contact</th>
             <th>Email</th>
             <th>Staff needs</th>
+            <th>Activation</th>
             <th>Billing</th>
             <th>Joined</th>
             <th>Action</th>
@@ -295,6 +303,12 @@ function renderFacilities(data) {
               <td>${escapeHtml(f.contact_name || "—")}</td>
               <td>${escapeHtml(f.email || "—")}</td>
               <td>${escapeHtml(f.staff_needs || "—")}</td>
+              <td>
+                ${f.activated
+                  ? '<span class="badge badge-accent">✓ Activated</span>'
+                  : '<span class="badge badge-yellow">Pending</span>'
+                }
+              </td>
               <td>
                 ${f.billing_model === "postpaid"
                   ? '<span class="badge badge-accent">Postpaid</span>'
@@ -366,6 +380,7 @@ function renderClients(clients) {
             <th>Phone</th>
             <th>City</th>
             <th>Country</th>
+            <th>Activation</th>
             <th>Joined</th>
             <th>Action</th>
           </tr>
@@ -378,6 +393,12 @@ function renderClients(clients) {
               <td>${escapeHtml(c.phone || "—")}</td>
               <td>${escapeHtml(c.city || "—")}</td>
               <td>${escapeHtml(countryLabel(c.country))}</td>
+              <td>
+                ${c.activated
+                  ? '<span class="badge badge-accent">✓ Activated</span>'
+                  : '<span class="badge badge-yellow">Pending</span>'
+                }
+              </td>
               <td style="color:var(--fg-muted);">
                 ${c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
               </td>
