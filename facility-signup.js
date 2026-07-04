@@ -72,7 +72,7 @@ function useLiveLocation() {
   );
 }
 
-// ── Google sign-in ──
+// ── Google / Apple sign-in ──
 async function signUpWithGoogle() {
   const { error } = await _supabase.auth.signInWithOAuth({
     provider: "google",
@@ -84,12 +84,21 @@ async function signUpWithGoogle() {
   if (error) ccToast(error.message, "error");
 }
 
+// Requires Sign in with Apple to be configured in Supabase Auth (Authentication
+// → Providers → Apple) plus an Apple Developer Services ID/key — see repo docs.
+async function signUpWithApple() {
+  const { error } = await _supabase.auth.signInWithOAuth({
+    provider: "apple",
+    options: { redirectTo: window.location.origin + "/facility-signup.html" }
+  });
+  if (error) ccToast(error.message, "error");
+}
+
 function applyGoogleProfile(session) {
   const meta = session.user.user_metadata;
   if (meta?.provider !== "google") return false;
   googleProfile = meta;
   const emailField = document.getElementById("email");
-  const nameField = document.getElementById("contactName");
   document.getElementById("contactName").value = meta.full_name || meta.name || "";
   emailField.value = meta.email || session.user.email || "";
   emailField.readOnly = true;
@@ -130,16 +139,122 @@ _supabase.auth.onAuthStateChange((event, session) => {
     }
     if (session.user.user_metadata?.provider === "google") {
       applyGoogleProfile(session);
-    } else {
-      document.getElementById("regFields").style.display = "none";
-      document.getElementById("email").readOnly = true;
     }
+    // Any existing session means account creation (stage 1) is already done.
+    document.getElementById("stage1Fields").style.display = "none";
+    document.getElementById("stage2Fields").style.display = "block";
   } else {
     document.getElementById("regFields").style.display = "block";
   }
 })();
 
-// ── Form submission ──
+// ── Stage 1: account creation with dual-channel signup ──
+// Document upload now happens post-signup from the dashboard's
+// Verification & Documents tab — signup is account creation only. See
+// worker-signup.js for the full rationale on why a phone-primary signup
+// must link+verify email inline here rather than deferring to
+// verify-contact.html (the facilities table is keyed by email everywhere).
+let signupMethod = "email";
+let _awaitingEmailLink = false;
+
+function setSignupMethod(method) {
+  signupMethod = method;
+  document.getElementById("methodEmailBtn").classList.toggle("active", method === "email");
+  document.getElementById("methodPhoneBtn").classList.toggle("active", method === "phone");
+}
+
+function revealStage2() {
+  document.getElementById("stage1Fields").style.display = "none";
+  document.getElementById("stage2Fields").style.display = "block";
+}
+
+async function startPrimarySignup() {
+  const contactName = document.getElementById("contactName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  if (!contactName || !email || !phone) {
+    ccToast("Please fill in the contact name, email, and phone number.", "error");
+    return;
+  }
+
+  const { data: { session: existingSession } } = await _supabase.auth.getSession();
+  if (existingSession) {
+    revealStage2();
+    return;
+  }
+
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  if (!password || password.length < 8) {
+    ccToast("Password must be at least 8 characters.", "error");
+    return;
+  }
+  if (password !== confirmPassword) {
+    ccToast("Passwords do not match.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("continueBtn");
+  btn.disabled = true;
+  btn.textContent = "Sending code...";
+
+  const { error } = signupMethod === "phone"
+    ? await ccSignUpWithPhone(phone, password, "facility", contactName)
+    : await ccSignUpWithEmail(email, password, "facility", contactName);
+
+  if (error) {
+    ccToast(error.message, "error");
+    btn.disabled = false;
+    btn.textContent = "Continue";
+    return;
+  }
+
+  document.getElementById("otpLabel").textContent =
+    `Enter the 6-digit code we sent to your ${signupMethod === "phone" ? "phone" : "email"}`;
+  btn.style.display = "none";
+  document.getElementById("otpGroup").style.display = "block";
+}
+
+async function confirmPrimaryOtp() {
+  const token = document.getElementById("otpCode").value.trim();
+  if (!token) {
+    ccToast("Please enter the code we sent you.", "error");
+    return;
+  }
+
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  if (_awaitingEmailLink) {
+    const { error } = await ccVerifyEmailChangeOtp(email, token);
+    if (error) { ccToast(error.message, "error"); return; }
+    revealStage2();
+    return;
+  }
+
+  const { error } = signupMethod === "phone"
+    ? await ccVerifySignupPhoneOtp(phone, token)
+    : await ccVerifySignupEmailOtp(email, token);
+
+  if (error) {
+    ccToast(error.message, "error");
+    return;
+  }
+
+  if (signupMethod === "phone") {
+    const { error: linkErr } = await ccLinkEmail(email);
+    if (linkErr) { ccToast(linkErr.message, "error"); return; }
+    _awaitingEmailLink = true;
+    document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
+    document.getElementById("otpCode").value = "";
+    return;
+  }
+
+  revealStage2();
+}
+
+// ── Form submission (stage 2 — facility profile; account already exists) ──
 document.getElementById("facilityForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -172,82 +287,14 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     return;
   }
 
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    ccToast("Please complete account creation above first.", "error");
+    return;
+  }
+
   const btn = this.querySelector(".btn-submit");
   btn.disabled = true;
-  btn.textContent = "Creating account...";
-
-  const { data: { session } } = await _supabase.auth.getSession();
-
-  // Step 1: Register account if not logged in (email/password flow)
-  if (!session) {
-    const password = document.getElementById("password").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
-
-    if (!password || password.length < 8) {
-      ccToast("Password must be at least 8 characters.", "error");
-      btn.disabled = false;
-      btn.textContent = "Create facility account";
-      return;
-    }
-    if (password !== confirmPassword) {
-      ccToast("Passwords do not match.", "error");
-      btn.disabled = false;
-      btn.textContent = "Create facility account";
-      return;
-    }
-
-    const { data: signUpData, error: signUpError } = await _supabase.auth.signUp({
-      email: facility.email,
-      password,
-      options: { data: { full_name: facility.contactName, user_type: "facility" } }
-    });
-
-    if (signUpError) {
-      ccToast(signUpError.message, "error");
-      btn.disabled = false;
-      btn.textContent = "Create facility account";
-      return;
-    }
-
-    if (!signUpData.session) {
-      document.getElementById("facilityForm").style.display = "none";
-      document.getElementById("successCard").querySelector("h2").textContent = "Account created!";
-      document.getElementById("successCard").querySelector("p").textContent =
-        "Check your email to confirm your account, then sign in and complete your facility profile.";
-      document.getElementById("successCard").style.display = "block";
-      btn.disabled = false;
-      btn.textContent = "Create facility account";
-      return;
-    }
-  }
-
-  // Step 2: Upload documents (optional)
-  btn.textContent = "Uploading documents...";
-
-  async function uploadFile(fileInput) {
-    const file = fileInput?.files?.[0];
-    if (!file) return null;
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = async function(ev) {
-        const { data: result } = await ccFetch("/api/upload", {
-          method: "POST",
-          body: JSON.stringify({ image: ev.target.result, folder: "facility-docs" })
-        });
-        resolve(result?.success ? result.url : null);
-      };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  const [incorporationDoc, hefraDoc, pharmacyDoc] = await Promise.all([
-    uploadFile(document.getElementById("docIncorporation")),
-    uploadFile(document.getElementById("docHefra")),
-    uploadFile(document.getElementById("docPharmacy"))
-  ]);
-
-  // Step 3: Save profile
   btn.textContent = "Saving...";
 
   try {
@@ -263,10 +310,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
         email: facility.email,
         phone: facility.phone,
         staff_needs: facility.staffNeeds,
-        frequency: facility.frequency,
-        incorporation_doc_url: incorporationDoc,
-        hefra_license_url: hefraDoc,
-        pharmacy_council_url: pharmacyDoc
+        frequency: facility.frequency
       })
     });
 
@@ -274,7 +318,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
 
     if (response.ok && result.success) {
       await _supabase.auth.updateUser({ data: { user_type: "facility" } }).catch(() => {});
-      window.location.href = "dashboard-facility.html";
+      window.location.href = "verify-contact.html";
     } else {
       ccToast("Something went wrong. Please try again.", "error");
       btn.disabled = false;

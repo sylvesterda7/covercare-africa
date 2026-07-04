@@ -2,10 +2,117 @@
 // Use the shared singleton helper from config.js to avoid creating multiple GoTrueClient instances
 const _supabase = ccGetSupabaseClient() || (window.supabase && window.supabase.createClient(CC_CONFIG.SUPABASE_URL, CC_CONFIG.SUPABASE_KEY));
 
-// ── License verification ──
-let licenseVerified = false;
-let licenseVerificationToken = null;
 let googleProfile = null;
+
+// ── Stage 1: account creation with dual-channel signup ──
+// License verification and document upload now happen post-signup, from
+// the dashboard's Verification & Documents tab — signup is account
+// creation only. The chosen contact method becomes the Supabase Auth
+// identifier and is verified right here; if that method was phone, email
+// must ALSO be linked+verified here (not deferred) because the workers
+// table is keyed by email everywhere downstream. If the primary method was
+// email, phone verification is deferred to verify-contact.html after the
+// profile is created (email already exists as the account key by then).
+let signupMethod = "email";
+let _awaitingEmailLink = false;
+
+function setSignupMethod(method) {
+  signupMethod = method;
+  document.getElementById("methodEmailBtn").classList.toggle("active", method === "email");
+  document.getElementById("methodPhoneBtn").classList.toggle("active", method === "phone");
+}
+
+function revealStage2() {
+  document.getElementById("stage1Fields").style.display = "none";
+  document.getElementById("stage2Fields").style.display = "block";
+}
+
+async function startPrimarySignup() {
+  const fullname = document.getElementById("fullname").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  if (!fullname || !email || !phone) {
+    ccToast("Please fill in your name, email, and phone number.", "error");
+    return;
+  }
+
+  // Already authenticated (e.g. via Google) — nothing to create, just continue.
+  const { data: { session: existingSession } } = await _supabase.auth.getSession();
+  if (existingSession) {
+    revealStage2();
+    return;
+  }
+
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  if (!password || password.length < 8) {
+    ccToast("Password must be at least 8 characters.", "error");
+    return;
+  }
+  if (password !== confirmPassword) {
+    ccToast("Passwords do not match.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("continueBtn");
+  btn.disabled = true;
+  btn.textContent = "Sending code...";
+
+  const { error } = signupMethod === "phone"
+    ? await ccSignUpWithPhone(phone, password, "worker", fullname)
+    : await ccSignUpWithEmail(email, password, "worker", fullname);
+
+  if (error) {
+    ccToast(error.message, "error");
+    btn.disabled = false;
+    btn.textContent = "Continue";
+    return;
+  }
+
+  document.getElementById("otpLabel").textContent =
+    `Enter the 6-digit code we sent to your ${signupMethod === "phone" ? "phone" : "email"}`;
+  btn.style.display = "none";
+  document.getElementById("otpGroup").style.display = "block";
+}
+
+async function confirmPrimaryOtp() {
+  const token = document.getElementById("otpCode").value.trim();
+  if (!token) {
+    ccToast("Please enter the code we sent you.", "error");
+    return;
+  }
+
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  if (_awaitingEmailLink) {
+    const { error } = await ccVerifyEmailChangeOtp(email, token);
+    if (error) { ccToast(error.message, "error"); return; }
+    revealStage2();
+    return;
+  }
+
+  const { error } = signupMethod === "phone"
+    ? await ccVerifySignupPhoneOtp(phone, token)
+    : await ccVerifySignupEmailOtp(email, token);
+
+  if (error) {
+    ccToast(error.message, "error");
+    return;
+  }
+
+  if (signupMethod === "phone") {
+    const { error: linkErr } = await ccLinkEmail(email);
+    if (linkErr) { ccToast(linkErr.message, "error"); return; }
+    _awaitingEmailLink = true;
+    document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
+    document.getElementById("otpCode").value = "";
+    return;
+  }
+
+  revealStage2();
+}
 
 // ── Populate country dropdown ──
 (function populateCountries() {
@@ -83,10 +190,6 @@ function updateLicenseHint() {
 
 document.getElementById("role").addEventListener("change", updateLicenseHint);
 
-document.getElementById("verifyBtn").addEventListener("click", function() {
-  verifyLicense();
-});
-
 // ── Live location ──
 function useLiveLocation() {
   if (!navigator.geolocation) {
@@ -127,7 +230,7 @@ function useLiveLocation() {
   );
 }
 
-// ── Google sign-in ──
+// ── Google / Apple sign-in ──
 async function signUpWithGoogle() {
   const { error } = await _supabase.auth.signInWithOAuth({
     provider: "google",
@@ -135,6 +238,16 @@ async function signUpWithGoogle() {
       redirectTo: window.location.origin + "/worker-signup.html",
       queryParams: { access_type: "offline", prompt: "consent" }
     }
+  });
+  if (error) ccToast(error.message, "error");
+}
+
+// Requires Sign in with Apple to be configured in Supabase Auth (Authentication
+// → Providers → Apple) plus an Apple Developer Services ID/key — see repo docs.
+async function signUpWithApple() {
+  const { error } = await _supabase.auth.signInWithOAuth({
+    provider: "apple",
+    options: { redirectTo: window.location.origin + "/worker-signup.html" }
   });
   if (error) ccToast(error.message, "error");
 }
@@ -184,114 +297,18 @@ _supabase.auth.onAuthStateChange((event, session) => {
     }
     if (session.user.user_metadata?.provider === "google") {
       applyGoogleProfile(session);
-    } else {
-      document.getElementById("regFields").style.display = "none";
-      document.getElementById("email").readOnly = true;
     }
+    // Any existing session means account creation (stage 1) is already
+    // done — whether via Google or a prior email/phone signup — so skip
+    // straight to the profile fields.
+    document.getElementById("stage1Fields").style.display = "none";
+    document.getElementById("stage2Fields").style.display = "block";
   } else {
     document.getElementById("regFields").style.display = "block";
   }
 })();
 
-// ── Verify license ──
-async function verifyLicense() {
-  const license = document.getElementById("license").value.trim();
-  const role = document.getElementById("role").value;
-  const country = document.getElementById("country").value;
-  const resultBox = document.getElementById("verifyResult");
-  const btn = document.getElementById("verifyBtn");
-  const uploadGroup = document.getElementById("uploadGroup");
-
-  if (!role) {
-    ccToast("Please select your role first.", "error");
-    return;
-  }
-  if (!country) {
-    ccToast("Please select your country first.", "error");
-    return;
-  }
-  if (!license) {
-    ccToast("Please enter your license / registration number.", "error");
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = "Checking...";
-  resultBox.className = "verify-result";
-  resultBox.innerHTML = "";
-
-  try {
-    const name = document.getElementById("fullname").value.trim();
-
-    const { response, data } = await ccFetch(
-      `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(name)}&country=${encodeURIComponent(country)}&role=${encodeURIComponent(role)}`,
-      { method: "GET" }
-    );
-
-    if (data.success === true) {
-      licenseVerified = true;
-      licenseVerificationToken = data.data?.verification_token || null;
-      uploadGroup.style.display = "block";
-      const label = document.querySelector("#uploadGroup label");
-      if (label) label.innerHTML = 'Upload license certificate <span style="font-weight:400;color:#6b7280;">(required for account activation — PDF or image)</span>';
-      resultBox.className = "verify-result success";
-      resultBox.innerHTML = `
-        <strong>Verified — Active and in good standing</strong><br>
-        ${data.message}<br>
-        <span style="font-size:12px; color:#0F6E56;">
-          Verified · ${new Date().toLocaleDateString()}
-        </span>
-      `;
-    } else if (data.data && data.data.status === "name_mismatch") {
-      licenseVerified = false;
-      licenseVerificationToken = null;
-      uploadGroup.style.display = "block";
-      resultBox.className = "verify-result warning";
-      resultBox.innerHTML = `
-        <strong>Name mismatch</strong><br>
-        This registration number was found but the name provided does not match
-        regulatory records. Please check that your full name matches exactly
-        as registered with your professional body.
-      `;
-    } else if (data.data && data.data.status === "not_found") {
-      licenseVerified = false;
-      licenseVerificationToken = null;
-      uploadGroup.style.display = "block";
-      resultBox.className = "verify-result warning";
-      resultBox.innerHTML = `
-        <strong>Not found</strong><br>
-        We couldn't find this registration number in regulatory records.
-        Please check and try again, or upload your license certificate
-        below for manual review.
-      `;
-    } else {
-      licenseVerified = false;
-      licenseVerificationToken = null;
-      uploadGroup.style.display = "block";
-      resultBox.className = "verify-result info";
-      resultBox.innerHTML = `
-        <strong>Manual review required</strong><br>
-        ${data.message || "Auto-verification is not available for this profession in your country. Please upload your license document below for manual review within 24 hours."}
-      `;
-    }
-
-  } catch (err) {
-    console.error("Verify error:", err);
-    licenseVerified = false;
-    uploadGroup.style.display = "block";
-    resultBox.className = "verify-result info";
-    resultBox.innerHTML = `
-      <strong>Verification unavailable</strong><br>
-      Our verification service is temporarily unavailable.
-      Please upload your license document for manual review by our team.
-    `;
-  }
-
-  btn.disabled = false;
-  btn.textContent = "Verify";
-}
-
-// ── Form submission ──
+// ── Form submission (stage 2 — profile details; account already exists) ──
 document.getElementById("workerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -301,7 +318,6 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     phone: document.getElementById("phone").value.trim(),
     role: document.getElementById("role").value,
     license: document.getElementById("license").value.trim(),
-    licenseVerified: licenseVerified,
     country: document.getElementById("country").value,
     city: document.getElementById("city").value,
     experience: document.getElementById("experience").value,
@@ -321,96 +337,14 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     return;
   }
 
-  if (canAutoVerify(worker.country, worker.role) && !licenseVerified) {
-    ccToast("Please verify your license on the dashboard after signing up.", "info");
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    ccToast("Please complete account creation above first.", "error");
+    return;
   }
 
   const btn = this.querySelector(".btn-submit");
   btn.disabled = true;
-  btn.textContent = "Creating account...";
-
-  const { data: { session } } = await _supabase.auth.getSession();
-
-  // Step 1: Register account if not logged in (email/password flow)
-  if (!session) {
-    const password = document.getElementById("password").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
-
-    if (!password || password.length < 8) {
-      ccToast("Password must be at least 8 characters.", "error");
-      btn.disabled = false;
-      btn.textContent = "Create my profile";
-      return;
-    }
-    if (password !== confirmPassword) {
-      ccToast("Passwords do not match.", "error");
-      btn.disabled = false;
-      btn.textContent = "Create my profile";
-      return;
-    }
-
-    const { data: signUpData, error: signUpError } = await _supabase.auth.signUp({
-      email: worker.email,
-      password,
-      options: { data: { full_name: worker.name, user_type: "worker" } }
-    });
-
-    if (signUpError) {
-      ccToast(signUpError.message, "error");
-      btn.disabled = false;
-      btn.textContent = "Create my profile";
-      return;
-    }
-
-    if (!signUpData.session) {
-      document.getElementById("workerForm").style.display = "none";
-      document.getElementById("successCard").querySelector("h2").textContent = "Account created!";
-      document.getElementById("successCard").querySelector("p").textContent =
-        "Check your email to confirm your account, then sign in and complete your profile.";
-      document.getElementById("successCard").style.display = "block";
-      btn.disabled = false;
-      btn.textContent = "Create my profile";
-      return;
-    }
-  }
-
-  // Step 2: Upload license file if provided
-  let licenseFileUrl = null;
-  const licFileInput = document.getElementById("licenseFile");
-  if (licFileInput?.files?.[0]) {
-    const licFile = licFileInput.files[0];
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
-    const maxBytes = 8 * 1024 * 1024; // 8MB
-    if (!allowedTypes.includes(licFile.type)) {
-      ccToast("License document must be a JPG, PNG, WEBP, or PDF file.", "error");
-      btn.disabled = false;
-      btn.textContent = "Create my profile";
-      return;
-    }
-    if (licFile.size > maxBytes) {
-      ccToast("License document is too large. Maximum size is 8MB.", "error");
-      btn.disabled = false;
-      btn.textContent = "Create my profile";
-      return;
-    }
-    try {
-      const { data: uploadResult } = await ccFetch("/api/upload", {
-        method: "POST",
-        body: JSON.stringify({
-          image: await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(licFile);
-          }),
-          folder: "license-docs"
-        })
-      });
-      if (uploadResult?.success) licenseFileUrl = uploadResult.url;
-    } catch (e) { console.error("License upload error:", e); }
-  }
-
-  // Step 3: Save profile
   btn.textContent = "Saving profile...";
 
   try {
@@ -422,8 +356,6 @@ document.getElementById("workerForm").addEventListener("submit", async function(
         phone: worker.phone,
         role: worker.role,
         license_number: worker.license,
-        license_file_url: licenseFileUrl,
-        license_verification_token: licenseVerificationToken,
         country: worker.country,
         city: worker.city,
         experience: worker.experience
@@ -434,7 +366,9 @@ document.getElementById("workerForm").addEventListener("submit", async function(
 
     if (response.ok && result.success) {
       await _supabase.auth.updateUser({ data: { user_type: "worker" } }).catch(() => {});
-      window.location.href = "dashboard-worker.html";
+      // Whichever contact method wasn't used to sign up still needs
+      // verifying before the account is usable at all.
+      window.location.href = "verify-contact.html";
     } else {
       ccToast("Something went wrong. Please try again.", "error");
       btn.disabled = false;

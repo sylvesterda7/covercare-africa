@@ -12,6 +12,7 @@ let notifOpen = false;
 (async function init() {
   const { data: { session } } = await _supabase.auth.getSession();
   if (!session) { window.location.href = "login.html"; return; }
+  if (!ccHasVerifiedContact(session)) { window.location.href = "verify-contact.html"; return; }
   const user = session.user;
   const meta = user.user_metadata || {};
   window._userEmail = user.email;

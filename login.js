@@ -54,6 +54,17 @@ async function signInWithGoogle() {
   }
 }
 
+let loginMethod = "email";
+function setLoginMethod(method) {
+  loginMethod = method;
+  document.getElementById("loginMethodEmailBtn").classList.toggle("active", method === "email");
+  document.getElementById("loginMethodPhoneBtn").classList.toggle("active", method === "phone");
+  document.getElementById("loginEmailGroup").style.display = method === "email" ? "block" : "none";
+  document.getElementById("loginPhoneGroup").style.display = method === "phone" ? "block" : "none";
+  document.getElementById("email").required = method === "email";
+  document.getElementById("phone").required = method === "phone";
+}
+
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get("expired") === "1") {
   const msg = document.getElementById("errorMsg");
@@ -73,6 +84,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   e.preventDefault();
 
   const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
   const password = document.getElementById("password").value;
   const btn = document.getElementById("loginBtn");
   const errorMsg = document.getElementById("errorMsg");
@@ -84,7 +96,8 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   btn.textContent = "Signing in...";
   btn.disabled = true;
 
-  const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+  const credentials = loginMethod === "phone" ? { phone, password } : { email, password };
+  const { data, error } = await _supabase.auth.signInWithPassword(credentials);
 
   if (error) {
     errorMsg.textContent = error.message;

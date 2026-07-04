@@ -20,6 +20,7 @@ function scrollToSection(id) {
 async function init() {
   const { data: { session } } = await _supabase.auth.getSession();
   if (!session) { window.location.href = "login.html"; return; }
+  if (!ccHasVerifiedContact(session)) { window.location.href = "verify-contact.html"; return; }
   const meta = session.user.user_metadata;
   document.getElementById("navUser").textContent = meta.full_name || session.user.email;
   document.getElementById("settingsEmail").textContent = session.user.email;

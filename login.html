@@ -24,11 +24,21 @@
       <div class="auth-error" id="errorMsg"></div>
       <div class="auth-success" id="successMsg"></div>
 
+      <div class="method-toggle">
+        <button type="button" class="method-btn active" id="loginMethodEmailBtn" onclick="setLoginMethod('email')">Email</button>
+        <button type="button" class="method-btn" id="loginMethodPhoneBtn" onclick="setLoginMethod('phone')">Phone number</button>
+      </div>
+
       <form class="auth-form" id="loginForm">
 
-        <div class="form-group">
+        <div class="form-group" id="loginEmailGroup">
           <label for="email">Email address</label>
-          <input type="email" id="email" placeholder="e.g. kwame@gmail.com" required />
+          <input type="email" id="email" placeholder="e.g. kwame@gmail.com" />
+        </div>
+
+        <div class="form-group" id="loginPhoneGroup" style="display:none;">
+          <label for="phone">Phone number</label>
+          <input type="tel" id="phone" placeholder="e.g. 0244000000" />
         </div>
 
         <div class="form-group">

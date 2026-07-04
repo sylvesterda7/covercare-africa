@@ -842,4 +842,81 @@ function canAutoVerify(countryCode, role) {
   return fmt ? fmt.autoVerify : false;
 }
 
+// ── Dual-channel signup / contact verification ──
+// Every account is required to have BOTH email and phone confirmed with
+// Supabase Auth before it can be used at all (see verify-contact.html).
+// These helpers wrap the underlying Supabase Auth calls so the three signup
+// pages and the shared interstitial don't each reimplement the OTP dance.
+
+// Sign up with email as the primary identifier; Supabase sends a signup
+// confirmation code automatically. Verify it with ccVerifySignupEmailOtp.
+async function ccSignUpWithEmail(email, password, userType, fullName) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.signUp({ email, password, options: { data: { full_name: fullName, user_type: userType } } });
+}
+
+// Sign up with phone as the primary identifier; Supabase sends an SMS code
+// automatically (requires a phone/SMS provider configured in Supabase Auth).
+async function ccSignUpWithPhone(phone, password, userType, fullName) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.signUp({ phone, password, options: { data: { full_name: fullName, user_type: userType } } });
+}
+
+async function ccVerifySignupEmailOtp(email, token) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.verifyOtp({ email, token, type: "signup" });
+}
+
+async function ccVerifySignupPhoneOtp(phone, token) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.verifyOtp({ phone, token, type: "sms" });
+}
+
+// Link + verify the SECOND contact method on an already-signed-in session
+// (the one not used as the primary signup identifier). Supabase sends a
+// fresh code to the new value as soon as updateUser() is called.
+async function ccLinkEmail(email) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.updateUser({ email });
+}
+
+async function ccVerifyEmailChangeOtp(email, token) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.verifyOtp({ email, token, type: "email_change" });
+}
+
+async function ccLinkPhone(phone) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.updateUser({ phone });
+}
+
+async function ccVerifyPhoneChangeOtp(phone, token) {
+  const supa = ccGetSupabaseClient();
+  return supa.auth.verifyOtp({ phone, token, type: "phone_change" });
+}
+
+function ccHasVerifiedContact(session) {
+  const u = session?.user;
+  return !!(u?.email_confirmed_at && u?.phone_confirmed_at);
+}
+
+// Call at the top of every dashboard / post-shift / apply page. Returns the
+// session if both contact methods are verified; otherwise redirects to the
+// shared interstitial and returns null. This is what makes the gate a real
+// block rather than a one-time signup check — an account that abandoned
+// verification mid-signup gets sent back here on its next visit too.
+async function ccRequireVerifiedContact() {
+  const supa = ccGetSupabaseClient();
+  const { data: { session } } = await supa.auth.getSession();
+  if (!session) {
+    window.location.href = "login.html";
+    return null;
+  }
+  if (!ccHasVerifiedContact(session)) {
+    window.location.href = "verify-contact.html";
+    return null;
+  }
+  return session;
+}
+
 

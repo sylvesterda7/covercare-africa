@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify your account – CoverCare Africa</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#111827">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+
+<body>
+
+  <div class="auth-wrap">
+    <div class="auth-card">
+
+      <a href="index.html" class="auth-logo" style="font-family:var(--font-heading);">CoverCare Africa</a>
+
+      <h1>Verify your account</h1>
+      <p id="verifyIntro">For everyone's safety on a healthcare platform, we need to confirm both your email and phone number before you can use CoverCare.</p>
+
+      <div class="auth-error" id="errorMsg" style="display:none;"></div>
+      <div class="auth-success" id="successMsg" style="display:none;"></div>
+
+      <!-- Step: collect + link the missing contact method -->
+      <div id="collectStep">
+        <div class="form-group" id="collectFieldGroup">
+          <label id="collectLabel" for="collectValue">Phone number</label>
+          <input type="text" id="collectValue" placeholder="" />
+        </div>
+        <button type="button" class="btn-auth" id="sendCodeBtn" onclick="sendCode()">Send code</button>
+      </div>
+
+      <!-- Step: enter the code -->
+      <div id="otpStep" style="display:none;">
+        <p style="font-size:13px; color:var(--fg-muted, #6b7280);" id="otpSentNote"></p>
+        <div class="form-group">
+          <label for="otpCode">6-digit code</label>
+          <input type="text" id="otpCode" inputmode="numeric" maxlength="6" placeholder="123456" />
+        </div>
+        <button type="button" class="btn-auth" id="confirmCodeBtn" onclick="confirmCode()">Confirm code</button>
+        <div style="margin-top:0.75rem;">
+          <a href="#" class="auth-small-link" onclick="event.preventDefault(); sendCode();">Resend code</a>
+        </div>
+      </div>
+
+      <div class="auth-switch" style="margin-top: 1.25rem;">
+        <a href="#" onclick="event.preventDefault(); signOutAndLeave();">Sign out</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0"></script>
+  <script src="verify-contact.js"></script>
+
+</body>
+</html>
