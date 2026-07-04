@@ -9,6 +9,7 @@ let currentWorker = null;
 async function init() {
   const { data: { session } } = await _supabase.auth.getSession();
   if (!session) { window.location.href = "login.html"; return; }
+  if (!ccHasVerifiedContact(session)) { window.location.href = "verify-contact.html"; return; }
 
   const user = session.user;
   const meta = user.user_metadata || {};
@@ -97,8 +98,97 @@ async function loadProfile(email) {
 
   // ── Activation status banner ──
   renderActivationStatus(data);
+  renderVerificationSection(data);
 
   updateAvailBtn(true);
+}
+
+// ── Verification & Documents section ──
+function renderVerificationSection(worker) {
+  const licBadge = document.getElementById("dashLicenseBadge");
+  const idBadge = document.getElementById("dashIdentityBadge");
+  const numberInput = document.getElementById("dashLicenseNumber");
+  const verifyBtn = document.getElementById("dashVerifyBtn");
+  const identityCta = document.getElementById("identityVerifyCta");
+
+  if (numberInput && !numberInput.value) numberInput.value = worker.license_number || "";
+
+  if (licBadge) {
+    licBadge.innerHTML = worker.license_verified
+      ? '<span class="badge badge-accent">✓ Verified</span>'
+      : '<span class="badge badge-yellow">Pending</span>';
+  }
+  if (numberInput && verifyBtn) {
+    numberInput.disabled = !!worker.license_verified;
+    verifyBtn.disabled = !!worker.license_verified;
+    verifyBtn.style.opacity = worker.license_verified ? "0.5" : "1";
+  }
+
+  if (idBadge) {
+    idBadge.innerHTML = worker.identity_verified
+      ? '<span class="badge badge-accent">✓ Verified</span>'
+      : '<span class="badge badge-yellow">Pending</span>';
+  }
+  if (identityCta) {
+    if (worker.identity_verified) {
+      identityCta.textContent = "Identity verified";
+      identityCta.style.pointerEvents = "none";
+      identityCta.style.opacity = "0.6";
+    } else {
+      identityCta.textContent = "Start identity verification";
+      identityCta.style.pointerEvents = "";
+      identityCta.style.opacity = "1";
+    }
+  }
+}
+
+async function verifyLicenseFromDashboard() {
+  if (!currentWorker) { ccToast("Complete your profile first.", "error"); return; }
+
+  const license = document.getElementById("dashLicenseNumber").value.trim();
+  const resultBox = document.getElementById("dashVerifyResult");
+  const btn = document.getElementById("dashVerifyBtn");
+
+  if (!license) {
+    ccToast("Please enter your license / registration number.", "error");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Checking...";
+  resultBox.innerHTML = "";
+
+  try {
+    const { data } = await ccFetch(
+      `/verify?registration_number=${encodeURIComponent(license)}&name=${encodeURIComponent(currentWorker.full_name || "")}&country=${encodeURIComponent(currentWorker.country || "")}&role=${encodeURIComponent(currentWorker.role || "")}`,
+      { method: "GET" }
+    );
+
+    if (data.success === true && data.data?.verification_token) {
+      const { data: saveResult } = await ccFetch("/worker", {
+        method: "PUT",
+        body: JSON.stringify({ license_number: license, license_verification_token: data.data.verification_token })
+      });
+      if (saveResult?.success) {
+        resultBox.innerHTML = `<strong style="color:#0F6E56;">Verified — Active and in good standing.</strong>`;
+        await loadProfile(currentWorker.email);
+      } else {
+        resultBox.innerHTML = `<span style="color:#E24B4A;">Verified, but saving failed. Please try again.</span>`;
+      }
+    } else if (data.data?.status === "name_mismatch") {
+      resultBox.innerHTML = `<strong>Name mismatch</strong> — this registration number was found but the name doesn't match regulatory records.`;
+    } else if (data.data?.status === "not_found") {
+      resultBox.innerHTML = `<strong>Not found</strong> — we couldn't find this registration number. Please check it, or upload your certificate from Edit profile for manual review.`;
+    } else {
+      resultBox.innerHTML = `<strong>Manual review required</strong> — ${escapeHtml(data.message || "Auto-verification isn't available for this profession/country. Upload your certificate from Edit profile for manual review.")}`;
+    }
+  } catch (err) {
+    console.error("Verify error:", err);
+    resultBox.innerHTML = `<strong>Verification unavailable</strong> — please try again later.`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Verify";
 }
 
 // ── Render activation status banner ──
@@ -618,6 +708,26 @@ async function loadCompletedShifts() {
   `;
 }
 
+// ── Country/city cascade (Edit profile modal) ──
+function populateCities(countrySelectId, citySelectId, countryCode, selectedCity) {
+  const country = AFRICAN_COUNTRIES.find(c => c.code === countryCode);
+  const citySel = document.getElementById(citySelectId);
+  if (!citySel) return;
+  citySel.innerHTML = '<option value="">Select city</option>';
+  if (country) {
+    country.cities.forEach(city => {
+      const opt = document.createElement("option");
+      opt.value = city.value; opt.textContent = city.label;
+      if (city.value === selectedCity) opt.selected = true;
+      citySel.appendChild(opt);
+    });
+  }
+}
+
+document.getElementById("editCountry")?.addEventListener("change", function() {
+  populateCities("editCountry", "editCity", this.value, "");
+});
+
 // ── Profile settings ──
 function openProfileSettings() {
   if (!currentWorker) { ccToast("Complete your profile first.", "error"); return; }
@@ -637,7 +747,15 @@ function openProfileSettings() {
     licField.style.opacity = "1";
     licField.style.cursor = "";
   }
-  document.getElementById("editCity").value = currentWorker.city || "";
+  const countrySel = document.getElementById("editCountry");
+  countrySel.innerHTML = '<option value="">Select country</option>';
+  AFRICAN_COUNTRIES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.code; opt.textContent = c.name;
+    if (c.code === currentWorker.country) opt.selected = true;
+    countrySel.appendChild(opt);
+  });
+  populateCities("editCountry", "editCity", currentWorker.country, currentWorker.city);
   document.getElementById("editExperience").value = currentWorker.experience || "";
   document.getElementById("editBio").value = currentWorker.bio || "";
   const previewEl = document.getElementById("profilePhotoPreview");
@@ -721,6 +839,7 @@ document.getElementById("profileForm").addEventListener("submit", async function
         role: document.getElementById("editRole").value,
         license_number: document.getElementById("editLicense").value.trim(),
         license_file_url: licenseFileUrl,
+        country: document.getElementById("editCountry").value,
         city: document.getElementById("editCity").value,
         experience: document.getElementById("editExperience").value,
         bio: document.getElementById("editBio").value.trim(),

@@ -1226,3 +1226,30 @@ input[type="file"]::file-selector-button:hover {
   background: var(--bg-card);
   border-color: var(--accent-border);
 }
+
+/* ── Contact-method toggle (signup / login: email vs phone) ── */
+.method-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.method-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.method-btn.active {
+  background: var(--fg-primary);
+  border-color: var(--fg-primary);
+  color: #fff;
+}

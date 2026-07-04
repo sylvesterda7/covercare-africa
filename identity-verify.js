@@ -226,13 +226,15 @@ async function markVerified() {
   if (idFile) {
     idUrl = await uploadToCloudinary(await fileToDataUrl(idFile), "id_document");
   }
+  const idDocType = document.querySelector('input[name="idDocType"]:checked')?.value || "government_id";
 
   const { data: result } = await ccFetch("/verify-identity", {
     method: "POST",
     body: JSON.stringify({
       email,
       selfie_url: selfieUrl,
-      id_document_url: idUrl
+      id_document_url: idUrl,
+      id_document_type: idDocType
     })
   });
 

@@ -139,6 +139,10 @@ document.addEventListener("DOMContentLoaded", async function() {
     window.location.href = "login.html";
     return;
   }
+  if (!ccHasVerifiedContact(session)) {
+    window.location.href = "verify-contact.html";
+    return;
+  }
 
   lockInput("contactEmail", session.user.email);
   document.getElementById("contactEmail").title = "Uses your account email";

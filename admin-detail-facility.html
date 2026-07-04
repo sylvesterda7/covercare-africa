@@ -142,6 +142,20 @@
                   : "Facility pays upfront for each shift before posting."}
               </p>
             </div>
+
+            ${!f.activated ? `
+              <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
+                <button onclick="activateFacility('${f.id}')" style="background:#111827; color:#fff; border:none; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit;">
+                  Activate account
+                </button>
+                <p style="font-size:12px; color:#6b7280; margin-top:8px;">Activate this facility after reviewing its regulatory documents. They will be notified and can start posting shifts.</p>
+              </div>
+            ` : `
+              <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
+                <span style="color:#141414; font-size:14px; font-weight:500;">✓ Account is active</span>
+                ${f.activated_at ? `<p style="font-size:12px; color:#6b7280; margin:4px 0 0;">Activated on ${new Date(f.activated_at).toLocaleDateString()}</p>` : ""}
+              </div>
+            `}
           </div>
 
           <!-- Right: Stats + Documents -->
@@ -181,6 +195,25 @@
       } else {
         ccToast(result?.message || "Failed to toggle billing.", "error");
         if (btn) btn.disabled = false;
+      }
+    }
+
+    async function activateFacility(facilityId) {
+      if (!confirm("Activate this facility? They will be notified and can start posting shifts.")) return;
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = "Activating...";
+      const { data: result } = await ccFetch("/admin/activate-facility", {
+        method: "POST",
+        body: JSON.stringify({ facility_id: facilityId })
+      });
+      if (result?.success) {
+        ccToast("Facility activated successfully.", "success");
+        await loadFacilityDetail(facilityId);
+      } else {
+        ccToast(result?.message || "Failed to activate.", "error");
+        btn.disabled = false;
+        btn.textContent = "Activate account";
       }
     }
 

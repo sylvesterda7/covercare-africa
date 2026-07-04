@@ -88,6 +88,24 @@
       <!-- ACTIVATION STATUS -->
       <div id="activationBanner" style="display:none;"></div>
 
+      <!-- VERIFICATION & DOCUMENTS -->
+      <div class="section-title" style="margin-top: 1rem;">Verification &amp; Documents</div>
+      <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+        <h3 style="font-size:15px; margin:0 0 4px;">License verification <span id="dashLicenseBadge"></span></h3>
+        <p style="font-size:13px; color:#6b7280; margin:0 0 12px;">Check your license / registration number against the regulator. Upload your certificate from <button type="button" onclick="openProfileSettings()" style="background:none; border:none; color:#111827; font-weight:600; cursor:pointer; padding:0; font-family:inherit; font-size:13px; text-decoration:underline;">Edit profile</button>.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input type="text" id="dashLicenseNumber" class="glass-input" placeholder="License / registration number" style="flex:1; min-width:200px;" />
+          <button type="button" class="btn-auth" id="dashVerifyBtn" style="padding:8px 16px; font-size:13px; white-space:nowrap;" onclick="verifyLicenseFromDashboard()">Verify</button>
+        </div>
+        <div id="dashVerifyResult" style="margin-top:10px; font-size:13px;"></div>
+
+        <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;">
+          <h3 style="font-size:15px; margin:0 0 4px;">Identity verification <span id="dashIdentityBadge"></span></h3>
+          <p style="font-size:13px; color:#6b7280; margin:0 0 12px;">Upload a government-issued ID or passport and take a live selfie to confirm your identity.</p>
+          <a href="identity-verify.html" class="btn-auth" id="identityVerifyCta" style="display:inline-block; padding:8px 16px; font-size:13px; text-decoration:none;">Start identity verification</a>
+        </div>
+      </div>
+
       <!-- STATS -->
       <div class="stats-row">
         <div class="stat-box">
@@ -200,13 +218,11 @@
           <label style="font-size:12px; color:var(--fg-muted); margin-bottom:6px; display:block;">License certificate document (PDF or image)</label>
           <input id="editLicenseFile" class="glass-input" type="file" accept=".pdf,.jpg,.jpeg,.png" />
         </div>
+        <select id="editCountry" class="glass-input" required>
+          <option value="">Select country</option>
+        </select>
         <select id="editCity" class="glass-input" required>
           <option value="">Select city</option>
-          <option value="Accra">Accra</option>
-          <option value="Kumasi">Kumasi</option>
-          <option value="Tamale">Tamale</option>
-          <option value="Cape Coast">Cape Coast</option>
-          <option value="Takoradi">Takoradi</option>
         </select>
         <select id="editExperience" class="glass-input">
           <option value="">Experience level</option>
