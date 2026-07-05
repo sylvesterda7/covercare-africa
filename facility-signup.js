@@ -148,21 +148,12 @@ _supabase.auth.onAuthStateChange((event, session) => {
   }
 })();
 
-// ── Stage 1: account creation with dual-channel signup ──
-// Document upload now happens post-signup from the dashboard's
-// Verification & Documents tab — signup is account creation only. See
-// worker-signup.js for the full rationale on why a phone-primary signup
-// must link+verify email inline here rather than deferring to
-// verify-contact.html (the facilities table is keyed by email everywhere).
-let signupMethod = "email";
-let _awaitingEmailLink = false;
-
-function setSignupMethod(method) {
-  signupMethod = method;
-  document.getElementById("methodEmailBtn").classList.toggle("active", method === "email");
-  document.getElementById("methodPhoneBtn").classList.toggle("active", method === "phone");
-}
-
+// ── Stage 1: account creation (email + password, or Google/Apple) ──
+// Phone OTP is deferred (see CC_CONFIG.REQUIRE_PHONE_VERIFICATION), so signup
+// is email + password or an OAuth provider — no "phone or email" branch. The
+// phone number is still required, collected in the profile step below, and
+// saved; it just isn't OTP-verified yet. Document upload happens later from
+// the dashboard's Verification & Documents tab.
 function revealStage2() {
   document.getElementById("stage1Fields").style.display = "none";
   document.getElementById("stage2Fields").style.display = "block";
@@ -171,10 +162,9 @@ function revealStage2() {
 async function startPrimarySignup() {
   const contactName = document.getElementById("contactName").value.trim();
   const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
 
-  if (!contactName || !email || !phone) {
-    ccToast("Please fill in the contact name, email, and phone number.", "error");
+  if (!contactName || !email) {
+    ccToast("Please fill in the contact name and email.", "error");
     return;
   }
 
@@ -199,10 +189,7 @@ async function startPrimarySignup() {
   btn.disabled = true;
   btn.textContent = "Sending code...";
 
-  const { error } = signupMethod === "phone"
-    ? await ccSignUpWithPhone(phone, password, "facility", contactName)
-    : await ccSignUpWithEmail(email, password, "facility", contactName);
-
+  const { error } = await ccSignUpWithEmail(email, password, "facility", contactName);
   if (error) {
     ccToast(error.message, "error");
     btn.disabled = false;
@@ -210,8 +197,7 @@ async function startPrimarySignup() {
     return;
   }
 
-  document.getElementById("otpLabel").textContent =
-    `Enter the 6-digit code we sent to your ${signupMethod === "phone" ? "phone" : "email"}`;
+  document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
   btn.style.display = "none";
   document.getElementById("otpGroup").style.display = "block";
 }
@@ -222,37 +208,43 @@ async function confirmPrimaryOtp() {
     ccToast("Please enter the code we sent you.", "error");
     return;
   }
-
   const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-
-  if (_awaitingEmailLink) {
-    const { error } = await ccVerifyEmailChangeOtp(email, token);
-    if (error) { ccToast(error.message, "error"); return; }
-    revealStage2();
-    return;
-  }
-
-  const { error } = signupMethod === "phone"
-    ? await ccVerifySignupPhoneOtp(phone, token)
-    : await ccVerifySignupEmailOtp(email, token);
-
+  const { error } = await ccVerifySignupEmailOtp(email, token);
   if (error) {
     ccToast(error.message, "error");
     return;
   }
-
-  if (signupMethod === "phone") {
-    const { error: linkErr } = await ccLinkEmail(email);
-    if (linkErr) { ccToast(linkErr.message, "error"); return; }
-    _awaitingEmailLink = true;
-    document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
-    document.getElementById("otpCode").value = "";
-    return;
-  }
-
   revealStage2();
 }
+
+// ── Live password strength meter + confirm-match feedback ──
+function wirePasswordUx() {
+  const pw = document.getElementById("password");
+  const confirm = document.getElementById("confirmPassword");
+  if (!pw || !confirm) return;
+  const strengthWrap = document.getElementById("pwStrength");
+  const fill = document.getElementById("pwStrengthFill");
+  const label = document.getElementById("pwStrengthLabel");
+  const matchMsg = document.getElementById("pwMatchMsg");
+
+  function renderStrength() {
+    if (!pw.value) { strengthWrap.style.display = "none"; return; }
+    strengthWrap.style.display = "block";
+    const s = ccPasswordStrength(pw.value);
+    fill.style.width = s.pct + "%";
+    fill.style.backgroundColor = s.color;
+    label.textContent = s.label;
+    label.style.color = s.color;
+  }
+  function renderMatch() {
+    if (!confirm.value) { matchMsg.textContent = ""; matchMsg.className = "pw-match-msg"; return; }
+    if (pw.value === confirm.value) { matchMsg.textContent = "Passwords match"; matchMsg.className = "pw-match-msg ok"; }
+    else { matchMsg.textContent = "Passwords don't match yet"; matchMsg.className = "pw-match-msg bad"; }
+  }
+  pw.addEventListener("input", () => { renderStrength(); renderMatch(); });
+  confirm.addEventListener("input", renderMatch);
+}
+wirePasswordUx();
 
 // ── Form submission (stage 2 — facility profile; account already exists) ──
 document.getElementById("facilityForm").addEventListener("submit", async function(e) {
@@ -318,7 +310,8 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
 
     if (response.ok && result.success) {
       await _supabase.auth.updateUser({ data: { user_type: "facility" } }).catch(() => {});
-      window.location.href = "verify-contact.html";
+      // Email verified in the account step; phone verification deferred.
+      window.location.href = "dashboard-facility.html";
     } else {
       ccToast("Something went wrong. Please try again.", "error");
       btn.disabled = false;

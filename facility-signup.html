@@ -105,26 +105,19 @@
             <input type="email" id="email" placeholder="e.g. ama@nyaho.com" required />
           </div>
 
-          <div class="form-group">
-            <label for="phone">Phone number</label>
-            <input type="tel" id="phone" placeholder="Phone number" required />
-          </div>
-
           <div id="regFields" style="display:none;">
             <div class="form-group">
               <label for="password">Password</label>
               <input type="password" id="password" placeholder="At least 8 characters" required />
+              <div class="pw-strength" id="pwStrength" style="display:none;">
+                <div class="pw-strength-track"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+                <div class="pw-strength-label" id="pwStrengthLabel"></div>
+              </div>
             </div>
             <div class="form-group">
               <label for="confirmPassword">Confirm password</label>
               <input type="password" id="confirmPassword" placeholder="Repeat your password" required />
-            </div>
-            <div class="form-group">
-              <label>Which would you like to sign in with?</label>
-              <div class="method-toggle">
-                <button type="button" class="method-btn active" id="methodEmailBtn" onclick="setSignupMethod('email')">Email</button>
-                <button type="button" class="method-btn" id="methodPhoneBtn" onclick="setSignupMethod('phone')">Phone number</button>
-              </div>
+              <div class="pw-match-msg" id="pwMatchMsg"></div>
             </div>
           </div>
 
@@ -140,6 +133,11 @@
 
         <!-- STAGE 2: facility profile -->
         <div id="stage2Fields" style="display:none;">
+
+          <div class="form-group">
+            <label for="phone">Phone number</label>
+            <input type="tel" id="phone" placeholder="Phone number" required />
+          </div>
 
           <div class="form-group">
             <label for="facilityName">Facility name</label>

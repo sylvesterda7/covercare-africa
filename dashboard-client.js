@@ -127,6 +127,7 @@ async function loadClientProfile() {
       photo.style.display = "inline-block";
     }
     renderClientVerificationSection();
+    ccRenderPhonePrompt(!!(clientProfile.phone && String(clientProfile.phone).trim()), openClientModal);
   }
 }
 
