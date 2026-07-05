@@ -94,17 +94,15 @@
             <div class="form-group">
               <label class="form-label">Password</label>
               <input id="clientPassword" class="glass-input" type="password" required placeholder="At least 8 characters" />
+              <div class="pw-strength" id="pwStrength" style="display:none;">
+                <div class="pw-strength-track"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+                <div class="pw-strength-label" id="pwStrengthLabel"></div>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Confirm password</label>
               <input id="clientConfirmPassword" class="glass-input" type="password" required placeholder="Repeat your password" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Which would you like to sign in with?</label>
-              <div class="method-toggle">
-                <button type="button" class="method-btn active" id="methodEmailBtn" onclick="setSignupMethod('email')">Email</button>
-                <button type="button" class="method-btn" id="methodPhoneBtn" onclick="setSignupMethod('phone')">Phone number</button>
-              </div>
+              <div class="pw-match-msg" id="pwMatchMsg"></div>
             </div>
           </div>
 
@@ -243,19 +241,10 @@
       }
     });
 
-    // ── Dual-channel signup: account creation is account creation only.
-    // See worker-signup.js for the full rationale — a phone-primary signup
-    // must link+verify email inline here (not deferred) since the clients
-    // table is keyed by email everywhere downstream.
-    let signupMethod = "email";
-    let _awaitingEmailLink = false;
-
-    function setSignupMethod(method) {
-      signupMethod = method;
-      document.getElementById("methodEmailBtn").classList.toggle("active", method === "email");
-      document.getElementById("methodPhoneBtn").classList.toggle("active", method === "phone");
-    }
-
+    // ── Signup: account creation only (email + password, or Google/Apple). ──
+    // Phone OTP is deferred (see CC_CONFIG.REQUIRE_PHONE_VERIFICATION) so there's
+    // no "phone or email" branch. Phone is still required and saved to the
+    // profile; it just isn't OTP-verified yet.
     function showClientError(msg) {
       const errEl = document.getElementById("clientError");
       errEl.textContent = msg;
@@ -298,10 +287,7 @@
       btn.disabled = true;
       btn.textContent = "Sending code...";
 
-      const { error } = signupMethod === "phone"
-        ? await ccSignUpWithPhone(phone, password, "client", full_name)
-        : await ccSignUpWithEmail(email, password, "client", full_name);
-
+      const { error } = await ccSignUpWithEmail(email, password, "client", full_name);
       if (error) {
         showClientError(error.message);
         btn.disabled = false;
@@ -309,8 +295,7 @@
         return;
       }
 
-      document.getElementById("otpLabel").textContent =
-        `Enter the 6-digit code we sent to your ${signupMethod === "phone" ? "phone" : "email"}`;
+      document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
       btn.style.display = "none";
       document.getElementById("otpGroup").style.display = "block";
     }
@@ -321,37 +306,42 @@
         showClientError("Please enter the code we sent you.");
         return;
       }
-
       const email = document.getElementById("clientEmail").value.trim();
-      const phone = document.getElementById("clientPhone").value.trim();
-
-      if (_awaitingEmailLink) {
-        const { error } = await ccVerifyEmailChangeOtp(email, token);
-        if (error) { showClientError(error.message); return; }
-        await finishClientSignup();
-        return;
-      }
-
-      const { error } = signupMethod === "phone"
-        ? await ccVerifySignupPhoneOtp(phone, token)
-        : await ccVerifySignupEmailOtp(email, token);
-
+      const { error } = await ccVerifySignupEmailOtp(email, token);
       if (error) {
         showClientError(error.message);
         return;
       }
-
-      if (signupMethod === "phone") {
-        const { error: linkErr } = await ccLinkEmail(email);
-        if (linkErr) { showClientError(linkErr.message); return; }
-        _awaitingEmailLink = true;
-        document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
-        document.getElementById("otpCode").value = "";
-        return;
-      }
-
       await finishClientSignup();
     }
+
+    // ── Live password strength meter + confirm-match feedback ──
+    (function wirePasswordUx() {
+      const pw = document.getElementById("clientPassword");
+      const confirm = document.getElementById("clientConfirmPassword");
+      if (!pw || !confirm) return;
+      const strengthWrap = document.getElementById("pwStrength");
+      const fill = document.getElementById("pwStrengthFill");
+      const label = document.getElementById("pwStrengthLabel");
+      const matchMsg = document.getElementById("pwMatchMsg");
+
+      function renderStrength() {
+        if (!pw.value) { strengthWrap.style.display = "none"; return; }
+        strengthWrap.style.display = "block";
+        const s = ccPasswordStrength(pw.value);
+        fill.style.width = s.pct + "%";
+        fill.style.backgroundColor = s.color;
+        label.textContent = s.label;
+        label.style.color = s.color;
+      }
+      function renderMatch() {
+        if (!confirm.value) { matchMsg.textContent = ""; matchMsg.className = "pw-match-msg"; return; }
+        if (pw.value === confirm.value) { matchMsg.textContent = "Passwords match"; matchMsg.className = "pw-match-msg ok"; }
+        else { matchMsg.textContent = "Passwords don't match yet"; matchMsg.className = "pw-match-msg bad"; }
+      }
+      pw.addEventListener("input", () => { renderStrength(); renderMatch(); });
+      confirm.addEventListener("input", renderMatch);
+    })();
 
     // Profile creation — no further fields to collect beyond what stage 1
     // already gathered, so this fires automatically once the account exists.
@@ -371,7 +361,8 @@
 
       if (result?.success) {
         await _supabase.auth.updateUser({ data: { user_type: "client" } }).catch(() => {});
-        window.location.href = "verify-contact.html";
+        // Email verified in the account step; phone verification deferred.
+        window.location.href = "dashboard-client.html";
       } else {
         showClientError(result?.message || "Failed to create account. Please try again.");
         const btn = document.getElementById("clientBtn");

@@ -4,24 +4,13 @@ const _supabase = ccGetSupabaseClient() || (window.supabase && window.supabase.c
 
 let googleProfile = null;
 
-// ── Stage 1: account creation with dual-channel signup ──
-// License verification and document upload now happen post-signup, from
-// the dashboard's Verification & Documents tab — signup is account
-// creation only. The chosen contact method becomes the Supabase Auth
-// identifier and is verified right here; if that method was phone, email
-// must ALSO be linked+verified here (not deferred) because the workers
-// table is keyed by email everywhere downstream. If the primary method was
-// email, phone verification is deferred to verify-contact.html after the
-// profile is created (email already exists as the account key by then).
-let signupMethod = "email";
-let _awaitingEmailLink = false;
-
-function setSignupMethod(method) {
-  signupMethod = method;
-  document.getElementById("methodEmailBtn").classList.toggle("active", method === "email");
-  document.getElementById("methodPhoneBtn").classList.toggle("active", method === "phone");
-}
-
+// ── Stage 1: account creation (email + password, or Google/Apple) ──
+// Phone OTP is deferred for now (see CC_CONFIG.REQUIRE_PHONE_VERIFICATION) so
+// signup no longer branches on "phone or email" — it's email + password, or an
+// OAuth provider. The phone number is still required, collected in the profile
+// step below, and saved; it just isn't OTP-verified yet. License verification
+// and document upload happen later from the dashboard — signup is account
+// creation only.
 function revealStage2() {
   document.getElementById("stage1Fields").style.display = "none";
   document.getElementById("stage2Fields").style.display = "block";
@@ -30,14 +19,14 @@ function revealStage2() {
 async function startPrimarySignup() {
   const fullname = document.getElementById("fullname").value.trim();
   const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
 
-  if (!fullname || !email || !phone) {
-    ccToast("Please fill in your name, email, and phone number.", "error");
+  if (!fullname || !email) {
+    ccToast("Please fill in your name and email.", "error");
     return;
   }
 
-  // Already authenticated (e.g. via Google) — nothing to create, just continue.
+  // Already authenticated (e.g. via Google/Apple) — account exists, go on to
+  // the profile step (which collects the phone number).
   const { data: { session: existingSession } } = await _supabase.auth.getSession();
   if (existingSession) {
     revealStage2();
@@ -59,10 +48,7 @@ async function startPrimarySignup() {
   btn.disabled = true;
   btn.textContent = "Sending code...";
 
-  const { error } = signupMethod === "phone"
-    ? await ccSignUpWithPhone(phone, password, "worker", fullname)
-    : await ccSignUpWithEmail(email, password, "worker", fullname);
-
+  const { error } = await ccSignUpWithEmail(email, password, "worker", fullname);
   if (error) {
     ccToast(error.message, "error");
     btn.disabled = false;
@@ -70,8 +56,7 @@ async function startPrimarySignup() {
     return;
   }
 
-  document.getElementById("otpLabel").textContent =
-    `Enter the 6-digit code we sent to your ${signupMethod === "phone" ? "phone" : "email"}`;
+  document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
   btn.style.display = "none";
   document.getElementById("otpGroup").style.display = "block";
 }
@@ -82,37 +67,43 @@ async function confirmPrimaryOtp() {
     ccToast("Please enter the code we sent you.", "error");
     return;
   }
-
   const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-
-  if (_awaitingEmailLink) {
-    const { error } = await ccVerifyEmailChangeOtp(email, token);
-    if (error) { ccToast(error.message, "error"); return; }
-    revealStage2();
-    return;
-  }
-
-  const { error } = signupMethod === "phone"
-    ? await ccVerifySignupPhoneOtp(phone, token)
-    : await ccVerifySignupEmailOtp(email, token);
-
+  const { error } = await ccVerifySignupEmailOtp(email, token);
   if (error) {
     ccToast(error.message, "error");
     return;
   }
-
-  if (signupMethod === "phone") {
-    const { error: linkErr } = await ccLinkEmail(email);
-    if (linkErr) { ccToast(linkErr.message, "error"); return; }
-    _awaitingEmailLink = true;
-    document.getElementById("otpLabel").textContent = "Enter the 6-digit code we sent to your email";
-    document.getElementById("otpCode").value = "";
-    return;
-  }
-
   revealStage2();
 }
+
+// ── Live password strength meter + confirm-match feedback ──
+function wirePasswordUx() {
+  const pw = document.getElementById("password");
+  const confirm = document.getElementById("confirmPassword");
+  if (!pw || !confirm) return;
+  const strengthWrap = document.getElementById("pwStrength");
+  const fill = document.getElementById("pwStrengthFill");
+  const label = document.getElementById("pwStrengthLabel");
+  const matchMsg = document.getElementById("pwMatchMsg");
+
+  function renderStrength() {
+    if (!pw.value) { strengthWrap.style.display = "none"; return; }
+    strengthWrap.style.display = "block";
+    const s = ccPasswordStrength(pw.value);
+    fill.style.width = s.pct + "%";
+    fill.style.backgroundColor = s.color;
+    label.textContent = s.label;
+    label.style.color = s.color;
+  }
+  function renderMatch() {
+    if (!confirm.value) { matchMsg.textContent = ""; matchMsg.className = "pw-match-msg"; return; }
+    if (pw.value === confirm.value) { matchMsg.textContent = "Passwords match"; matchMsg.className = "pw-match-msg ok"; }
+    else { matchMsg.textContent = "Passwords don't match yet"; matchMsg.className = "pw-match-msg bad"; }
+  }
+  pw.addEventListener("input", () => { renderStrength(); renderMatch(); });
+  confirm.addEventListener("input", renderMatch);
+}
+wirePasswordUx();
 
 // ── Populate country dropdown ──
 (function populateCountries() {
@@ -366,9 +357,10 @@ document.getElementById("workerForm").addEventListener("submit", async function(
 
     if (response.ok && result.success) {
       await _supabase.auth.updateUser({ data: { user_type: "worker" } }).catch(() => {});
-      // Whichever contact method wasn't used to sign up still needs
-      // verifying before the account is usable at all.
-      window.location.href = "verify-contact.html";
+      // Email was verified in the account step; phone verification is deferred.
+      // The dashboard's own gate (ccRequireVerifiedContact) will bounce back to
+      // verify-contact.html if email somehow isn't confirmed yet.
+      window.location.href = "dashboard-worker.html";
     } else {
       ccToast("Something went wrong. Please try again.", "error");
       btn.disabled = false;

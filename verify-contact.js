@@ -45,15 +45,17 @@ async function refreshAndRoute() {
     window.location.href = "login.html";
     return;
   }
-  if (!session.user.phone_confirmed_at) {
-    configureStepFor("phone", session);
-    return;
-  }
   if (!session.user.email_confirmed_at) {
     configureStepFor("email", session);
     return;
   }
-  // Both verified — on to the right dashboard.
+  // Phone verification is only enforced when the flag is on; otherwise email
+  // alone unlocks the account and this step is skipped entirely.
+  if (CC_CONFIG.REQUIRE_PHONE_VERIFICATION && !session.user.phone_confirmed_at) {
+    configureStepFor("phone", session);
+    return;
+  }
+  // Contact requirements met — on to the right dashboard.
   window.location.href = getDashboardUrl(session.user.user_metadata?.user_type, session.user.email);
 }
 

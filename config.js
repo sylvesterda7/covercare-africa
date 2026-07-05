@@ -5,6 +5,11 @@ const CC_CONFIG = {
   BACKEND_URL: "https://covercare-backend-production.up.railway.app",
   PAYSTACK_PUBLIC_KEY: "pk_test_866cbb9c537c7780cc05fa3d88c10fcd5e758d02",
   ADMIN_EMAILS: ["sdenyoh-abayateye@st.ug.edu.gh"],
+  // Phone OTP verification is deferred for now — only email is required to
+  // unlock an account. Flip to true (and REQUIRE_PHONE_VERIFICATION in the
+  // backend server.js) to turn phone verification back on. The phone number
+  // is still collected at signup regardless; it's only the OTP step that's off.
+  REQUIRE_PHONE_VERIFICATION: false,
   ARRIVE_BASE_URL: "https://covercare-africa.vercel.app/arrive",
   SUPPORTED_CURRENCIES: [
     { code: "GHS", symbol: "GH\u00a2", name: "Ghana Cedi", locale: "en-GH" },
@@ -897,7 +902,34 @@ async function ccVerifyPhoneChangeOtp(phone, token) {
 
 function ccHasVerifiedContact(session) {
   const u = session?.user;
-  return !!(u?.email_confirmed_at && u?.phone_confirmed_at);
+  if (!u?.email_confirmed_at) return false;
+  if (CC_CONFIG.REQUIRE_PHONE_VERIFICATION && !u?.phone_confirmed_at) return false;
+  return true;
+}
+
+// Live password-strength scoring for the signup forms. No dependencies —
+// scores on length plus character-class variety. Returns a 0–4 score with a
+// label, colour, and bar width so each form can render identical feedback.
+function ccPasswordStrength(pw) {
+  pw = pw || "";
+  if (!pw) return { score: 0, label: "", color: "#e5e7eb", pct: 0 };
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+  if (/\d/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  // Very short passwords can never read as strong regardless of variety.
+  if (pw.length < 8) score = Math.min(score, 1);
+  score = Math.min(score, 4);
+  const levels = [
+    { label: "Too weak", color: "#DC2626", pct: 20 },
+    { label: "Weak",     color: "#DC2626", pct: 35 },
+    { label: "Fair",     color: "#F0B429", pct: 60 },
+    { label: "Good",     color: "#0F9D58", pct: 80 },
+    { label: "Strong",   color: "#0F6E56", pct: 100 }
+  ];
+  return { score, ...levels[score] };
 }
 
 // Call at the top of every dashboard / post-shift / apply page. Returns the
@@ -917,6 +949,40 @@ async function ccRequireVerifiedContact() {
     return null;
   }
   return session;
+}
+
+// Non-blocking nudge shown on a dashboard when the account has no phone number
+// on file. Phone verification is deferred, so this is a gentle prompt (with a
+// per-session dismiss), never a blocking modal. `openEditFn` opens whichever
+// edit-profile/settings control that dashboard already uses to edit the phone.
+function ccRenderPhonePrompt(hasPhone, openEditFn) {
+  if (hasPhone) return;
+  if (sessionStorage.getItem("ccPhonePromptDismissed") === "1") return;
+  const main = document.querySelector(".dashboard-main");
+  if (!main || document.getElementById("ccPhonePrompt")) return;
+
+  const bar = document.createElement("div");
+  bar.id = "ccPhonePrompt";
+  bar.style.cssText = "display:flex; align-items:center; gap:12px; padding:12px 16px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:1.25rem; font-size:14px; color:#111827;";
+
+  const msg = document.createElement("span");
+  msg.style.flex = "1";
+  msg.textContent = "Add your phone number so the people you work with can reach you.";
+
+  const add = document.createElement("button");
+  add.textContent = "Add phone";
+  add.className = "btn-auth";
+  add.style.cssText = "padding:6px 14px; font-size:13px; white-space:nowrap;";
+  add.onclick = function () { if (typeof openEditFn === "function") openEditFn(); };
+
+  const dismiss = document.createElement("button");
+  dismiss.setAttribute("aria-label", "Dismiss");
+  dismiss.textContent = "✕";
+  dismiss.style.cssText = "background:none; border:none; cursor:pointer; font-size:16px; color:#9ca3af; padding:0; line-height:1;";
+  dismiss.onclick = function () { sessionStorage.setItem("ccPhonePromptDismissed", "1"); bar.remove(); };
+
+  bar.append(msg, add, dismiss);
+  main.insertBefore(bar, main.firstChild);
 }
 
 

@@ -99,6 +99,7 @@ async function loadProfile(email) {
   // ── Activation status banner ──
   renderActivationStatus(data);
   renderVerificationSection(data);
+  ccRenderPhonePrompt(!!(data.phone && String(data.phone).trim()), openProfileSettings);
 
   updateAvailBtn(true);
 }

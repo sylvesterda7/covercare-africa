@@ -434,6 +434,7 @@ async function loadFacilityProfile() {
     facilityProfile = data;
     renderDocumentStatus(data);
     renderFacilityActivationStatus(data);
+    ccRenderPhonePrompt(!!(data.phone && String(data.phone).trim()), openFacilitySettings);
     // Show facility name instead of contact name
     if (data.facility_name) {
       document.getElementById("navUser").textContent = data.facility_name;
