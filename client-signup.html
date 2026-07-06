@@ -177,6 +177,11 @@
         document.getElementById("clientEmail").value = session.user.email;
         document.getElementById("clientEmail").readOnly = true;
         document.getElementById("clientRegFields").style.display = "none";
+        // Recovery: prefill the name from the account so a returning user
+        // (profile never created) doesn't have to retype it.
+        if (session.user.user_metadata?.full_name && !document.getElementById("clientName").value) {
+          document.getElementById("clientName").value = session.user.user_metadata.full_name;
+        }
       } else {
         document.getElementById("clientEmail").readOnly = false;
         document.getElementById("clientRegFields").style.display = "block";

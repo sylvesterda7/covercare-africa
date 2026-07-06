@@ -285,6 +285,13 @@ async function routeSignedInWorker(session) {
   if (session.user.user_metadata?.provider === "google") {
     applyGoogleProfile(session);
   }
+  // Recovery: the account exists, so the stage-1 account fields are hidden and
+  // empty. Disable them so their `required` attributes don't block the profile
+  // form from submitting ("An invalid form control is not focusable"). Name and
+  // email are sourced from the session in the submit handler instead.
+  document.getElementById("stage1Fields")
+    .querySelectorAll("input, select, textarea")
+    .forEach(el => { el.disabled = true; });
   document.getElementById("stage1Fields").style.display = "none";
   document.getElementById("stage2Fields").style.display = "block";
 }
@@ -317,9 +324,18 @@ _supabase.auth.onAuthStateChange((event, session) => {
 document.getElementById("workerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    ccToast("Please complete account creation above first.", "error");
+    return;
+  }
+
+  // Name and email come from the session (the account already exists), so this
+  // works for both a fresh signup and the recovery flow where the stage-1
+  // fields are hidden/disabled.
   const worker = {
-    name: document.getElementById("fullname").value.trim(),
-    email: document.getElementById("email").value.trim(),
+    name: (session.user.user_metadata?.full_name || document.getElementById("fullname").value || "").trim(),
+    email: session.user.email,
     phone: document.getElementById("phone").value.trim(),
     role: document.getElementById("role").value,
     license: document.getElementById("license").value.trim(),
@@ -339,12 +355,6 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     !worker.experience
   ) {
     ccToast("Please fill in all fields.", "error");
-    return;
-  }
-
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) {
-    ccToast("Please complete account creation above first.", "error");
     return;
   }
 

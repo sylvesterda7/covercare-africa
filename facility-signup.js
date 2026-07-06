@@ -132,6 +132,12 @@ async function routeSignedInFacility(session) {
   if (session.user.user_metadata?.provider === "google") {
     applyGoogleProfile(session);
   }
+  // Recovery: disable the hidden, empty stage-1 fields so their `required`
+  // attributes don't block the profile form ("invalid form control is not
+  // focusable"). Contact name / email are sourced from the session on submit.
+  document.getElementById("stage1Fields")
+    .querySelectorAll("input, select, textarea")
+    .forEach(el => { el.disabled = true; });
   document.getElementById("stage1Fields").style.display = "none";
   document.getElementById("stage2Fields").style.display = "block";
 }
@@ -262,14 +268,22 @@ wirePasswordUx();
 document.getElementById("facilityForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    ccToast("Please complete account creation above first.", "error");
+    return;
+  }
+
+  // Contact name and email come from the session (account already exists), so
+  // this works for a fresh signup and the recovery flow alike.
   const facility = {
     facilityName: document.getElementById("facilityName").value.trim(),
     facilityType: document.getElementById("facilityType").value,
     country: document.getElementById("country").value,
     city: document.getElementById("city").value,
-    contactName: document.getElementById("contactName").value.trim(),
+    contactName: (session.user.user_metadata?.full_name || document.getElementById("contactName").value || "").trim(),
     contactRole: document.getElementById("contactRole").value,
-    email: document.getElementById("email").value.trim(),
+    email: session.user.email,
     phone: document.getElementById("phone").value.trim(),
     staffNeeds: document.getElementById("staffNeeds").value,
     frequency: document.getElementById("frequency").value,
@@ -288,12 +302,6 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     !facility.frequency
   ) {
     ccToast("Please fill in all fields.", "error");
-    return;
-  }
-
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) {
-    ccToast("Please complete account creation above first.", "error");
     return;
   }
 
