@@ -109,15 +109,36 @@ function applyGoogleProfile(session) {
   return true;
 }
 
+// Does this account already have a facility profile row? An account can exist
+// in auth without ever having completed the profile step that inserts it —
+// don't bounce those people to the dashboard (they can't create it there).
+async function facilityProfileExists(email) {
+  try {
+    const { data } = await ccFetch("/facility/by-email", {
+      method: "POST",
+      body: JSON.stringify({ email })
+    });
+    return !!(data && data.success);
+  } catch (_) {
+    return false;
+  }
+}
+
+async function routeSignedInFacility(session) {
+  if (await facilityProfileExists(session.user.email)) {
+    window.location.href = "dashboard-facility.html";
+    return;
+  }
+  if (session.user.user_metadata?.provider === "google") {
+    applyGoogleProfile(session);
+  }
+  document.getElementById("stage1Fields").style.display = "none";
+  document.getElementById("stage2Fields").style.display = "block";
+}
+
 _supabase.auth.onAuthStateChange((event, session) => {
   if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
-    if (session.user.user_metadata?.user_type === "facility") {
-      window.location.href = "dashboard-facility.html";
-      return;
-    }
-    if (session.user.user_metadata?.provider === "google") {
-      applyGoogleProfile(session);
-    }
+    routeSignedInFacility(session);
   }
 });
 
@@ -133,16 +154,7 @@ _supabase.auth.onAuthStateChange((event, session) => {
   }
   const { data: { session } } = await _supabase.auth.getSession();
   if (session) {
-    if (session.user.user_metadata?.user_type === "facility") {
-      window.location.href = "dashboard-facility.html";
-      return;
-    }
-    if (session.user.user_metadata?.provider === "google") {
-      applyGoogleProfile(session);
-    }
-    // Any existing session means account creation (stage 1) is already done.
-    document.getElementById("stage1Fields").style.display = "none";
-    document.getElementById("stage2Fields").style.display = "block";
+    await routeSignedInFacility(session);
   } else {
     document.getElementById("regFields").style.display = "block";
   }
