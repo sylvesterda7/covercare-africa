@@ -74,6 +74,21 @@
   appearance: none;
 }
 
+/* Keep radios/checkboxes native — the reset above would blank them out. */
+.auth-form input[type="radio"],
+.auth-form input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: auto;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--accent, #0F6E56);
+  cursor: pointer;
+}
+
 .auth-form input:focus,
 .auth-form select:focus {
   outline: none;

@@ -69,6 +69,23 @@
   appearance: none;
 }
 
+/* Radios and checkboxes must keep their native control — the reset above
+   otherwise strips the circle/tick and paints them as blank bordered boxes,
+   making choices (e.g. ID vs passport) look unselectable. */
+.form-group input[type="radio"],
+.form-group input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: auto;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--accent, #0F6E56);
+  cursor: pointer;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {

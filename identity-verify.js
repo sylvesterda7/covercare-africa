@@ -23,7 +23,58 @@ async function loadModels() {
   console.log("Face API models loaded");
 }
 
-loadModels();
+// ── Access guard ──
+// This is the professional (worker) identity flow. Confirm up front that the
+// signed-in account actually has a worker profile, so people don't complete the
+// whole upload + selfie flow only to hit a 404 at the very end.
+async function guardWorkerAccess() {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html"; return false; }
+
+  let isWorker = false;
+  try {
+    const { data } = await ccFetch("/worker/by-email", {
+      method: "POST",
+      body: JSON.stringify({ email: session.user.email })
+    });
+    isWorker = !!(data && data.success);
+  } catch (_) {}
+
+  if (!isWorker) {
+    showAccessBlocker(session.user.user_metadata?.user_type);
+    return false;
+  }
+  return true;
+}
+
+function showAccessBlocker(userType) {
+  const progress = document.querySelector(".progress-wrap");
+  if (progress) progress.style.display = "none";
+  const section = document.querySelector(".signup-form-section");
+  if (!section) return;
+  const dest = userType === "client" ? "dashboard-client.html"
+    : userType === "facility" ? "dashboard-facility.html"
+    : "dashboard-worker.html";
+  const clientHint = userType === "client"
+    ? " If you're an individual client, verify your ID from your dashboard's Verification tab instead."
+    : "";
+  section.innerHTML = `
+    <div style="max-width:520px; margin:0 auto; text-align:center; padding:2rem;">
+      <div style="font-size:32px; margin-bottom:1rem;">🪪</div>
+      <h3 style="font-size:18px; margin-bottom:0.5rem;">This page is for professional accounts</h3>
+      <p style="font-size:14px; color:var(--fg-muted); margin-bottom:1.5rem;">
+        Identity verification here is for CoverCare professionals. We couldn't find a
+        professional profile for your account.${clientHint}
+      </p>
+      <a href="${dest}" class="btn-submit" style="display:inline-block; text-decoration:none; max-width:280px;">Go to my dashboard</a>
+    </div>`;
+}
+
+(async function init() {
+  const ok = await guardWorkerAccess();
+  if (!ok) return;
+  loadModels();
+})();
 
 // ── Step navigation ──
 function updateProgress(step) {
