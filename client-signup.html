@@ -229,9 +229,21 @@
       if (error) ccToast(error.message, "error");
     }
 
-    _supabase.auth.onAuthStateChange((event, session) => {
+    // Only send an existing session to the dashboard if a client profile row
+    // actually exists — an account can exist in auth without one, and the
+    // dashboard can't create it, so those people must finish signup here.
+    async function clientProfileExists(email) {
+      try {
+        const { data } = await ccFetch("/client/by-email", { method: "POST", body: JSON.stringify({ email }) });
+        return !!(data && data.success);
+      } catch (_) {
+        return false;
+      }
+    }
+
+    _supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
-        if (session.user.user_metadata?.user_type === "client") {
+        if (await clientProfileExists(session.user.email)) {
           window.location.href = "dashboard-client.html";
           return;
         }

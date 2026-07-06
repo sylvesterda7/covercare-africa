@@ -258,15 +258,40 @@ function applyGoogleProfile(session) {
   return true;
 }
 
+// Does this account already have a worker profile row? An account can exist
+// in auth (user_type set at account creation) without ever having completed
+// the profile step that inserts the workers row. We must not bounce those
+// people to the dashboard — there's no way to create the profile from there.
+async function workerProfileExists(email) {
+  try {
+    const { data } = await ccFetch("/worker/by-email", {
+      method: "POST",
+      body: JSON.stringify({ email })
+    });
+    return !!(data && data.success);
+  } catch (_) {
+    return false;
+  }
+}
+
+// Route a signed-in visitor: to the dashboard only if their profile already
+// exists; otherwise drop them into the profile step here so they can finish
+// (recovery path for accounts that created auth but never completed signup).
+async function routeSignedInWorker(session) {
+  if (await workerProfileExists(session.user.email)) {
+    window.location.href = "dashboard-worker.html";
+    return;
+  }
+  if (session.user.user_metadata?.provider === "google") {
+    applyGoogleProfile(session);
+  }
+  document.getElementById("stage1Fields").style.display = "none";
+  document.getElementById("stage2Fields").style.display = "block";
+}
+
 _supabase.auth.onAuthStateChange((event, session) => {
   if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
-    if (session.user.user_metadata?.user_type === "worker") {
-      window.location.href = "dashboard-worker.html";
-      return;
-    }
-    if (session.user.user_metadata?.provider === "google") {
-      applyGoogleProfile(session);
-    }
+    routeSignedInWorker(session);
   }
 });
 
@@ -282,18 +307,7 @@ _supabase.auth.onAuthStateChange((event, session) => {
   }
   const { data: { session } } = await _supabase.auth.getSession();
   if (session) {
-    if (session.user.user_metadata?.user_type === "worker") {
-      window.location.href = "dashboard-worker.html";
-      return;
-    }
-    if (session.user.user_metadata?.provider === "google") {
-      applyGoogleProfile(session);
-    }
-    // Any existing session means account creation (stage 1) is already
-    // done — whether via Google or a prior email/phone signup — so skip
-    // straight to the profile fields.
-    document.getElementById("stage1Fields").style.display = "none";
-    document.getElementById("stage2Fields").style.display = "block";
+    await routeSignedInWorker(session);
   } else {
     document.getElementById("regFields").style.display = "block";
   }

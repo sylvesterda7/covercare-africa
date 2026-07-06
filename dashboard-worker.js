@@ -51,6 +51,21 @@ async function loadProfile(email) {
     document.getElementById("profileAvatar").textContent = "?";
     document.getElementById("profileBadges").innerHTML =
       `<span class="badge badge-yellow" style="margin-top:8px;">Profile incomplete</span>`;
+    // No workers row yet — the profile step of signup never completed. Give a
+    // clear way to finish it (the dashboard can't create the profile itself).
+    const banner = document.getElementById("activationBanner");
+    if (banner) {
+      banner.style.display = "block";
+      banner.innerHTML = `
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+            <span style="width:8px; height:8px; border-radius:50%; background:#E24B4A;"></span>
+            <h3 style="margin:0; font-size:15px;">Finish setting up your profile</h3>
+          </div>
+          <p style="font-size:13px; color:#6b7280; margin:0 0 1rem;">Your account was created but your professional profile isn't complete yet. Finish it to start picking up shifts.</p>
+          <a href="worker-signup.html" class="btn-primary-sm" style="display:inline-block; text-decoration:none; padding:8px 16px; font-size:13px;">Complete my profile</a>
+        </div>`;
+    }
     return;
   }
 
