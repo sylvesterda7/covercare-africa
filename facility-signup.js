@@ -297,7 +297,7 @@ document.getElementById("facilityForm").addEventListener("submit", async functio
     return;
   }
 
-  const btn = this.querySelector(".btn-submit");
+  const btn = e.submitter || this.querySelector('[type="submit"]');
   btn.disabled = true;
   btn.textContent = "Saving...";
 

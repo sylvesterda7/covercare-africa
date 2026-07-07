@@ -348,7 +348,7 @@ document.getElementById("workerForm").addEventListener("submit", async function(
     return;
   }
 
-  const btn = this.querySelector(".btn-submit");
+  const btn = e.submitter || this.querySelector('[type="submit"]');
   btn.disabled = true;
   btn.textContent = "Saving profile...";
 
