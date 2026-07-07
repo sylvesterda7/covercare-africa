@@ -124,7 +124,11 @@ async function facilityProfileExists(email) {
   }
 }
 
+let _routeGuard = false;
+
 async function routeSignedInFacility(session) {
+  if (_routeGuard) return;
+  _routeGuard = true;
   if (await facilityProfileExists(session.user.email)) {
     window.location.href = "dashboard-facility.html";
     return;

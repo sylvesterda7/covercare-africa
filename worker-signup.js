@@ -258,10 +258,6 @@ function applyGoogleProfile(session) {
   return true;
 }
 
-// Does this account already have a worker profile row? An account can exist
-// in auth (user_type set at account creation) without ever having completed
-// the profile step that inserts the workers row. We must not bounce those
-// people to the dashboard — there's no way to create the profile from there.
 async function workerProfileExists(email) {
   try {
     const { data } = await ccFetch("/worker/by-email", {
@@ -274,10 +270,11 @@ async function workerProfileExists(email) {
   }
 }
 
-// Route a signed-in visitor: to the dashboard only if their profile already
-// exists; otherwise drop them into the profile step here so they can finish
-// (recovery path for accounts that created auth but never completed signup).
+let _routeGuard = false;
+
 async function routeSignedInWorker(session) {
+  if (_routeGuard) return;
+  _routeGuard = true;
   if (await workerProfileExists(session.user.email)) {
     window.location.href = "dashboard-worker.html";
     return;
